@@ -5,6 +5,7 @@ import json
 import time
 import paho.mqtt.client as mqtt
 
+
 def read_temperature(sensor_id):
     sensor_file = f"/mnt/1wire/uncached/{sensor_id}/temperature"
     try:
@@ -14,6 +15,7 @@ def read_temperature(sensor_id):
     except FileNotFoundError:
         print(f"Sensor {sensor_id} not found.")
         return None
+
 
 def main():
     """ The main entry point """
@@ -35,11 +37,7 @@ def main():
         value = read_temperature(args.sensor)
 
         # build measurement structure
-        measurement = {}
-        measurement['time'] = timestamp
-        measurement['type'] = 'temperature'
-        measurement['id'] = args.sensor
-        measurement['value'] = value
+        measurement = {'time': timestamp, 'type': 'temperature', 'id': args.sensor, 'value': value}
 
         # publish
         topic = f"{args.topic}/sensors/temperature/{args.sensor}/measurement"
@@ -49,6 +47,7 @@ def main():
 
         # wait
         time.sleep(args.interval)
+
 
 if __name__ == "__main__":
     main()
