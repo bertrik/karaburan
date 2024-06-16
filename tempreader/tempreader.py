@@ -34,17 +34,18 @@ def main():
         timestamp = time.time()
         value = read_temperature(args.sensor)
 
-        # build payload
-        payload = {}
-        payload['time'] = timestamp
-        payload['type'] = 'temperature'
-        payload['id'] = args.sensor
-        payload['value'] = value
-        topic = f"{args.topic}/sensors/temperature/{args.sensor}/measurement"
+        # build measurement structure
+        measurement = {}
+        measurement['time'] = timestamp
+        measurement['type'] = 'temperature'
+        measurement['id'] = args.sensor
+        measurement['value'] = value
 
         # publish
+        topic = f"{args.topic}/sensors/temperature/{args.sensor}/measurement"
+        payload = json.dumps(measurement)
         print(f"Sending {payload} to {topic}")
-        client.publish(topic, json.dumps(payload))
+        client.publish(topic, payload)
 
         # wait
         time.sleep(args.interval)
