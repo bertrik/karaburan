@@ -23,14 +23,23 @@ def main():
     parser.add_argument("-s", "--sensor", help="The temperature sensor id",
                         default="28.7AAB46D42000")
     parser.add_argument("-b", "--broker", help="The MQTT broker host name",
-                        default="stofradar.nl")
+                        default="localhost")
     parser.add_argument("-t", "--topic", help="The MQTT base topic to publish on",
                         default="karaburan")
     parser.add_argument("-i", "--interval", help="The publish interval (seconds)", default=15)
     args = parser.parse_args()
 
+    # set up topic structure
+    base_topic = f"{args.topic}/sensors/temperature/{args.sensor}"
+    config_topic = f"{base_topic}/config"
+    config = {'name' : 'measurer', 'unit' : 'degree Celcius', 'location' : 'underwater', 'contact': 'bertrik'}
+
+    # connect
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.will_set(config_topic, payload=None, retain=True)
     client.connect(args.broker)
+    client.publish(config_topic, json.dumps(config), retain=True)
+
     while True:
         # get value
         timestamp = time.time()
@@ -40,7 +49,7 @@ def main():
         measurement = {'time': timestamp, 'type': 'temperature', 'id': args.sensor, 'value': value}
 
         # publish
-        topic = f"{args.topic}/sensors/temperature/{args.sensor}/measurement"
+        topic = f"{base_topic}/measurement"
         payload = json.dumps(measurement)
         print(f"Sending {payload} to {topic}")
         client.publish(topic, payload)
