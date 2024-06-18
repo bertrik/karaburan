@@ -24,15 +24,13 @@ def main():
                         default="28.7AAB46D42000")
     parser.add_argument("-b", "--broker", help="The MQTT broker host name",
                         default="localhost")
-    parser.add_argument("-t", "--topic", help="The MQTT base topic to publish on",
-                        default="karaburan")
     parser.add_argument("-i", "--interval", help="The publish interval (seconds)", default=15)
     args = parser.parse_args()
 
     # set up topic structure
-    base_topic = f"{args.topic}/sensors/temperature/{args.sensor}"
+    base_topic = f"karaburan/sensors/temperature/{args.sensor}"
     config_topic = f"{base_topic}/config"
-    config = {'name' : 'measurer', 'unit' : 'degree Celcius', 'location' : 'underwater', 'contact': 'bertrik'}
+    config = {'name': 'measurer', 'unit': 'degree Celcius', 'location': 'underwater', 'contact': 'bertrik'}
 
     # connect
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
