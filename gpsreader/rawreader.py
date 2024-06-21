@@ -10,7 +10,8 @@ import paho.mqtt.client as mqtt
 HOST = 'localhost'
 PORT = 2947
 
-class GpsdClient():
+
+class GpsdClient:
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -29,6 +30,7 @@ class GpsdClient():
 
     def close(self):
         self.sock.close()
+
 
 def main():
     """ The main entry point """
@@ -73,6 +75,6 @@ def main():
     finally:
         gpsd_client.close()
 
+
 if __name__ == "__main__":
     main()
-
