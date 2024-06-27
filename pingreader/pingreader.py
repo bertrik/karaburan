@@ -8,8 +8,8 @@ import paho.mqtt.client as mqtt
 import serial
 
 # Configure the serial port (make sure to replace 'COM3' with your actual serial port)
-baud_rate = 9600  # Baud rate (can be adjusted based on your device)
-sensor_type = 'distance'
+BAUD_RATE = 9600  # Baud rate (can be adjusted based on your device)
+SENSOR_TYPE = 'distance'
 
 
 def ping(ser):
@@ -39,10 +39,10 @@ def main():
     args = parser.parse_args()
 
     # set up topic structure
-    base_topic = f"karaburan/sensors/{sensor_type}/{args.sensor}"
+    base_topic = f"karaburan/sensors/{SENSOR_TYPE}/{args.sensor}"
     config_topic = f"{base_topic}/config"
     measurement_topic = f"{base_topic}/measurement"
-    config = {'type': sensor_type, 'id': args.sensor, 'unit': 'mm', 'location': 'side', 'contact': 'bertrik'}
+    config = {'type': SENSOR_TYPE, 'id': args.sensor, 'unit': 'mm', 'location': 'side'}
 
     # connect to mqtt
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
@@ -50,12 +50,13 @@ def main():
     client.connect(args.broker)
 
     # Open the serial port
-    with serial.Serial(args.device, baud_rate, timeout=1) as ser:
+    with serial.Serial(args.device, BAUD_RATE, timeout=1) as ser:
         client.publish(config_topic, json.dumps(config), retain=True)
         while True:
+            timestamp = time.time()
             distance = ping(ser)
             if distance:
-                measurement = {'type': sensor_type, 'id': args.sensor, 'value': distance}
+                measurement = {'type': SENSOR_TYPE, 'id': args.sensor, 'time': timestamp, 'value': distance}
                 client.publish(measurement_topic, json.dumps(measurement))
 
             # next

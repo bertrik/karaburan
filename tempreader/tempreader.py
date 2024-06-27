@@ -5,6 +5,8 @@ import json
 import time
 import paho.mqtt.client as mqtt
 
+SENSOR_TYPE = 'temperature'
+
 
 def read_temperature(sensor_id):
     sensor_file = f"/mnt/1wire/uncached/{sensor_id}/temperature"
@@ -28,9 +30,10 @@ def main():
     args = parser.parse_args()
 
     # set up topic structure
-    base_topic = f"karaburan/sensors/temperature/{args.sensor}"
+    base_topic = f"karaburan/sensors/{SENSOR_TYPE}/{args.sensor}"
     config_topic = f"{base_topic}/config"
-    config = {'name': 'measurer', 'unit': 'degree Celcius', 'location': 'underwater', 'contact': 'bertrik'}
+    measurement_topic = f"{base_topic}/measurement"
+    config = {'type': SENSOR_TYPE, 'id': args.sensor, 'unit': 'degC', 'location': 'underwater'}
 
     # connect
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
@@ -44,13 +47,12 @@ def main():
         value = read_temperature(args.sensor)
 
         # build measurement structure
-        measurement = {'time': timestamp, 'type': 'temperature', 'id': args.sensor, 'value': value}
+        measurement = {'type': SENSOR_TYPE, 'id': args.sensor, 'time': timestamp, 'value': value}
 
         # publish
-        topic = f"{base_topic}/measurement"
         payload = json.dumps(measurement)
-        print(f"Sending {payload} to {topic}")
-        client.publish(topic, payload)
+        print(f"Sending {payload} to {measurement_topic}")
+        client.publish(measurement_topic, payload)
 
         # wait
         time.sleep(args.interval)

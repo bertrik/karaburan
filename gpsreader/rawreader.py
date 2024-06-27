@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 # Define the host and port for gpsd
 HOST = 'localhost'
 PORT = 2947
+SENSOR_TYPE = 'location'
 
 
 class GpsdClient:
@@ -40,9 +41,10 @@ def main():
     args = parser.parse_args()
 
     # set up topic structure
-    base_topic = f"karaburan/sensors/gps/{args.sensor}"
+    base_topic = f"karaburan/sensors/{SENSOR_TYPE}/{args.sensor}"
     config_topic = f"{base_topic}/config"
-    config = {'name': 'location', 'unit': 'NA', 'location': 'topside', 'contact': 'bertrik'}
+    measurement_topic = f"{base_topic}/measurement"
+    config = {'type': SENSOR_TYPE, 'id': args.sensor, 'unit': 'NA', 'location': 'topside'}
 
     # connect to mqtt
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
@@ -54,6 +56,7 @@ def main():
     gpsd_client.connect(HOST, PORT)
     try:
         while True:
+            timestamp = time.time()
             reports = gpsd_client.poll()
 
             # Decode and parse the JSON data
@@ -68,10 +71,8 @@ def main():
 
                 # Time position reports
                 if report['class'] == 'TPV':
-                    topic = f"{base_topic}/measurement"
-                    timestamp = time.time()
-                    measurement = {'time': timestamp, 'type': 'gps', 'id': args.sensor, 'value': report}
-                    client.publish(topic, json.dumps(measurement))
+                    measurement = {'type': SENSOR_TYPE, 'id': args.sensor, 'time': timestamp, 'value': report}
+                    client.publish(measurement_topic, json.dumps(measurement))
     finally:
         gpsd_client.close()
 
