@@ -47,7 +47,7 @@ def main():
     config = {'type': SENSOR_TYPE, 'id': args.sensor, 'unit': 'NA', 'location': 'topside'}
 
     # connect to mqtt
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client = mqtt.Client()
     client.will_set(config_topic, payload=None, retain=True)
     client.connect(args.broker)
 
