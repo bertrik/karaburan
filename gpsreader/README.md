@@ -7,7 +7,7 @@ System packages needed:
 * gpsd-clients
 
 Install with apt:
-> apt install gpsd gpsd-clients
+> sudo apt install gpsd gpsd-clients
 
 ## Serial port rules
 To set up the serial port:
@@ -29,13 +29,13 @@ You should now have a /dev/ttyGPS device
 ## Configure gpsd
 To configure gpsd:
 * open its configuration file
-  sudo nano /etc/default/gpsd
+>  sudo nano /etc/default/gpsd
 * add/edit the following lines
-  DEVICES="/dev/ttyGPS"
-  GPSD_OPTIONS="-Gn ntrip://user:pass@ntrip.kadaster.nl:2101/CBW100NLD0"
-  USBAUTO="false"
+>  DEVICES="/dev/ttyGPS"
+>  GPSD_OPTIONS="-Gn ntrip://user:pass@ntrip.kadaster.nl:2101/CBW100NLD0"
+>  USBAUTO="false"
 * restart gpsd
-  sudo systemctl restart gpsd gpsd.socket
+>  sudo systemctl restart gpsd gpsd.socket
 
 You should now see activity when running cgps
 > cgps
