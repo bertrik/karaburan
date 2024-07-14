@@ -14,7 +14,7 @@ services:
       - DOCKER_INFLUXDB_INIT_BUCKET=karaburan
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=token
     volumes:
-      - ./influxdb-data/:/var/lib/influxdb2
+      - ../influxdb/influxdb-data/:/var/lib/influxdb2
 
   telegraf:
     image: telegraf:1.31.0
@@ -30,7 +30,7 @@ services:
       - /proc:/rootfs/proc:ro
       - /sys:/rootfs/sys:ro
       - /etc:/rootfs/etc:ro
-      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - ../influxdb/telegraf.conf:/etc/telegraf/telegraf.conf:ro
 
 volumes:
   influxdb-data:

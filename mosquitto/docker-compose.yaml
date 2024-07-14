@@ -8,7 +8,7 @@ services:
       - "1883:1883"
       - "9001:9001" # WebSockets port (optional)
     volumes:
-      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - ./data:/mosquitto/data
-      - ./log:/mosquitto/log
+      - ../mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ../mosquitto/data:/mosquitto/data
+      - ../mosquitto/log:/mosquitto/log
     restart: unless-stopped
