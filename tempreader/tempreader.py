@@ -3,6 +3,7 @@
 import argparse
 import json
 import time
+import datetime
 import paho.mqtt.client as mqtt
 
 SENSOR_TYPE = 'temperature'
@@ -13,7 +14,7 @@ def read_temperature(sensor_id):
     try:
         with open(sensor_file, 'r', encoding="UTF-8") as file:
             temperature = file.read().strip()
-            return temperature
+            return float(temperature)
     except FileNotFoundError:
         print(f"Sensor {sensor_id} not found.")
         return None
@@ -43,7 +44,7 @@ def main():
 
     while True:
         # get value
-        timestamp = time.time()
+        timestamp = datetime.datetime.now(datetime.UTC).isoformat()
         value = read_temperature(args.sensor)
 
         # build measurement structure
