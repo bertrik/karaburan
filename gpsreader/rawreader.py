@@ -23,7 +23,7 @@ class GpsdClient:
         self.sock.sendall(b'?WATCH={"enable":true,"json":true}\n')
 
     def poll(self):
-        data = self.sock.recv(4096)
+        data = self.sock.recv(16384)
         if not data:
             return data
         data = data.decode('utf-8').strip()
@@ -61,16 +61,19 @@ def main():
 
             # Decode and parse the JSON data
             for r in reports:
+                if r is None:
+                    continue
                 report = json.loads(r)
-                print(f"{report}")
 
                 # Check for gpsd connection to device, publish config to indicate our presence
                 if report['class'] == 'DEVICES':
+                    print(f"{r}")
                     config['devices'] = report['devices']
                     client.publish(config_topic, json.dumps(config), retain=True)
 
                 # Time position reports
                 if report['class'] == 'TPV':
+                    print(f"{r}")
                     measurement = {'type': SENSOR_TYPE, 'id': args.sensor, 'time': timestamp, 'value': report}
                     client.publish(measurement_topic, json.dumps(measurement))
     finally:
