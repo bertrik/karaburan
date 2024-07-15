@@ -16,8 +16,10 @@ To set up the serial port:
 >  lsusb
 * create a custom udev gpsd.rules file
 > sudo nano /etc/udev/rules.d/60-gpsd.rules
-* add a line with the USB vendor and USB product id
+* add the following lines containing the USB vendor and USB product id
+> SUBSYSTEM!="tty", GOTO="gpsd_rules_end"
 > ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="gps%n", TAG+="systemd", ENV{SYSTEMD_WANTS}="gpsdctl@%k.service"
+> LABEL="gpsd_rules_end"
 * reload the udev rules
 > sudo udevadm --control reload
 * replug the GPS USB serial device and watch the logs
