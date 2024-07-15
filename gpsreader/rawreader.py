@@ -15,6 +15,7 @@ SENSOR_TYPE = 'location'
 class GpsdClient:
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.file = self.sock.makefile()
 
     def connect(self, host, port):
         self.sock.connect((host, port))
@@ -23,11 +24,10 @@ class GpsdClient:
         self.sock.sendall(b'?WATCH={"enable":true,"json":true}\n')
 
     def poll(self):
-        data = self.sock.recv(16384)
-        if not data:
-            return data
-        data = data.decode('utf-8').strip()
-        return data.split('\n')
+        line = self.file.readline()
+        if line:
+            line = line.strip()
+        return line
 
     def close(self):
         self.sock.close()
@@ -56,26 +56,26 @@ def main():
     gpsd_client.connect(HOST, PORT)
     try:
         while True:
-            timestamp = time.time()
-            reports = gpsd_client.poll()
+            # Get a JSON string
+            line = gpsd_client.poll()
+            if line is None:
+                continue
 
             # Decode and parse the JSON data
-            for r in reports:
-                if r is None:
-                    continue
-                report = json.loads(r)
+            timestamp = time.time()
+            report = json.loads(line)
 
-                # Check for gpsd connection to device, publish config to indicate our presence
-                if report['class'] == 'DEVICES':
-                    print(f"{r}")
-                    config['devices'] = report['devices']
-                    client.publish(config_topic, json.dumps(config), retain=True)
+            # Check for gpsd connection to device, publish config to indicate our presence
+            if report['class'] == 'DEVICES':
+                print(f"{line}")
+                config['devices'] = report['devices']
+                client.publish(config_topic, json.dumps(config), retain=True)
 
-                # Time position reports
-                if report['class'] == 'TPV':
-                    print(f"{r}")
-                    measurement = {'type': SENSOR_TYPE, 'id': args.sensor, 'time': timestamp, 'value': report}
-                    client.publish(measurement_topic, json.dumps(measurement))
+            # Time position reports
+            if report['class'] == 'TPV':
+                print(f"{line}")
+                measurement = {'type': SENSOR_TYPE, 'id': args.sensor, 'time': timestamp, 'value': report}
+                client.publish(measurement_topic, json.dumps(measurement))
     finally:
         gpsd_client.close()
 
