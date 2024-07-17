@@ -11,11 +11,14 @@ import serial
 
 class Responder:
     """ mqtt responder """
-    def __init__(self, ser, broker, base_topic, config):
+
+    def __init__(self, ser, broker, sensor_type, sensor_id):
         self.serial = ser
         self.broker = broker
-        self.config = config
+        self.config = {'type': sensor_type, 'id': sensor_id}
 
+        # set up topic structure
+        base_topic = f"karaburan/control/{sensor_type}/{sensor_id}"
         self.config_topic = f"{base_topic}/config"
         self.command_topic = f"{base_topic}/command"
         self.response_topic = f"{base_topic}/response"
@@ -65,14 +68,10 @@ def main():
     parser.add_argument("--baud", help="The serial port baud rate", default="115200")
     args = parser.parse_args()
 
-    # set up topic structure
-    base_topic = f"karaburan/control/{args.type}/{args.id}"
-    config = {'type': args.type, 'id': args.id}
-
     # Open the serial port
     print(f"Opening {args.serial} @ {args.baud} bps...")
     with serial.Serial(args.serial, args.baud) as ser:
-        responder = Responder(ser, args.broker, base_topic, config)
+        responder = Responder(ser, args.broker, args.type, args.id)
         responder.start()
         try:
             while True:
