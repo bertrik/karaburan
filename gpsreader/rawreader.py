@@ -3,6 +3,7 @@
 import argparse
 import socket
 import time
+import datetime
 import json
 import paho.mqtt.client as mqtt
 
@@ -62,7 +63,7 @@ def main():
                 continue
 
             # Decode and parse the JSON data
-            timestamp = time.time()
+            timestamp = datetime.datetime.now(datetime.UTC).isoformat()
             report = json.loads(line)
 
             # Check for gpsd connection to device, publish config to indicate our presence
