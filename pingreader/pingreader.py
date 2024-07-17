@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import json
 import time
 
@@ -53,7 +54,7 @@ def main():
     with serial.Serial(args.device, BAUD_RATE, timeout=1) as ser:
         client.publish(config_topic, json.dumps(config), retain=True)
         while True:
-            timestamp = time.time()
+            timestamp = datetime.datetime.now(datetime.UTC).isoformat()
             distance = ping(ser)
             if distance:
                 measurement = {'type': SENSOR_TYPE, 'id': args.sensor, 'time': timestamp, 'value': distance}
