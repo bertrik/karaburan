@@ -60,7 +60,7 @@ class Responder:
 
 def main():
     """ The main entry point """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--broker", help="The MQTT broker host name", default="localhost")
     parser.add_argument("--type", help="The device type", default="motor")
     parser.add_argument("--id", help="The device id", default="1")
