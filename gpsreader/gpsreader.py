@@ -36,7 +36,7 @@ class GpsdClient:
 
 def main():
     """ The main entry point """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-s", "--sensor", help="Sensor id", default="1")
     parser.add_argument("-b", "--broker", help="The MQTT broker host name", default="localhost")
     args = parser.parse_args()
