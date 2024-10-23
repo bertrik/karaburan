@@ -22,7 +22,7 @@ def read_temperature(sensor_id):
 
 def main():
     """ The main entry point """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-s", "--sensor", help="The temperature sensor id",
                         default="28.7AAB46D42000")
     parser.add_argument("-b", "--broker", help="The MQTT broker host name",

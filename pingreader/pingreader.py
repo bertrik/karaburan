@@ -29,7 +29,7 @@ def ping(ser):
 
 def main():
     """ The main entry point """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-d", "--device", help="The serial device",
                         default="/dev/ttyUSB0")
     parser.add_argument("-b", "--broker", help="The MQTT broker host name",
