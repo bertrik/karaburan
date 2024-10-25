@@ -4,6 +4,7 @@ import argparse
 import datetime
 import json
 import time
+from typing import Optional
 
 import paho.mqtt.client as mqtt
 import serial
@@ -13,7 +14,7 @@ BAUD_RATE = 9600  # Baud rate (can be adjusted based on your device)
 SENSOR_TYPE = 'distance'
 
 
-def ping(ser):
+def ping(ser: object) -> Optional[int]:
     ser.write(b'\b0x01')
     # Read data from the serial port
     data = ser.read(ser.in_waiting)

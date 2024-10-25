@@ -28,13 +28,13 @@ class Responder:
         self.client.on_message = self.on_message
         self.client.will_set(self.config_topic, None, retain=True)
 
-    def start(self):
+    def start(self) -> None:
         """" starts the responder, connects to mqtt """
         print(f"Connecting to MQTT broker {self.broker}...")
         self.client.connect(self.broker)
         self.client.loop_start()
 
-    def stop(self):
+    def stop(self) -> None:
         """ stops the responder, disconnects from mqtt """
         self.client.disconnect()
 
@@ -51,7 +51,7 @@ class Responder:
         self.serial.write(msg.payload)
         self.serial.write(b'\n')
 
-    def send_response(self, data):
+    def send_response(self, data) -> None:
         """ sends a response message from serial to mqtt """
         response = data.decode('UTF-8')
         print(f" <<MQTT<<<serial: '{response}'")

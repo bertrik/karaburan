@@ -4,12 +4,14 @@ import argparse
 import json
 import time
 import datetime
+from typing import Optional
+
 import paho.mqtt.client as mqtt
 
 SENSOR_TYPE = 'temperature'
 
 
-def read_temperature(sensor_id):
+def read_temperature(sensor_id: str) -> Optional[float]:
     sensor_file = f"/mnt/1wire/uncached/{sensor_id}/temperature"
     try:
         with open(sensor_file, 'r', encoding="UTF-8") as file:

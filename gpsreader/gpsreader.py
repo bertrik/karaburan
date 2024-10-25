@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import argparse
-import socket
-import time
 import datetime
 import json
+import socket
+
 import paho.mqtt.client as mqtt
 
 # Define the host and port for gpsd
@@ -18,19 +18,19 @@ class GpsdClient:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.file = self.sock.makefile()
 
-    def connect(self, host, port):
+    def connect(self, host: str, port: int) -> None:
         self.sock.connect((host, port))
 
         # Send the command to gpsd to watch for data
         self.sock.sendall(b'?WATCH={"enable":true,"json":true}\n')
 
-    def poll(self):
+    def poll(self) -> str:
         line = self.file.readline()
         if line:
             line = line.strip()
         return line
 
-    def close(self):
+    def close(self) -> None:
         self.sock.close()
 
 
