@@ -28,9 +28,6 @@ class PositionReporter:
     def stop(self) -> None:
         self.client.disconnect()
 
-    def unsubscribe(self, topic: str) -> None:
-        self.client.unsubscribe(topic)
-
     def on_connect(self, _client, _userdata, _flags, _rc) -> None:
         print(f"Connected, subscribing to topic {self.topic}...")
         self.client.subscribe(self.topic)
