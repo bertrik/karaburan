@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Copyright 2024 Bertrik Sikken <bertrik@sikken.nl>
+
 """ receives position reports from MQTT and makes them available in a callback """
 
 import argparse

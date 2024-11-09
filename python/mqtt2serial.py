@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Copyright 2024 Bertrik Sikken <bertrik@sikken.nl>
+
 """ receives commands over mqtt, forwards them to serial, sends the serial response back to mqtt """
 
 import argparse

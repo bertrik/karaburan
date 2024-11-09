@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Copyright 2024 Bertrik Sikken <bertrik@sikken.nl>
+
 import argparse
 import datetime
 import json
