@@ -1,0 +1,153 @@
+---
+openapi: 3.0.0
+info:
+  title: Arduino Serial REST API
+  version: 0.1.0
+  servers:
+    - url: http://localhost/serial
+paths:
+  /pwm:
+    post:
+      summary: Set motors PWM values
+      description: Set the PWM values for motors A and B
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pwmA:
+                  type: integer
+                  description: PWM value for motor A
+                pwmB:
+                  type: integer
+                  description: PWM value for motor B
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Motor disabled
+    get:
+      summary: Get PWM values
+      description: Get the current PWM values
+      responses:
+        "200":
+          description: JSON object with PWM values
+  /speed:
+    post:
+      summary: Set end speed as maximum PWM constant for the Move commands
+      description: Set the speed value
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: integer
+                  description: Speed value
+      responses:
+        "200":
+          description: OK
+    get:
+      summary: Get Speed
+      description: Get the current speed value
+      responses:
+        "200":
+          description: JSON object with speed value
+  /move:
+    post:
+      summary: Move Commands
+      description: Set the move command
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                direction:
+                  type: string
+                  description: Move direction S, F, L, l, R, r, B, U
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Motor disabled
+  /nav:
+    post:
+      summary: Navigation Command
+      description: Set the navigation command with duration and heading
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                duration:
+                  type: integer
+                  description: Duration in seconds
+                heading:
+                  type: integer
+                  description: Target heading in degrees
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Motor disabled
+    get:
+      summary: Get Navigation State
+      description: Get the current navigation state
+      responses:
+        "200":
+          description: JSON object with navigation state
+  /wd:
+    post:
+      summary: Watchdog Command
+      description: Trigger refresh the watchdog timeout counter in sec
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timeout:
+                  type: integer
+                  description: Watchdog timeout value in second.
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Invalid timeout value
+    get:
+      summary: Get Watchdog State
+      description: Get the watchdog state
+      responses:
+        "200":
+          description: JSON object with watchdog state
+  /calib:
+    post:
+      summary: Calibrate Compass
+      description: Start compass calibration
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Motor disabled
+    get:
+      summary: Get Calibration Values
+      description: Get the calibration values
+      responses:
+        "200":
+          description: JSON object with calibration values
+  /heading:
+    get:
+      summary: Get Heading
+      description: Get the current heading
+      responses:
+        "200":
+          description: JSON object with heading value
