@@ -5,7 +5,8 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import String
+from sensor_msgs.msg import Temperature
+from std_msgs.msg import Header
 
 from typing import Optional
 
@@ -30,14 +31,16 @@ class Tempreader(Node):
         topic_name = self.get_parameter("topic").get_parameter_value().string_value
 
 
-        self.publisher_ = self.create_publisher(String, topic_name, 10)
+        self.publisher_ = self.create_publisher(Temperature, topic_name, 10)
         timer_period = 5 # Seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def timer_callback(self):
-        msg = String()
+        msg = Temperature()
+        
         sensor_id = self.get_parameter("sensorId").get_parameter_value().string_value
-        msg.data = f"Temperature read {read_temperature(sensor_id)}"
+        hdr = Header(frame_id=f"temperature{sensor_id}", stamp=self.get_clock().now().to_msg())
+        msg = Temperature(header=hdr, temperature=read_temperature(sensor_id))
         self.publisher_.publish(msg)
 
 def main(args=None):
