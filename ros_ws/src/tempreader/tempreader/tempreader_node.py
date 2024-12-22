@@ -24,6 +24,7 @@ def read_temperature(sensor_id: str) -> Optional[float]:
 
 
 class Tempreader(Node):
+
     def __init__(self):
         super().__init__('tempreader')
         self.declare_parameter('sensorId', value='28.7AAB46D42000')
