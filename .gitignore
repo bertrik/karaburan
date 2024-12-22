@@ -1,7 +1,7 @@
 .*
-ros2/log/*
-ros2/src/log/*
-ros2/build/*
-ros2/install/*
-ros2/src/build/*
-ros2/src/install/*
+ros_ws/log/*
+ros_ws/src/log/*
+ros_ws/build/*
+ros_ws/install/*
+ros_ws/src/build/*
+ros_ws/src/install/*
