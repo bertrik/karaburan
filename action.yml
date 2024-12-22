@@ -1,0 +1,9 @@
+steps:
+  - uses: ros-tooling/setup-ros@v0.7
+    with:
+      required-ros-distributions: jazzy
+  - uses: ros-tooling/action-ros-ci@v0.3
+    with:
+      package-name: ros2
+      target-ros2-distro: jazzy
+
