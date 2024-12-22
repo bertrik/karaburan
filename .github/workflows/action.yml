@@ -2,8 +2,8 @@ name: ROS2 Jazzy Build
 on: push
 
 jobs:
-  jazzy_source:
-    runs_on: ubuntu-latest
+  jazzy_build:
+    runs-on: ubuntu-latest
     container:
       image: ubuntu:noble
     steps:
