@@ -1,8 +1,8 @@
 import math
 
 import rclpy
-from rclpy.node import Node
 from boat_interfaces.msg import BoatHeading
+from rclpy.node import Node
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import Quaternion
 from sensor_msgs.msg import NavSatFix
@@ -40,7 +40,7 @@ class SensorFusionNode(Node):
 
         # Return quaternion
         return Quaternion(x=qx, y=qy, z=qz, w=qw)
-    
+
     def publish_pose(self):
         if self.current_lat is not None and self.current_lon is not None and self.current_heading is not None:
             pose_msg = PoseWithCovarianceStamped()
@@ -63,6 +63,7 @@ def main():
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
