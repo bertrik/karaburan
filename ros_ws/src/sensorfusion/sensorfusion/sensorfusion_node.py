@@ -1,12 +1,15 @@
 import rclpy
+import math
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
 from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import Quaternion
 
 class SensorFusionNode(Node):
     def __init__(self):
         super().__init__('sensor_fusion_node')
-        self.gps_sub = self.create_subscription(NavSatFix, '/gps/fix', self.gps_callback, 10)
+        self.gps_sub = self.create_subscription(NavSatFix, '/fix', self.gps_callback, 10)
+        self.compass_sub = self.create_subscription(uint16, '/compass', self.compass_callback, 10)
         self.pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/amcl_pose', 10)
         self.current_lat = None
         self.current_lon = None
@@ -35,6 +38,20 @@ class SensorFusionNode(Node):
             pose_msg.pose.pose.orientation = heading_to_quaternion(self.current_heading)
 
             self.pose_pub.publish(pose_msg)
+
+
+    def heading_to_quaternion(heading_deg):
+        # Convert compass heading from degrees to radians
+        heading_rad = math.radians(heading_deg)
+
+        # Calculate quaternion components
+        qx = 0.0
+        qy = 0.0
+        qz = math.sin(heading_rad / 2)
+        qw = math.cos(heading_rad / 2)
+
+        # Return quaternion
+        return Quaternion(x=qx, y=qy, z=qz, w=qw)
 
 def main():
     rclpy.init()
