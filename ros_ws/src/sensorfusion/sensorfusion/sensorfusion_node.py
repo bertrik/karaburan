@@ -8,6 +8,19 @@ from geometry_msgs.msg import Quaternion
 from sensor_msgs.msg import NavSatFix
 
 
+def heading_to_quaternion(heading_deg):
+    # Convert compass heading from degrees to radians
+    heading_rad = math.radians(heading_deg)
+
+    # Calculate quaternion components
+    qx = 0.0
+    qy = 0.0
+    qz = math.sin(heading_rad / 2)
+    qw = math.cos(heading_rad / 2)
+
+    # Return quaternion
+    return Quaternion(x=qx, y=qy, z=qz, w=qw)
+
 class SensorFusionNode(Node):
 
     def __init__(self):
@@ -27,19 +40,6 @@ class SensorFusionNode(Node):
     def compass_callback(self, heading):
         self.current_heading = heading
         self.publish_pose()
-
-    def heading_to_quaternion(heading_deg):
-        # Convert compass heading from degrees to radians
-        heading_rad = math.radians(heading_deg)
-
-        # Calculate quaternion components
-        qx = 0.0
-        qy = 0.0
-        qz = math.sin(heading_rad / 2)
-        qw = math.cos(heading_rad / 2)
-
-        # Return quaternion
-        return Quaternion(x=qx, y=qy, z=qz, w=qw)
 
     def publish_pose(self):
         if self.current_lat is not None and self.current_lon is not None and self.current_heading is not None:
