@@ -2,9 +2,9 @@ import math
 
 from boat_interfaces.msg import BoatHeading
 import rclpy
-from rclpy.node import Node
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import Quaternion
+from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
 
 
@@ -49,7 +49,8 @@ class SensorFusionNode(Node):
             pose_msg.header.frame_id = 'odom'
 
             # Convert GPS to XY coordinates (this will need to be done with a transform library)
-            pose_msg.pose.pose.position.x = self.current_lon  # Simplified; typically requires a transform
+            # Simplified; typically requires a transform
+            pose_msg.pose.pose.position.x = self.current_lon  
             pose_msg.pose.pose.position.y = self.current_lat
 
             # Convert compass heading to quaternion for orientation
