@@ -2,6 +2,7 @@ import math
 
 import rclpy
 from rclpy.node import Node
+from boat_interfaces.msg import BoatHeading
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import Quaternion
 from sensor_msgs.msg import NavSatFix
@@ -12,7 +13,7 @@ class SensorFusionNode(Node):
     def __init__(self):
         super().__init__('sensor_fusion_node')
         self.gps_sub = self.create_subscription(NavSatFix, '/fix', self.gps_callback, 10)
-        self.compass_sub = self.create_subscription(uint16, '/compass', self.compass_callback, 10)
+        self.compass_sub = self.create_subscription(BoatHeading, '/compass', self.compass_callback, 10)
         self.pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/amcl_pose', 10)
         self.current_lat = None
         self.current_lon = None
@@ -23,8 +24,8 @@ class SensorFusionNode(Node):
         self.current_lon = msg.longitude
         self.publish_pose()
 
-    def compass_callback(self, heading_deg):
-        self.current_heading = heading_deg
+    def compass_callback(self, heading):
+        self.current_heading = heading
         self.publish_pose()
 
     def heading_to_quaternion(heading_deg):
@@ -51,7 +52,7 @@ class SensorFusionNode(Node):
             pose_msg.pose.pose.position.y = self.current_lat
 
             # Convert compass heading to quaternion for orientation
-            pose_msg.pose.pose.orientation = heading_to_quaternion(self.current_heading)
+            pose_msg.pose.pose.orientation = heading_to_quaternion(self.current_heading.heading)
 
             self.pose_pub.publish(pose_msg)
 
