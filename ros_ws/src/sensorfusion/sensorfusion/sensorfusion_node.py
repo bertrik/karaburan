@@ -1,7 +1,7 @@
 import math
 
-import rclpy
 from boat_interfaces.msg import BoatHeading
+import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import Quaternion
@@ -20,6 +20,7 @@ def heading_to_quaternion(heading_deg):
 
     # Return quaternion
     return Quaternion(x=qx, y=qy, z=qz, w=qw)
+
 
 class SensorFusionNode(Node):
 
