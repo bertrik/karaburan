@@ -14,4 +14,8 @@ jobs:
         with:
           package-name: tempreader
           target-ros2-distro: jazzy
+      - uses: ros-tooling/action-ros-ci@v0.3
+        with:
+          package-name: sensorfusion
+          target-ros2-distro: jazzy
 
