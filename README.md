@@ -9,6 +9,8 @@ Build and run temperature sensor node (my SensorID):
 Launch GPSD client node:
 `ros2 launch gpsd_client gpsd_client-launch.py &`
 
+Install ros-jazzy-gpsd-client
+
 Read fixes from GPS:
 `ros2 topic echo /fix`
 
