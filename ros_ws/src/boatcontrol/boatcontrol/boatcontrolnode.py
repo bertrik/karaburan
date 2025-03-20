@@ -61,6 +61,8 @@ class BoatControlNode(Node):
     def __init__(self):
         super().__init__('boat_control_node')
         self.compass_pub = self.create_publisher(BoatHeading, '/compass', 10)
+        self.heading_sub = self.create_subscriber(Float64, '/desired_heading', self.heading_callback, 10)
+        self.speed_sub = self.create_subscriber(Float64, '/desired_speed', self.speed_callback, 10)
         self.current_heading = None
         timer_period = 1  # Seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -73,6 +75,12 @@ class BoatControlNode(Node):
         msg = BoatHeading()
         msg.heading = current_heading
         self.compass_pub.publish(msg)
+
+    def heading_callback(self, heading):
+        send_nav_command(10, heading)
+
+    def speed_callback(self, speed):
+        send_speed_command(speed)
 
 def main():
     rclpy.init()
