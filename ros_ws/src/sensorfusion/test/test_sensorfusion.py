@@ -2,7 +2,6 @@ import pytest
 from boat_interfaces.msg import BoatHeading
 import rclpy
 from sensor_msgs.msg import NavSatFix
-from std_msgs.msg import Float32
 from sensorfusion.sensorfusion_node import SensorFusionNode
 
 
