@@ -9,6 +9,7 @@ import launch_ros.actions
 import launch_testing
 from launch_testing_ros.wait_for_topics import WaitForTopics
 import sys
+import time
 import os
 import unittest
 from boat_interfaces.msg import BoatHeading
@@ -23,9 +24,9 @@ def generate_test_description():
 
     return launch.LaunchDescription([
         sensorfusion_node,
-        launch_testing.actions.ReadyToTest()
+        launch.actions.TimerAction(
+                    period=0.5, actions=[launch_testing.actions.ReadyToTest()])
     ]), {"sensorfusion_node": sensorfusion_node}
-
 
 class TestSensorFusion(unittest.TestCase):
 
@@ -40,19 +41,25 @@ class TestSensorFusion(unittest.TestCase):
     rclpy.shutdown()
 
   def setUp(self):
+    self.msgs = []
     # Create a ROS node for tests
     self.node = rclpy.create_node('test_sensorfusion')
     # Create publishers for GPS & Compass
-    self.gps_pub = self.node.create_publisher(NavSatFix, "gps", 10)
-    self.compass_pub = self.node.create_publisher(BoatHeading, "compass", 10)
+    self.gps_pub = self.node.create_publisher(NavSatFix, "/fix", 10)
+    self.compass_pub = self.node.create_publisher(BoatHeading, "/compass", 10)
+    self.pose_sub = self.node.create_subscription(PoseWithCovarianceStamped, "/amcl_pose", lambda msg: self.msgs.append(msg), 10)
 
   def tearDown(self):
+#    self.node.destroy_subscription(self.pose_sub)
     self.node.destroy_node()
 
-  def test_sensorfusion_publishes_fused_data(self, launch_service):
+  def test_sensorfusion_publishes_fused_data(self, launch_service, proc_info, sensorfusion_node):
     """Test if sensorfusion correctly fuses GPS and compass data."""
+    proc_info.assertWaitForStartup(sensorfusion_node, timeout=5.0)
 
     # Ensure the node is up before sending messages
+    rclpy.spin_once(self.node, timeout_sec=2.0)
+    rclpy.spin_once(self.node, timeout_sec=2.0)
     rclpy.spin_once(self.node, timeout_sec=2.0)
 
     # Publish fake GPS data
@@ -67,21 +74,21 @@ class TestSensorFusion(unittest.TestCase):
     compass_msg.heading = 90
     self.compass_pub.publish(compass_msg)
     
-    rclpy.spin_once(self.node, timeout_sec=2.0)
+    # Listen to the pose topic for 10 s
+    end_time = time.time() + 10
+    while time.time() < end_time:
+      # spin to get subscriber callback executed
+      rclpy.spin_once(self.node, timeout_sec=1)
 
+    assert len(self.msgs) == 0, self.msgs
+    
     # 🕒 Wait for `sensorfusion` to publish a PoseStamped message
-    topic_list = [('/amcl_pose', PoseWithCovarianceStamped)]
-    wait_for_topics = WaitForTopics(topic_list, timeout=5.0)
-    assert wait_for_topics.wait(), f"Not received: {wait_for_topics.topics_not_received()}, received: {wait_for_topics.topics_received()}" # Should be {'topic_1', 'topic_2'}
-    print(wait_for_topics.messages_received('topic_1')) # Should be [message_1, ...]
-    wait_for_topics.shutdown()
-    success, fused_pose = wait_for_message(PoseWithCovarianceStamped, self.node, "/amcl_pose", time_to_wait= 5.0)
-
-    assert success, "No message received"
+    fused_pose = self.msgs[0]
     assert fused_pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
     assert fused_pose.pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
     assert fused_pose.pose.pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
     assert fused_pose.pose.pose.x != 0, "Expected nonzero position"
     assert fused_pose.pose.pose.y != 0, "Expected nonzero position"
     assert fused_pose.pose.orientation.z != 0, "Expected valid heading"
+
 
