@@ -31,7 +31,7 @@ class SensorFusionNode(Node):
         super().__init__('sensor_fusion_node')
         self.gps_sub = self.create_subscription(NavSatFix, '/fix', self.gps_callback, 10)
         self.compass_sub = self.create_subscription(BoatHeading, '/compass', self.compass_callback, 10)
-        self.pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/amcl_pose', 10)
+        self.pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/amcl_pose', 100)
         self.current_lat = 0.0
         self.current_lon = 0.0
         self.current_heading = 0  # Heading from your custom compass
@@ -46,26 +46,31 @@ class SensorFusionNode(Node):
         self.publish_pose()
 
     def publish_pose(self):
-        hdr = Header(frame_id=f'pose', stamp=self.get_clock().now().to_msg())
+        hdr = Header(stamp=self.get_clock().now().to_msg())
 
         # Convert GPS to XY coordinates (this will need to be done with a transform library)
         # Simplified; typically requires a transform
         position = Point(x = self.current_lon, y = self.current_lat, z = 0.0)
 
         # Convert compass heading to quaternion for orientation
-        #orientation = heading_to_quaternion(self.current_heading)
-        orientation = Quaternion()
+        orientation = heading_to_quaternion(self.current_heading)
         pose = Pose(position = position, orientation = orientation)
 
-        pose_msg = PoseWithCovarianceStamped(header = hdr, pose = pose, covariance = [])
+        pose_msg = PoseWithCovarianceStamped(header = hdr, pose = pose, covariance = [0] * 36)
+        self.get_logger().info(f"Pose with cov: {pose_msg}")
         self.pose_pub.publish(pose_msg)
 
 def main():
-    rclpy.init()
-    node = SensorFusionNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.init()
+        node = SensorFusionNode()
+        rclpy.spin(node)
+        node.destroy_node()
+        rclpy.shutdown()
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        print(e)
 
 
 if __name__ == '__main__':
