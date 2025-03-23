@@ -7,6 +7,7 @@ from rclpy.wait_for_message import wait_for_message
 import launch
 import launch_ros.actions
 import launch_testing
+from launch_testing_ros.wait_for_topics import WaitForTopics
 import sys
 import os
 import unittest
@@ -65,13 +66,21 @@ class TestSensorFusion(unittest.TestCase):
     compass_msg = BoatHeading()
     compass_msg.heading = 90
     self.compass_pub.publish(compass_msg)
+    
+    rclpy.spin_once(self.node, timeout_sec=2.0)
 
     # 🕒 Wait for `sensorfusion` to publish a PoseStamped message
-    fused_pose = wait_for_message(PoseWithCovarianceStamped, self.node, "/amcl_pose", time_to_wait= 5.0)
+    topic_list = [('/amcl_pose', PoseWithCovarianceStamped)]
+    wait_for_topics = WaitForTopics(topic_list, timeout=5.0)
+    assert wait_for_topics.wait(), f"Not received: {wait_for_topics.topics_not_received()}, received: {wait_for_topics.topics_received()}" # Should be {'topic_1', 'topic_2'}
+    print(wait_for_topics.messages_received('topic_1')) # Should be [message_1, ...]
+    wait_for_topics.shutdown()
+    success, fused_pose = wait_for_message(PoseWithCovarianceStamped, self.node, "/amcl_pose", time_to_wait= 5.0)
 
-    assert fused_pose is not None, "SensorFusion did not publish a fused Pose!"
-    assert fused_pose.pose is not None, "SensorFusion did not publish a fused Pose!"
-    assert fused_pose.pose.pose is not None, "SensorFusion did not publish a fused Pose!"
+    assert success, "No message received"
+    assert fused_pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
+    assert fused_pose.pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
+    assert fused_pose.pose.pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
     assert fused_pose.pose.pose.x != 0, "Expected nonzero position"
     assert fused_pose.pose.pose.y != 0, "Expected nonzero position"
     assert fused_pose.pose.orientation.z != 0, "Expected valid heading"
