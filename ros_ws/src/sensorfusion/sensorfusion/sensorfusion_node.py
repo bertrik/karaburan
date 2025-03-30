@@ -2,10 +2,13 @@ import math
 
 from boat_interfaces.msg import BoatHeading
 import rclpy
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Point
+from geometry_msgs.msg import Pose
 from geometry_msgs.msg import Quaternion
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
+from std_msgs.msg import Header
 
 
 def heading_to_quaternion(heading_deg):
@@ -28,10 +31,10 @@ class SensorFusionNode(Node):
         super().__init__('sensor_fusion_node')
         self.gps_sub = self.create_subscription(NavSatFix, '/fix', self.gps_callback, 10)
         self.compass_sub = self.create_subscription(BoatHeading, '/compass', self.compass_callback, 10)
-        self.pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/amcl_pose', 10)
-        self.current_lat = None
-        self.current_lon = None
-        self.current_heading = None  # Heading from your custom compass
+        self.pose_pub = self.create_publisher(PoseStamped, '/amcl_pose', 100)
+        self.current_lat = 0.0
+        self.current_lon = 0.0
+        self.current_heading = 0  # Heading from your custom compass
 
     def gps_callback(self, msg):
         self.current_lat = msg.latitude
@@ -39,32 +42,35 @@ class SensorFusionNode(Node):
         self.publish_pose()
 
     def compass_callback(self, heading):
-        self.current_heading = heading
+        self.current_heading = heading.heading
         self.publish_pose()
 
     def publish_pose(self):
-        if self.current_lat is not None and self.current_lon is not None and self.current_heading is not None:
-            pose_msg = PoseWithCovarianceStamped()
-            pose_msg.header.stamp = self.get_clock().now().to_msg()
-            pose_msg.header.frame_id = 'odom'
+        hdr = Header(stamp=self.get_clock().now().to_msg())
 
-            # Convert GPS to XY coordinates (this will need to be done with a transform library)
-            # Simplified; typically requires a transform
-            pose_msg.pose.pose.position.x = self.current_lon  
-            pose_msg.pose.pose.position.y = self.current_lat
+        # Convert GPS to XY coordinates (this will need to be done with a transform library)
+        # Simplified; typically requires a transform
+        position = Point(x = self.current_lon, y = self.current_lat, z = 0.0)
 
-            # Convert compass heading to quaternion for orientation
-            pose_msg.pose.pose.orientation = heading_to_quaternion(self.current_heading.heading)
+        # Convert compass heading to quaternion for orientation
+        orientation = heading_to_quaternion(self.current_heading)
+        pose = Pose(position = position, orientation = orientation)
 
-            self.pose_pub.publish(pose_msg)
-
+        pose_msg = PoseStamped(header = hdr, pose = pose)
+        self.get_logger().info(f"Pose with cov: {pose_msg}")
+        self.pose_pub.publish(pose_msg)
 
 def main():
-    rclpy.init()
-    node = SensorFusionNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.init()
+        node = SensorFusionNode()
+        rclpy.spin(node)
+        node.destroy_node()
+        rclpy.shutdown()
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        print(e)
 
 
 if __name__ == '__main__':
