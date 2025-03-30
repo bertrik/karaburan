@@ -2,7 +2,7 @@ import pytest
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseStamped
 from rclpy.wait_for_message import wait_for_message
 import launch
 import launch_ros.actions
@@ -47,7 +47,7 @@ class TestSensorFusion(unittest.TestCase):
     # Create publishers for GPS & Compass
     self.gps_pub = self.node.create_publisher(NavSatFix, "/fix", 10)
     self.compass_pub = self.node.create_publisher(BoatHeading, "/compass", 10)
-    self.pose_sub = self.node.create_subscription(PoseWithCovarianceStamped, "/amcl_pose", lambda msg: self.msgs.append(msg), 10)
+    self.pose_sub = self.node.create_subscription(PoseStamped, "/amcl_pose", lambda msg: self.msgs.append(msg), 10)
 
   def tearDown(self):
     self.node.destroy_subscription(self.pose_sub)
@@ -69,6 +69,7 @@ class TestSensorFusion(unittest.TestCase):
     gps_msg.altitude = 10.0
     self.gps_pub.publish(gps_msg)
 
+    rclpy.spin_once(self.node, timeout_sec=2.0)
     # Publish fake Compass data
     compass_msg = BoatHeading()
     compass_msg.heading = 90
@@ -80,15 +81,15 @@ class TestSensorFusion(unittest.TestCase):
       # spin to get subscriber callback executed
       rclpy.spin_once(self.node, timeout_sec=1)
 
-    #assert len(self.msgs) > 0, self.msgs
+    assert len(self.msgs) > 0, self.msgs
     
     # 🕒 Wait for `sensorfusion` to publish a PoseStamped message
-    #fused_pose = self.msgs[0]
-    #assert fused_pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
-    #assert fused_pose.pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
-    #assert fused_pose.pose.pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
-    #assert fused_pose.pose.pose.x != 0, "Expected nonzero position"
-    #assert fused_pose.pose.pose.y != 0, "Expected nonzero position"
-    #assert fused_pose.pose.orientation.z != 0, "Expected valid heading"
+    fused_pose = self.msgs[0]
+    assert fused_pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
+    assert fused_pose.pose is not None, f"SensorFusion did not include a Pose! {fused_pose}"
+    assert fused_pose.pose.position is not None, f"SensorFusion did not include a Position! {fused_pose}"
+    assert fused_pose.pose.position.x != 0, "Expected nonzero position"
+    assert fused_pose.pose.position.y != 0, "Expected nonzero position"
+    assert fused_pose.pose.orientation.z != 0, "Expected valid heading"
 
 
