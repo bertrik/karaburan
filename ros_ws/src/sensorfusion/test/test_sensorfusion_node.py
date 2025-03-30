@@ -84,7 +84,7 @@ class TestSensorFusion(unittest.TestCase):
     assert len(self.msgs) > 0, self.msgs
     
     # 🕒 Wait for `sensorfusion` to publish a PoseStamped message
-    fused_pose = self.msgs[0]
+    fused_pose = self.msgs[-1]
     assert fused_pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
     assert fused_pose.pose is not None, f"SensorFusion did not include a Pose! {fused_pose}"
     assert fused_pose.pose.position is not None, f"SensorFusion did not include a Position! {fused_pose}"
