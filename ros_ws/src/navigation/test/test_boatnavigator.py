@@ -69,6 +69,9 @@ class TestBoatNavigatorNode(unittest.TestCase):
         waypoint_msg.gps_poses.append(PoseStamped())
         self.waypoints_pub.publish(waypoint_msg)
 
+        pose = PoseStamped()
+        self.pose_pub.publish(pose)
+
         # Wait for a response
         while time.time() - start_time < timeout:
             rclpy.spin_once(self.node, timeout_sec=0.1)

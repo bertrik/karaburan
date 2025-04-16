@@ -13,7 +13,7 @@ class BoatNavigator(Node):
 
         # Initialize the Nav2 navigator
         self.navigator = BasicNavigator()
-        self.navigator.wait_until_nav2_active()
+        self.navigator.waitUntilNav2Active()
 
         # Publishers for heading and speed
         self.heading_pub = self.create_publisher(Float64, '/desired_heading', 10)
