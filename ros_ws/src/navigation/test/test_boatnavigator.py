@@ -66,23 +66,20 @@ class TestBoatNavigatorNode(unittest.TestCase):
         # Send a test waypoint
         waypoint_msg = Waypoints()
         waypoint_msg.gps_poses = []
-        waypoint_msg.gps_poses[0] = GpsPose()
-        self.publisher.publish(waypoint_msg)
+        waypoint_msg.gps_poses.append(PoseStamped())
+        self.waypoints_pub.publish(waypoint_msg)
 
         # Wait for a response
         while time.time() - start_time < timeout:
             rclpy.spin_once(self.node, timeout_sec=0.1)
-            if self.messages_received:
+            if self.speeds and self.headings:
                 break
 
-        self.assertGreater(len(self.messages_received), 0, "No messages received!")
-        msg = self.messages_received[0]
+        self.assertGreater(len(self.speeds), 0, "No messages received!")
+        self.assertGreater(len(self.headings), 0, "No messages received!")
 
-        # Validate expected message format [heading, speed]
-        self.assertEqual(len(msg.data), 2, "Expected two values: heading & speed")
-        heading, speed = msg.data
-        self.assertIsInstance(heading, float, "Heading should be a float")
-        self.assertIsInstance(speed, float, "Speed should be a float")
+        self.assertIsInstance(self.headings[0], float, "Heading should be a float")
+        self.assertIsInstance(self.speeds[0], float, "Speed should be a float")
 
 
 if __name__ == '__main__':
