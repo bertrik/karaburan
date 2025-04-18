@@ -4,6 +4,7 @@ import time
 import math
 import rclpy
 from rclpy.node import Node
+from std_msgs.msg import Float64
 
 # Initialize serial communication for actuator control
 serial_port = "/dev/ttyUSB0"  # Update with your port
@@ -60,9 +61,9 @@ class BoatControlNode(Node):
 
     def __init__(self):
         super().__init__('boat_control_node')
-        self.compass_pub = self.create_publisher(BoatHeading, '/compass', 10)
-        self.heading_sub = self.create_subscriber(Float64, '/desired_heading', self.heading_callback, 10)
-        self.speed_sub = self.create_subscriber(Float64, '/desired_speed', self.speed_callback, 10)
+        self.compass_pub = self.create_publisher(Float64, '/compass', 10)
+        self.heading_sub = self.create_subscription(Float64, '/desired_heading', self.heading_callback, 10)
+        self.speed_sub = self.create_subscription(Float64, '/desired_speed', self.speed_callback, 10)
         self.current_heading = None
         timer_period = 1  # Seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -72,8 +73,8 @@ class BoatControlNode(Node):
         current_heading = get_heading_command()
         current_heading = get_heading_command()# dual reading to flush !
 
-        msg = BoatHeading()
-        msg.heading = current_heading
+        msg = Float64()
+        msg.data = current_heading
         self.compass_pub.publish(msg)
 
     def heading_callback(self, heading):
@@ -94,9 +95,9 @@ if __name__ == '__main__':
     try:
         time.sleep(0.5)
         response = ser.readline().decode().strip()  # Read response from the actuator
-        print(f"Received: {response}")
+        print(f"Received: {response}\n")
         response = ser.readline().decode().strip()  # Read response from the actuator
-        print(f"Received: {response}")
+        print(f"Received: {response}\n")
         send_enable_command()
         time.sleep(1)
         send_calib_command()

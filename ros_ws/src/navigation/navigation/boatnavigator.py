@@ -1,10 +1,11 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
+from geographic_msgs.msg import GeoPose
 from std_msgs.msg import Float64
+from boat_interfaces.msg import Waypoints
 from nav2_simple_commander.robot_navigator import BasicNavigator
 import math
-from your_package_name.msg import NavWaypointArray  # Import custom message
 
 class BoatNavigator(Node):
     def __init__(self):
@@ -12,7 +13,7 @@ class BoatNavigator(Node):
 
         # Initialize the Nav2 navigator
         self.navigator = BasicNavigator()
-        self.navigator.wait_until_nav2_active()
+        self.navigator.waitUntilNav2Active()
 
         # Publishers for heading and speed
         self.heading_pub = self.create_publisher(Float64, '/desired_heading', 10)
@@ -20,7 +21,7 @@ class BoatNavigator(Node):
 
         # Subscriber for waypoint list
         self.waypoint_sub = self.create_subscription(
-            NavWaypointArray,
+            Waypoints,
             '/waypoints',
             self.waypoint_callback,
             10

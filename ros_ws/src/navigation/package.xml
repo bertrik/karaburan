@@ -7,13 +7,20 @@
   <maintainer email="mleegwt@users.noreply.github.com">pi</maintainer>
   <license>TODO: License declaration</license>
 
-
   <depend>rclpy</depend>
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>
   <depend>nav2_simple_commander</depend>
   <depend>math</depend>
   <depend>boat_interfaces</depend>
+
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_testing</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>nav2_map_server</exec_depend>
+  <exec_depend>nav2_bt_navigator</exec_depend>
+  <exec_depend>gpsd_client</exec_depend>
+  <exec_depend>gps_tools</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>python3-pytest</test_depend>
