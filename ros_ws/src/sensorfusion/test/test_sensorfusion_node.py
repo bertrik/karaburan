@@ -70,7 +70,9 @@ class TestSensorFusion(unittest.TestCase):
     self.gps_pub.publish(gps_msg)
 
     rclpy.spin_once(self.node, timeout_sec=2.0)
-    self.compass_pub.publish(90)
+    compass_msg = Float64()
+    compass_msg.data = 45.0
+    self.compass_pub.publish(compass_msg)
     
     # Listen to the pose topic for 10 s
     end_time = time.time() + 10
