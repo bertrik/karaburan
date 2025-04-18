@@ -19,6 +19,8 @@
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>nav2_map_server</exec_depend>
   <exec_depend>nav2_bt_navigator</exec_depend>
+  <exec_depend>gpsd_client</exec_depend>
+  <exec_depend>gps_tools</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>python3-pytest</test_depend>
