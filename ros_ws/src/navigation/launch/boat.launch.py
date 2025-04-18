@@ -13,10 +13,17 @@ def generate_launch_description():
         )
     )
 
-    sensor_fusion_dir = get_package_share_directory('sensorfusion')
-    sensor_fusion = IncludeLaunchDescription(
+    boatcontrol_dir = get_package_share_directory('boatcontrol')
+    boatcontrol = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(sensor_fusion_dir, 'launch', 'sensorfusion.launch.py')
+            os.path.join(boatcontrol_dir, 'launch', 'boatcontrol.launch.py')
+        )
+    )
+
+    sensorfusion_dir = get_package_share_directory('sensorfusion')
+    sensorfusion = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(sensorfusion_dir, 'launch', 'sensorfusion.launch.py')
         )
     )
 
@@ -29,6 +36,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         gpsd_launch,
-        sensor_fusion,
+        boatcontrol,
+        sensorfusion,
         nav_launch
     ])
