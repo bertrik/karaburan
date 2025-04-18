@@ -14,6 +14,20 @@ import sys
 import time
 import os
 
+def activate_lifecycle_node(node: Node, target_node_name: str):
+    client = node.create_client(ChangeState, f'{target_node_name}/change_state')
+    if not client.wait_for_service(timeout_sec=10.0):
+        raise RuntimeError(f"{target_node_name}/change_state not available")
+
+    for transition_id in [Transition.TRANSITION_CONFIGURE, Transition.TRANSITION_ACTIVATE]:
+        req = ChangeState.Request()
+        req.transition.id = transition_id
+        future = client.call_async(req)
+        rclpy.spin_until_future_complete(node, future)
+        result = future.result()
+        if result is None or not result.success:
+            raise RuntimeError(f"Failed to change state for {target_node_name} to {transition_id}")
+
 @pytest.mark.rostest
 def generate_test_description():
     """Start the sensorfusion node directly in the test."""
@@ -22,8 +36,15 @@ def generate_test_description():
         arguments=[os.path.join(os.path.dirname(__file__), '../navigation/boatnavigator.py')],
     )
 
+    launch_file = launch.actions.IncludeLaunchDescription(
+        launch.launch_description_sources.PythonLaunchDescriptionSource(
+            '../launch/nav2_stack.launch.py'
+        )
+    )
+
     return launch.LaunchDescription([
         boatnavigator_node,
+        launch_file,
         launch.actions.TimerAction(
                     period=0.5, actions=[launch_testing.actions.ReadyToTest()])
     ]), {"boatnavigator_node": boatnavigator_node}
@@ -68,6 +89,9 @@ class TestBoatNavigatorNode(unittest.TestCase):
         waypoint_msg.gps_poses = []
         waypoint_msg.gps_poses.append(PoseStamped())
         self.waypoints_pub.publish(waypoint_msg)
+
+        # Ensure the node is up before sending messages
+        rclpy.spin_once(self.node, timeout_sec=2.0)
 
         pose = PoseStamped()
         self.pose_pub.publish(pose)
