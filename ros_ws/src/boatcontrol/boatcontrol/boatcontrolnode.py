@@ -5,7 +5,6 @@ import math
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
-from boat_interfaces.msg import BoatHeading
 
 # Initialize serial communication for actuator control
 serial_port = "/dev/ttyUSB0"  # Update with your port
