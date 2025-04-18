@@ -96,9 +96,9 @@ if __name__ == '__main__':
     try:
         time.sleep(0.5)
         response = ser.readline().decode().strip()  # Read response from the actuator
-        print(f"Received: {response}")
+        print(f"Received: {response}\n")
         response = ser.readline().decode().strip()  # Read response from the actuator
-        print(f"Received: {response}")
+        print(f"Received: {response}\n")
         send_enable_command()
         time.sleep(1)
         send_calib_command()
