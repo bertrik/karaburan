@@ -1,14 +1,14 @@
 /*
 sketch for the karaburan motor controller
-
-board: Arduino Nano - atmega328(old)
-
 history:
 24-jun-2024 : initial version intergating compass and pwm controller with hard-coded mission
 03-jul-2024 : add API via serial i/f
+02-nov-2024 : change outputs to drive LED on a second HW (dummy boat with LEDs instead of motors)
 */
 
-//compass sensor QMC5883L
+//board Arduino Nano
+//sensor 
+//QMC5883L
 /*
 QMC5883L   ->   Arduino Nano
 ===========================
@@ -57,10 +57,10 @@ GET WD
 #include <Wire.h> // required?
 
 // Define motor control pins
-const int motorAPin1 = 9; // Timer1 output A
-const int motorAPin2 = 10; // Timer1 output B
-const int motorBPin1 = 3; //timer output?
-const int motorBPin2 = 11; //timer output?
+const int motorAPin1 = 9;//green led//pin 9 on boat; // Timer1 output A
+const int motorAPin2 = 10;//red led//pin 10 on boat; // Timer1 output B
+const int motorBPin1 = 3;//led//pin 3 on boat;
+const int motorBPin2 = 11;//led//pin 11 on boat;
 const int relayPin = 17;
 
 // Define compass DRDY pin
@@ -162,6 +162,8 @@ void setup() {
   // Initialize DRDY pin and interrupt
   //pinMode(drdyPin, INPUT);
   //attachInterrupt(digitalPinToInterrupt(drdyPin), dataReadyISR, RISING);
+  motor_enable=true;
+  digitalWrite(relayPin, LOW); 
   Serial.print("Karaburan_motor_drive v0.001 \n OK");
 }
 
@@ -415,7 +417,7 @@ void handleWDcommand(String command) {
   if (timeout == 0) {
     EndTimeout = 0;
     Serial.println("OK");
-  } else if (timeout>32 or timeout<0){
+  }else if (timeout>32 or timeout<0){
     Serial.println("ERR value");
   }else{
     // Set a timer for the watchdog
@@ -551,6 +553,32 @@ void loop() {
       navigateOnCompass();
     }
   }
+
+  timeLeft=moveEndTime-currentMillis;
+  // Handle move/auto timeout
+  if (timeLeft <= 0) {
+    nav_state=stop_engine;
+    auto_nav = false;
+    moveEndTime = 0;
+    timeLeft = 0;
+    //Serial.println(" time left = 0 ");
+  }
+  /*
+  //motor_enable=true;
+  if (EndTimeout == 0 || currentMillis > EndTimeout) {
+    //switch relays to boat
+    if (motor_enable==true){// to inform timeout only once
+      motor_enable=false;
+      nav_state=stop_engine;//reset PWMs
+      digitalWrite(relayPin, HIGH); 
+      Serial.println("ERROR {WD:TIMEOUT}");
+    }
+  }else{
+    motor_enable=true;
+    digitalWrite(relayPin, LOW); 
+  }
+  */
+
   if (Serial.available() > 0) {
     String command = Serial.readStringUntil('\n');  // Read the incoming command
     
@@ -580,30 +608,6 @@ void loop() {
       returnWDcommand();
     }
   }
-
-  timeLeft=moveEndTime-currentMillis;
-  // Handle move/auto timeout
-  if (timeLeft <= 0) {
-    nav_state=stop_engine;
-    auto_nav = false;
-    moveEndTime = 0;
-    timeLeft = 0;
-    //Serial.println(" time left = 0 ");
-  }
-  //motor_enable=true;
-  if (EndTimeout == 0 || currentMillis > EndTimeout) {
-    //switch relays to boat
-    if (motor_enable==true){// to inform timeout only once
-      motor_enable=false;
-      nav_state=stop_engine;//reset PWMs
-      digitalWrite(relayPin, HIGH); 
-      Serial.println("ERROR {WD:TIMEOUT}");
-    }
-  }else{
-    motor_enable=true;
-    digitalWrite(relayPin, LOW); 
-  }
-
 
   // test directiosn
   /*
