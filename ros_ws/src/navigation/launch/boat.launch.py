@@ -16,7 +16,7 @@ def generate_launch_description():
     sensor_fusion_dir = get_package_share_directory('sensorfusion')
     sensor_fusion = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(sensor_fusion_dir, 'launch', 'sensorfusion-launch.py')
+            os.path.join(sensor_fusion_dir, 'launch', 'sensorfusion.launch.py')
         )
     )
 
