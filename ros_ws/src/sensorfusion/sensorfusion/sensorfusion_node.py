@@ -41,7 +41,7 @@ class SensorFusionNode(Node):
         self.publish_pose()
 
     def compass_callback(self, heading):
-        self.current_heading = heading
+        self.current_heading = heading.data
         self.publish_pose()
 
     def publish_pose(self):
