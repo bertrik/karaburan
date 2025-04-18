@@ -12,6 +12,14 @@ def generate_launch_description():
             os.path.join(gpsd_client_dir, 'launch', 'gpsd_client-launch.py')
         )
     )
+
+    sensor_fusion_dir = get_package_share_directory('sensorfusion')
+    sensor_fusion = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(sensor_fusion_dir, 'launch', 'sensorfusion-launch.py')
+        )
+    )
+
     nav_dir = get_package_share_directory('navigation')
     nav_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -21,5 +29,6 @@ def generate_launch_description():
 
     return LaunchDescription([
         gpsd_launch,
+        sensor_fusion,
         nav_launch
     ])
