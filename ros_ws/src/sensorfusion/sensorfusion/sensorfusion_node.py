@@ -56,7 +56,7 @@ class SensorFusionNode(Node):
         pose = Pose(position = position, orientation = orientation)
 
         pose_msg = PoseStamped(header = hdr, pose = pose)
-        self.get_logger().info(f"Pose with cov: {pose_msg}")
+        self.get_logger().debug(f"Pose with cov: {pose_msg}")
         self.pose_pub.publish(pose_msg)
 
 def main():
