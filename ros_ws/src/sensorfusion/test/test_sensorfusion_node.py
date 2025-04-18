@@ -2,6 +2,7 @@ import pytest
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
+from std_msgs.msg import Float64
 from geometry_msgs.msg import PoseStamped
 from rclpy.wait_for_message import wait_for_message
 import launch
@@ -12,7 +13,6 @@ import sys
 import time
 import os
 import unittest
-from boat_interfaces.msg import BoatHeading
 
 @pytest.mark.rostest
 def generate_test_description():
@@ -46,7 +46,7 @@ class TestSensorFusion(unittest.TestCase):
     self.node = rclpy.create_node('test_sensorfusion')
     # Create publishers for GPS & Compass
     self.gps_pub = self.node.create_publisher(NavSatFix, "/fix", 10)
-    self.compass_pub = self.node.create_publisher(BoatHeading, "/compass", 10)
+    self.compass_pub = self.node.create_publisher(Float64, "/compass", 10)
     self.pose_sub = self.node.create_subscription(PoseStamped, "/amcl_pose", lambda msg: self.msgs.append(msg), 10)
 
   def tearDown(self):
@@ -70,10 +70,7 @@ class TestSensorFusion(unittest.TestCase):
     self.gps_pub.publish(gps_msg)
 
     rclpy.spin_once(self.node, timeout_sec=2.0)
-    # Publish fake Compass data
-    compass_msg = BoatHeading()
-    compass_msg.heading = 90
-    self.compass_pub.publish(compass_msg)
+    self.compass_pub.publish(90)
     
     # Listen to the pose topic for 10 s
     end_time = time.time() + 10
