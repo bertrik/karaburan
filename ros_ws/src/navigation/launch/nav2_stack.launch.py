@@ -96,11 +96,11 @@ def generate_launch_description():
             parameters=[{
                 'autostart': True,
                 'node_names': [
-                    'bt_navigator',
-                    'planner_server',
-                    'controller_server',
-                    'behavior_server',
                     'map_server',
+                    'controller_server',
+                    'planner_server',
+                    'behavior_server',
+                    'bt_navigator',
                 ]
             }]
         ),
