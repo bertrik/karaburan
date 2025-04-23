@@ -11,6 +11,11 @@ def generate_launch_description():
         'config',
         'controller_server.yaml'
     )
+    map_yaml = os.path.join(
+        get_package_share_directory('navigation'),
+        'maps',
+        'empty.yml'
+    )
     nodes = [
         Node(
             package='nav2_bt_navigator',
@@ -35,7 +40,7 @@ def generate_launch_description():
             executable='map_server',
             name='map_server',
             parameters=[{
-                'yaml_filename': '../maps/empty.yml',
+                'yaml_filename': map_yaml,
                 'use_sim_time': False
             }],
         ),

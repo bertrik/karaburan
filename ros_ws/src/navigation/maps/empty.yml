@@ -1,4 +1,4 @@
-image: map.pgm
+image: empty.pgm
 resolution: 0.5  # Elke pixel is 0.5 meter → 50x50 m kaart
 origin: [0.0, 0.0, 0.0]  # Beginpunt in wereldcoördinaten
 occupied_thresh: 0.65

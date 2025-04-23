@@ -34,7 +34,7 @@ controller_server:
 
       critics: [
         "RotateToGoal",
-        "ObstacleFootprint",
+        #        "ObstacleFootprint",
         "GoalAlign",
         "PathAlign",
         "PathDist",
