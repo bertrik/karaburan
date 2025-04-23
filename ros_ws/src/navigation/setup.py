@@ -10,6 +10,7 @@ setup(
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name + '/launch', ['launch/nav2_stack.launch.py']),
         ('share/' + package_name + '/launch', ['launch/boat.launch.py']),
+        ('share/' + package_name + '/config', ['config/controller_server.yaml']),
         ('share/' + package_name + '/maps', ['maps/empty.yml', 'maps/empty.pgm']),
         ('share/' + package_name, ['package.xml']),
     ],

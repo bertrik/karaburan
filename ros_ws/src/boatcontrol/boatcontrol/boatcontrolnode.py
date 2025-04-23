@@ -56,7 +56,7 @@ class BoatControlNode(Node):
             while "OK" not in response: 
               response = ser.readline().decode().strip()  # Read response from the actuator
               time.sleep(0.2)
-            self.get_logger().info(f"Sent: {command}, Received: {response}")
+            self.get_logger().debug(f"Sent: {command}, Received: {response}")
             return response
 
     # Function to send enable motor command
