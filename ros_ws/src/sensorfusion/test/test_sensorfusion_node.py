@@ -3,7 +3,8 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Float64
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseWithCovariance
 from rclpy.wait_for_message import wait_for_message
 import launch
 import launch_ros.actions
@@ -47,7 +48,7 @@ class TestSensorFusion(unittest.TestCase):
     # Create publishers for GPS & Compass
     self.gps_pub = self.node.create_publisher(NavSatFix, "/fix", 10)
     self.compass_pub = self.node.create_publisher(Float64, "/compass", 10)
-    self.pose_sub = self.node.create_subscription(PoseStamped, "/amcl_pose", lambda msg: self.msgs.append(msg), 10)
+    self.pose_sub = self.node.create_subscription(PoseWithCovarianceStamped, "/amcl_pose", lambda msg: self.msgs.append(msg), 10)
 
   def tearDown(self):
     self.node.destroy_subscription(self.pose_sub)
@@ -86,9 +87,10 @@ class TestSensorFusion(unittest.TestCase):
     fused_pose = self.msgs[-1]
     assert fused_pose is not None, f"SensorFusion did not publish a fused Pose! {fused_pose}"
     assert fused_pose.pose is not None, f"SensorFusion did not include a Pose! {fused_pose}"
-    assert fused_pose.pose.position is not None, f"SensorFusion did not include a Position! {fused_pose}"
-    assert fused_pose.pose.position.x != 0, "Expected nonzero position"
-    assert fused_pose.pose.position.y != 0, "Expected nonzero position"
-    assert fused_pose.pose.orientation.z != 0, "Expected valid heading"
+    assert fused_pose.pose.pose is not None, f"SensorFusion did not include a Pose! {fused_pose}"
+    assert fused_pose.pose.pose.position is not None, f"SensorFusion did not include a Position! {fused_pose}"
+    assert fused_pose.pose.pose.position.x != 0, "Expected nonzero position"
+    assert fused_pose.pose.pose.position.y != 0, "Expected nonzero position"
+    assert fused_pose.pose.pose.orientation.z != 0, "Expected valid heading"
 
 
