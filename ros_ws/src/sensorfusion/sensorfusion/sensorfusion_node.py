@@ -1,7 +1,8 @@
 import math
 
 import rclpy
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseWithCovariance
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import Quaternion
@@ -30,7 +31,7 @@ class SensorFusionNode(Node):
         super().__init__('sensor_fusion_node')
         self.gps_sub = self.create_subscription(NavSatFix, '/fix', self.gps_callback, 10)
         self.compass_sub = self.create_subscription(Float64, '/compass', self.compass_callback, 10)
-        self.pose_pub = self.create_publisher(PoseStamped, '/amcl_pose', 100)
+        self.pose_pub = self.create_publisher(PoseWithCovarianceStamped, '/amcl_pose', 100)
         self.current_lat = 0.0
         self.current_lon = 0.0
         self.current_heading = 0  # Heading from your custom compass
@@ -55,7 +56,8 @@ class SensorFusionNode(Node):
         orientation = heading_to_quaternion(self.current_heading)
         pose = Pose(position = position, orientation = orientation)
 
-        pose_msg = PoseStamped(header = hdr, pose = pose)
+        pose_ext = PoseWithCovariance(pose = pose)
+        pose_msg = PoseWithCovarianceStamped(header = hdr, pose = pose_ext)
         self.get_logger().debug(f"Pose with cov: {pose_msg}")
         self.pose_pub.publish(pose_msg)
 
