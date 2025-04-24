@@ -11,9 +11,13 @@ class BoatNavigator(Node):
     def __init__(self):
         super().__init__('boat_navigator')
 
+        self.get_logger().info("Waiting for Basic navigator to be activated")
+
         # Initialize the Nav2 navigator
         self.navigator = BasicNavigator()
         self.navigator.waitUntilNav2Active()
+
+        self.get_logger().info("Basic navigator has been activated")
 
         # Publishers for heading and speed
         self.heading_pub = self.create_publisher(Float64, '/desired_heading', 10)
