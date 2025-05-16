@@ -1,0 +1,23 @@
+ekf_filter_node:
+  ros__parameters:
+    frequency: 30.0
+    sensor_timeout: 0.1
+    two_d_mode: true
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: odom  # navsat_transform_node verandert dit naar 'map'
+
+    publish_tf: true
+    publish_acceleration: false
+
+    imu0: /imu/data
+    imu0_config: [false, false, false,  # pos (niet gebruikt)
+                  true, true, true,     # rotatie (yaw)
+                  false, false, false,  # lin. snelheid
+                  false, false, false,  # rot. snelheid
+                  true, true, true]     # oriëntatie (quaternion)
+
+    use_control: false
+

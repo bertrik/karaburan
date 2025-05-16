@@ -62,23 +62,10 @@ def generate_launch_description():
         ),
         Node(
             package='navigation',         # Je eigen package
-            executable='navigation_node', # De entrypoint (zoals in setup.py -> console_scripts)
-            name='navigation_node',
+            executable='my_navigation_node', # De entrypoint (zoals in setup.py -> console_scripts)
+            name='my_navigation_node1',
             output='screen',
             parameters=[{'use_sim_time': False}]
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_map_to_odom',
-            arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_tf_map_to_base_link',
-            arguments=['0', '0', '0', '0', '0', '0', 'map', 'base_link'],
-            output='screen'
         ),
         LifecycleNode(
             package='nav2_behaviors',
@@ -87,6 +74,19 @@ def generate_launch_description():
             namespace='',
             output='screen',
             parameters=[behavior_yaml],
+        ),
+        Node(
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_filter_node',
+            parameters=['ekf.yaml'],
+            remappings=[('/odometry/filtered', '/odometry/filtered')]
+        ),
+        Node(
+            package='robot_localization',
+            executable='navsat_transform_node',
+            name='navsat_transform_node',
+            parameters=['navsat.yaml']
         ),
         Node(
             package='nav2_lifecycle_manager',

@@ -24,7 +24,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'navigation_node = navigation.boatnavigator:main',
+            'my_navigation_node = navigation.boatnavigator:main',
         ],
     },
 )
