@@ -50,6 +50,9 @@ GET HEADING
 GET WD
 */
 
+#include <Arduino.h>
+#include <EEPROM.h>
+
 // function to get sign of a value
 #define sgn(x) ((x) < 0 ? -1 : ((x) > 0 ? 1 : 0))
 
@@ -126,6 +129,7 @@ void setup()
 {
     // Initialize serial communication
     Serial.begin(115200);
+    EEPROM.begin();
 
     // Initialize motor control pins
     pinMode(motorAPin1, OUTPUT);
@@ -155,9 +159,13 @@ void setup()
     //use precalibration values to start with:
     //compass.setCalibrationOffsets(-69.00, 523.00, -907.00);
     //compass.setCalibrationScales(0.97, 1.00, 1.03);
+#if 0                           // old hardcoded calibration
     compass.setCalibrationOffsets(294.00, -176.00, -794.00);
     compass.setCalibrationScales(0.90, 0.80, 1.54);
-
+#else
+    EEPROM.get(0, calibVal);
+    restoreCompassCalibration(calibVal);
+#endif
     compass.setSmoothing(4, true);      //set smoothing to max (1..10)
 
     // Initialize DRDY pin and interrupt
@@ -305,10 +313,8 @@ void setupTimer1PWM()
 }
 
 
-FloatArray calibrateCompass()
+void calibrateCompass(FloatArray & data)
 {
-    //float calib[6];
-    FloatArray data;
     //make sure vehicle moves
     speedCommand = 255;         //128;//max speed
     nav_state = go_left;        //to turn on itself
@@ -332,7 +338,12 @@ FloatArray calibrateCompass()
     compass.setSmoothing(3, true);
     //Serial.println("CALIBRATION DONE.");
     nav_state = stop_engine;
-    return data;
+}
+
+static void restoreCompassCalibration(FloatArray & data)
+{
+    compass.setCalibrationOffsets(data.values[0], data.values[1], data.values[2]);
+    compass.setCalibrationScales(data.values[3], data.values[4], data.values[5]);
 }
 
 void handlePWMcommand(String command)
@@ -442,7 +453,8 @@ void handleCALIBcommand()
 {
     if (motor_enable == true) {
         mode_pwm = false;
-        calibVal = calibrateCompass();  //can take 10sec
+        calibrateCompass(calibVal);     //can take 10sec
+        EEPROM.put(0, calibVal);
         Serial.println("OK");
     } else {                    // motor is not enable, calibration will fail because of vehicle not moving
         Serial.println("ERR");
