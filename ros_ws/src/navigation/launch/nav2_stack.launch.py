@@ -23,6 +23,12 @@ def generate_launch_description():
         'empty.yml'
     )
     nodes = [
+        Node(
+            package='navigation',
+            executable='fix_status_override_node',
+            name='fix_status_override_node',
+            output='screen'
+        ),
         LifecycleNode(
             package='nav2_bt_navigator',
             executable='bt_navigator',
@@ -86,7 +92,8 @@ def generate_launch_description():
             package='robot_localization',
             executable='navsat_transform_node',
             name='navsat_transform_node',
-            parameters=['navsat.yaml']
+            parameters=['navsat.yaml'],
+            remappings=[('/fix', '/fix/valid')]
         ),
         Node(
             package='nav2_lifecycle_manager',

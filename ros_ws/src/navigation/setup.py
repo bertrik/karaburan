@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'my_navigation_node = navigation.boatnavigator:main',
+            'fix_status_override_node = navigation.fix_status_override_node:main',
         ],
     },
 )
