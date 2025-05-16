@@ -41,7 +41,11 @@ def generate_launch_description():
             executable='planner_server',
             name='planner_server',
             namespace='',
-            parameters=[{'use_sim_time': False}],
+            parameters=[{
+                'use_sim_time': False,
+                'planner_frequency': 0.5,
+                'expected_planner_frequency': 0.5
+            }],
         ),
         LifecycleNode(
             package='nav2_controller',
