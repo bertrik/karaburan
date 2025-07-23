@@ -13,7 +13,8 @@ navsat_transform_node:
     wait_for_datum: false          # Gebruik eerste fix als referentie
     world_frame: map
 
-    gps_topic: /fix
+    gps_topic: /fix/valid
     imu_topic: /imu/data
     odometry_topic: /odometry/filtered
+    base_link_frame: gps
 

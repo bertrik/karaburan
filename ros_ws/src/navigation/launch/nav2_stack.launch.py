@@ -107,7 +107,12 @@ def generate_launch_description():
             executable='navsat_transform_node',
             name='navsat_transform_node',
             parameters=[ navsat_yaml ],
-            remappings=[('/fix', '/fix/valid')]
+            remappings=[
+                ('/gps/fix', '/fix/valid'),
+                ('/imu', '/imu/data'),
+                ('/odometry/filtered', '/odometry/filtered'),
+                ('/odometry/gps', '/odometry/gps')
+            ]
         ),
         Node(
             package='nav2_lifecycle_manager',
