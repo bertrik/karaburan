@@ -34,6 +34,20 @@ def generate_launch_description():
     )
     nodes = [
         Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_tf_base_to_imu',
+            arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'imu_link'],
+            output='screen'
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_tf_base_to_gps',
+            arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'gps'],
+            output='screen'
+        ),
+        Node(
             package='navigation',
             executable='fix_status_override_node',
             name='fix_status_override_node',
