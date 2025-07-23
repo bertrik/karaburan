@@ -19,7 +19,7 @@ class BoatControlNode(Node):
         self.heading_sub = self.create_subscription(Float64, '/desired_heading', self.heading_callback, 10)
         self.speed_sub = self.create_subscription(Float64, '/desired_speed', self.speed_callback, 10)
         self.current_heading = None
-        timer_period = 0.1  # Seconds
+        timer_period = 0.05  # Seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def start(self):
@@ -50,11 +50,11 @@ class BoatControlNode(Node):
     def send_command(self, command):
         if ser.is_open:
             ser.write(command.encode())
-            time.sleep(0.1)
+            time.sleep(0.01)
             response=""
             while "OK" not in response: 
               response = ser.readline().decode().strip()  # Read response from the actuator
-              time.sleep(0.1)
+              time.sleep(0.01)
             self.get_logger().debug(f"Sent: {command}, Received: {response}")
             return response
 

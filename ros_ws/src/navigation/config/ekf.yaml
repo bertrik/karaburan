@@ -13,7 +13,7 @@ ekf_filter_node:
     publish_tf: true
     publish_acceleration: false
 
-    imu0: /imu/data
+    imu0: /imu
     imu0_config: [false, false, false,  # pos (niet gebruikt)
                   true, true, true,     # rotatie (yaw)
                   false, false, false,  # lin. snelheid
