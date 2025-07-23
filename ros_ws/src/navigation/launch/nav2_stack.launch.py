@@ -37,14 +37,14 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='static_tf_base_to_imu',
-            arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'imu_link'],
+            arguments=['--use-timestamp', '0', '0', '0', '0', '0', '0', 'base_link', 'imu_link'],
             output='screen'
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
             name='static_tf_base_to_gps',
-            arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'gps'],
+            arguments=['--use-timestamp', '0', '0', '0', '0', '0', '0', 'base_link', 'gps'],
             output='screen'
         ),
         Node(
@@ -87,19 +87,6 @@ def generate_launch_description():
                 'yaml_filename': map_yaml,
                 'use_sim_time': False
             }],
-        ),
-        Node(
-            package='nav2_amcl',
-            executable='amcl',
-            name='amcl',
-            parameters=[{'use_sim_time': False}],
-        ),
-        Node(
-            package='navigation',         # Je eigen package
-            executable='my_navigation_node', # De entrypoint (zoals in setup.py -> console_scripts)
-            name='my_navigation_node1',
-            output='screen',
-            parameters=[{'use_sim_time': False}]
         ),
         LifecycleNode(
             package='nav2_behaviors',
