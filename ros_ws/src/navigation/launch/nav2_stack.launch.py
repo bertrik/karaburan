@@ -22,6 +22,16 @@ def generate_launch_description():
         'maps',
         'empty.yml'
     )
+    ekf_yaml = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'ekf.yaml'
+    )
+    navsat_yaml = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'navsat.yaml'
+    )
     nodes = [
         Node(
             package='navigation',
@@ -89,14 +99,14 @@ def generate_launch_description():
             package='robot_localization',
             executable='ekf_node',
             name='ekf_filter_node',
-            parameters=['ekf.yaml'],
+            parameters=[ ekf_yaml ],
             remappings=[('/odometry/filtered', '/odometry/filtered')]
         ),
         Node(
             package='robot_localization',
             executable='navsat_transform_node',
             name='navsat_transform_node',
-            parameters=['navsat.yaml'],
+            parameters=[ navsat_yaml ],
             remappings=[('/fix', '/fix/valid')]
         ),
         Node(
