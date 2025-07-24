@@ -37,14 +37,24 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='static_tf_base_to_imu',
-            arguments=['--use-timestamp', '0', '0', '0', '0', '0', '0', 'base_link', 'imu_link'],
+            arguments=[
+                '--x', '0', '--y', '0', '--z', '0',
+                '--roll', '0', '--pitch', '0', '--yaw', '0',
+                '--frame-id', 'base_link',
+                '--child-frame-id', 'imu_link'
+            ],
             output='screen'
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
             name='static_tf_base_to_gps',
-            arguments=['--use-timestamp', '0', '0', '0', '0', '0', '0', 'base_link', 'gps'],
+            arguments=[
+                '--x', '0', '--y', '0', '--z', '0',
+                '--roll', '0', '--pitch', '0', '--yaw', '0',
+                '--frame-id', 'base_link',
+                '--child-frame-id', 'gps'
+            ],
             output='screen'
         ),
         Node(
