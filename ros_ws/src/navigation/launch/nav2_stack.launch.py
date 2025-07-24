@@ -111,7 +111,8 @@ def generate_launch_description():
             executable='ekf_node',
             name='ekf_filter_node',
             parameters=[ ekf_yaml ],
-            remappings=[('/odometry/filtered', '/odometry/filtered')]
+            remappings=[('/odometry/filtered', '/odometry/filtered')],
+            output="screen"
         ),
         Node(
             package='robot_localization',

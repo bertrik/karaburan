@@ -16,5 +16,5 @@ navsat_transform_node:
     gps_topic: /fix/valid
     imu_topic: /imu/data
     odometry_topic: /odometry/filtered
-    base_link_frame: gps
+    base_link_frame: base_link
 
