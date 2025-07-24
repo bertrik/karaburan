@@ -58,6 +58,18 @@ def generate_launch_description():
             output='screen'
         ),
         Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_map_to_odom',
+            arguments=[
+                '--x', '0', '--y', '0', '--z', '0',
+                '--roll', '0', '--pitch', '0', '--yaw', '0',
+                '--frame-id', 'map',
+                '--child-frame-id', 'odom'
+            ],
+            output='screen'
+        ),
+        Node(
             package='navigation',
             executable='fix_status_override_node',
             name='fix_status_override_node',
@@ -106,13 +118,13 @@ def generate_launch_description():
             output='screen',
             parameters=[behavior_yaml],
         ),
-        Node(
+        LifecycleNode(
             package='robot_localization',
             executable='ekf_node',
             name='ekf_filter_node',
-            parameters=[ ekf_yaml ],
-            remappings=[('/odometry/filtered', '/odometry/filtered')],
-            output="screen"
+            namespace='',
+            output='screen',
+            parameters=[ekf_yaml],
         ),
         Node(
             package='robot_localization',
@@ -139,6 +151,7 @@ def generate_launch_description():
                     'planner_server',
                     'behavior_server',
                     'bt_navigator',
+                    'ekf_filter_node',
                 ]
             }]
         ),

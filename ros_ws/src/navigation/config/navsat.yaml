@@ -1,7 +1,7 @@
 navsat_transform_node:
   ros__parameters:
-    frequency: 10.0
-    delay: 0.0
+    frequency: 2.5
+    delay: 1.0
     magnetic_declination_radians: 0.0
     yaw_offset: 0.0
     zero_altitude: true
@@ -15,6 +15,8 @@ navsat_transform_node:
 
     gps_topic: /fix/valid
     imu_topic: /imu/data
-    odometry_topic: /odometry/filtered
+    odometry_topic: /odometry/gps
     base_link_frame: base_link
 
+    imu_queue_size: 50
+    gps_queue_size: 10
