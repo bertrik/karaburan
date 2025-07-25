@@ -22,11 +22,20 @@ ekf_filter_node:
       0.0,    0.02, 0.0,
       0.0,    0.0,    0.02
     ]
+    imu0_queue_size: 10
 
-    odom0: /odometry/gps
-    odom0_config: [true, true, false, false, false, false,  false, false, false, false, false, false]
-    odom0_covariance: [
-      0.5, 0.0,   0.0,
-      0.0,   0.5, 0.0,
-      0.0,   0.0,   0.5
-    ]
+#    odom0: /odometry/gps
+#    odom0_config: [true, true, false, false, false, false,  false, false, false, false, false, false]
+#    odom0_covariance: [
+#      0.5, 0.0,   0.0,
+#      0.0,   0.5, 0.0,
+#      0.0,   0.0,   0.5
+#    ]
+
+    # ----- GPS-invoer -----
+    gps0: /fix
+    gps0_config: [true,  true,  false,   # lon, lat wél, hoogte (z) niet
+                false, false, false,   # oriëntatie niet
+                false, false, false]   # rotatiesnelheden niet
+    gps0_queue_size: 10
+
