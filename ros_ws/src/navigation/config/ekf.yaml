@@ -1,4 +1,4 @@
-ekf_filter_node:
+/ekf_filter_node:
   ros__parameters:
     frequency: 5.0
     sensor_timeout: 5.0
