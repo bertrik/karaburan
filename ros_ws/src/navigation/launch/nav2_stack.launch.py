@@ -17,11 +17,6 @@ def generate_launch_description():
         'config',
         'behavior_server.yaml'
     )
-    map_yaml = os.path.join(
-        get_package_share_directory('navigation'),
-        'maps',
-        'empty.yml'
-    )
     ekf_yaml = os.path.join(
         get_package_share_directory('navigation'),
         'config',
@@ -117,16 +112,6 @@ def generate_launch_description():
             parameters=[controller_yaml],
         ),
         LifecycleNode(
-            package='nav2_map_server',
-            executable='map_server',
-            name='map_server',
-            namespace='',
-            parameters=[{
-                'yaml_filename': map_yaml,
-                'use_sim_time': False
-            }],
-        ),
-        LifecycleNode(
             package='nav2_behaviors',
             executable='behavior_server',
             name='behavior_server',
@@ -167,7 +152,6 @@ def generate_launch_description():
             parameters=[{
                 'autostart': True,
                 'node_names': [
-                    'map_server',
                     'controller_server',
                     'planner_server',
                     'behavior_server',

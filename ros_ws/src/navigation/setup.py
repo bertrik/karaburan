@@ -14,7 +14,6 @@ setup(
         ('share/' + package_name + '/config', ['config/behavior_server.yaml']),
         ('share/' + package_name + '/config', ['config/ekf.yaml']),
         ('share/' + package_name + '/config', ['config/navsat.yaml']),
-        ('share/' + package_name + '/maps', ['maps/empty.yml', 'maps/empty.pgm']),
         ('share/' + package_name, ['package.xml']),
     ],
     install_requires=['setuptools'],
