@@ -70,6 +70,22 @@ def generate_launch_description():
             output='screen'
         ),
         Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_odom_to_base',
+            output='screen',
+            arguments=[
+                '--x', '0.0',
+                '--y', '0.0',
+                '--z', '0.0',
+                '--roll', '0.0',
+                '--pitch', '0.0',
+                '--yaw', '0.0',
+                'odom',
+                'base_link'
+            ]
+        ),
+        Node(
             package='navigation',
             executable='fix_status_override_node',
             name='fix_status_override_node',
@@ -124,7 +140,12 @@ def generate_launch_description():
             name='ekf_filter_node',
             namespace='',
             output='screen',
-            parameters=[ekf_yaml],
+            parameters=[],
+            arguments=[
+              '--ros-args',
+              '--params-file', ekf_yaml,
+              '--log-level', 'ekf_filter_node:=debug'
+            ],
         ),
         Node(
             package='robot_localization',
