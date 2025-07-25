@@ -99,17 +99,6 @@ def generate_launch_description():
             parameters=[{'use_sim_time': False}],
         ),
         LifecycleNode(
-            package='nav2_planner',
-            executable='planner_server',
-            name='planner_server',
-            namespace='',
-            arguments=[
-                '--log-level', 'debug',
-                '--params-file', planner_server_yaml
-            ],
-            output='screen'
-        ),
-        LifecycleNode(
             package='nav2_controller',
             executable='controller_server',
             name='controller_server',
@@ -117,6 +106,17 @@ def generate_launch_description():
             arguments=[
                 '--log-level', 'debug',
                 '--params-file', controller_yaml
+            ],
+            output='screen'
+        ),
+        LifecycleNode(
+            package='nav2_planner',
+            executable='planner_server',
+            name='planner_server',
+            namespace='',
+            arguments=[
+                '--log-level', 'debug',
+                '--params-file', planner_server_yaml
             ],
             output='screen'
         ),

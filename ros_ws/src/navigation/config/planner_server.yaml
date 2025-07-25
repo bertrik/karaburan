@@ -14,3 +14,5 @@
       transform_tolerance: 1.0
       plugins: []                      # <-- wíjzig dit: haal static_layer weg
 
+    local_costmap:
+      plugins: []

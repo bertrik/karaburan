@@ -26,6 +26,7 @@
     
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
+      critics: ["path_distance", "goal_align", "obstacle_footprint", "rotate_to_goal", "path_align", "goal_distance", "prefer_forward"]
 
       debug_trajectory_details: true
       min_vel_x: 0.0
@@ -52,8 +53,6 @@
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 0.2
-
-      critics: ["path_distance", "goal_align", "obstacle_footprint", "rotate_to_goal", "path_align", "goal_distance", "prefer_forward"]
 
       path_distance:
         max_distance_from_path: 0.2
