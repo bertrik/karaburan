@@ -5,7 +5,7 @@ navsat_transform_node:
     magnetic_declination_radians: 0.0
     yaw_offset: 0.0
     zero_altitude: true
-    broadcast_utm_transform: false
+    broadcast_utm_transform: true
     broadcast_cartesian_transform: true
     publish_filtered_gps: true
 
@@ -13,11 +13,12 @@ navsat_transform_node:
     use_local_cartesian: true      # Handig voor testgebieden
     wait_for_datum: false          # Gebruik eerste fix als referentie
     world_frame: map
+    map_frame: map
+    child_frame_id: base_link
 
     gps_topic: /fix/valid
     imu_topic: /imu/data
     odometry_topic: /odometry/gps
-    base_link_frame: base_link
 
     imu_queue_size: 50
     gps_queue_size: 10

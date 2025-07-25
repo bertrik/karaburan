@@ -81,8 +81,8 @@ def generate_launch_description():
                 '--roll', '0.0',
                 '--pitch', '0.0',
                 '--yaw', '0.0',
-                'odom',
-                'base_link'
+                '--frame-id', 'odom',
+                '--child-frame-id', 'base_link'
             ]
         ),
         Node(
