@@ -1,6 +1,5 @@
 from launch import LaunchDescription
-from launch_ros.actions import Node
-from launch_ros.actions import LifecycleNode
+from launch_ros.actions import Node, LifecycleNode
 import launch_testing.actions
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -103,22 +102,20 @@ def generate_launch_description():
             executable='controller_server',
             name='controller_server',
             namespace='',
-            arguments=[
-                '--log-level', 'debug',
-                '--params-file', controller_yaml
+            parameters=[
+                controller_yaml
             ],
-            output='screen'
+            output='log'
         ),
         LifecycleNode(
             package='nav2_planner',
             executable='planner_server',
             name='planner_server',
             namespace='',
-            arguments=[
-                '--log-level', 'debug',
-                '--params-file', planner_server_yaml
+            parameters=[
+                planner_server_yaml
             ],
-            output='screen'
+            output='log'
         ),
         LifecycleNode(
             package='nav2_behaviors',
