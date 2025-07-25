@@ -5,9 +5,24 @@ controller_server:
     controller_plugins: ["FollowPath"]
 
     local_costmap:
-      global_frame: odom
+      local_costmap:
+      global_frame: local_enu       # je GPS‑ENU frame
       robot_base_frame: base_link
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      rolling_window: true          # laat het window meebewegen met de robot
+      width: 1000.0                 # 1 km breed
+      height: 1000.0                # 1 km hoog
+      resolution: 5.0               # 5 m per cell (200×200 cells voor 1 km²)
+      transform_tolerance: 1.0
     
+    global_costmap:
+      global_frame: map               # blijf je plan in ‘map’ houden
+      robot_base_frame: base_link
+      transform_tolerance: 0.5
+      update_frequency: 1.0
+      publish_frequency: 0.5
+
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
 
