@@ -118,7 +118,7 @@ def generate_launch_description():
             output='screen',
             parameters=[behavior_yaml],
         ),
-        LifecycleNode(
+        Node(
             package='robot_localization',
             executable='ekf_node',
             name='ekf_filter_node',
@@ -151,7 +151,6 @@ def generate_launch_description():
                     'planner_server',
                     'behavior_server',
                     'bt_navigator',
-                    'ekf_filter_node',
                 ]
             }]
         ),
