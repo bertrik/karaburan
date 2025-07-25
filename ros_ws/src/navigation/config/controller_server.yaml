@@ -53,13 +53,28 @@
       angular_granularity: 0.025
       transform_tolerance: 0.2
 
-      critics: [
-        "RotateToGoal",
-        #        "ObstacleFootprint",
-        "GoalAlign",
-        "PathAlign",
-        "PathDist",
-        "GoalDist",
-        "PreferForward"
-      ]
+      critics: ["path_distance", "goal_align", "obstacle_footprint", "rotate_to_goal", "path_align", "goal_distance", "prefer_forward"]
+
+      path_distance:
+        max_distance_from_path: 0.2
+
+      goal_align:
+        angle_tolerance: 0.1
+
+      obstacle_footprint:
+        obstacle_threshold: 0.15
+
+      rotate_to_goal:
+        min_in_place_vel_theta: 0.4
+        max_rotational_vel: 1.0
+
+      path_align:
+        heading_lookahead: 0.325
+
+      goal_distance:
+        tolerance: 0.1
+
+      prefer_forward:
+        large_heading_cost: 3.0
+        small_heading_cost: 1.0
 
