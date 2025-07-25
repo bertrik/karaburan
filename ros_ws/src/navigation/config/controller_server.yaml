@@ -1,4 +1,4 @@
-controller_server:
+/controller_server:
 
   ros__parameters:
     use_sim_time: false
@@ -20,12 +20,10 @@ controller_server:
           type: "nav2_costmap_2d::ObstacleLayer"
         - name: inflation_layer
           type: "nav2_costmap_2d::InflationLayer"
-          inflation_radius: 0.5
-          cost_scaling_factor: 10.0
 
     global_costmap:
       plugins: []
-
+    
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
 

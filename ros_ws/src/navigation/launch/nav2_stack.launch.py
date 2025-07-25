@@ -12,6 +12,11 @@ def generate_launch_description():
         'config',
         'controller_server.yaml'
     )
+    planner_server_yaml = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'planner_server.yaml'
+    )
     behavior_yaml = os.path.join(
         get_package_share_directory('navigation'),
         'config',
@@ -98,18 +103,22 @@ def generate_launch_description():
             executable='planner_server',
             name='planner_server',
             namespace='',
-            parameters=[{
-                'use_sim_time': False,
-                'planner_frequency': 0.5,
-                'expected_planner_frequency': 0.5
-            }],
+            arguments=[
+                '--log-level', 'debug',
+                '--params-file', planner_server_yaml
+            ],
+            output='screen'
         ),
         LifecycleNode(
             package='nav2_controller',
             executable='controller_server',
             name='controller_server',
             namespace='',
-            parameters=[controller_yaml],
+            arguments=[
+                '--log-level', 'debug',
+                '--params-file', controller_yaml
+            ],
+            output='screen'
         ),
         LifecycleNode(
             package='nav2_behaviors',
@@ -129,7 +138,6 @@ def generate_launch_description():
             arguments=[
               '--ros-args',
               '--params-file', ekf_yaml,
-              '--log-level', 'ekf_filter_node:=debug'
             ],
         ),
         Node(
