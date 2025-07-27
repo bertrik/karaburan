@@ -22,9 +22,6 @@
         - name: inflation_layer
           type: "nav2_costmap_2d::InflationLayer"
 
-    global_costmap:
-      plugins: []
-    
     FollowWaypoints:
       plugin: "nav2_controller::FollowWaypoints"
       allow_in_place_goal: true
