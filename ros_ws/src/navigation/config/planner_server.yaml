@@ -4,15 +4,9 @@
     planner_frequency: 0.5
     expected_planner_frequency: 0.5
 
-    global_costmap:
-      global_frame: local_enu
-      robot_base_frame: base_link
-      rolling_window: true             # als je ‘m rolling-ENU wilt houden
-      width: 1000.0
-      height: 1000.0
-      resolution: 5.0
-      transform_tolerance: 1.0
-      plugins: []                      # <-- wíjzig dit: haal static_layer weg
+    planner_plugins: ["GridBased"]
+    expected_planner_frequency: 20.0
 
-    local_costmap:
+    global_costmap:
       plugins: []
+
