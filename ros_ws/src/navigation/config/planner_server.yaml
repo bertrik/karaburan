@@ -11,22 +11,5 @@
     expected_planner_frequency: 20.0
 
     global_costmap:
-      global_frame: local_enu
-      robot_base_frame: base_link
-      rolling_window: true
-      width: 1000.0
-      height: 1000.0
-      resolution: 5.0
-      transform_tolerance: 0.5
-      plugins: []
-
-    local_costmap:
-      global_frame: local_enu
-      robot_base_frame: base_link
-      rolling_window: true
-      width: 1000.0
-      height: 1000.0
-      resolution: 5.0
-      transform_tolerance: 0.5
-      plugins: []
-
+      static_layer:
+        enabled: false
