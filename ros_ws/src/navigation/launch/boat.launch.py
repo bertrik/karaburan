@@ -20,12 +20,13 @@ def generate_launch_description():
         )
     )
 
-    sensorfusion_dir = get_package_share_directory('sensorfusion')
-    sensorfusion = IncludeLaunchDescription(
+    imu_dir = get_package_share_directory('mpu9250')
+    imu = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(sensorfusion_dir, 'launch', 'sensorfusion.launch.py')
+            os.path.join(imu_dir, 'launch', 'mpu9250.launch.py')
         )
     )
+
 
     nav_dir = get_package_share_directory('navigation')
     nav_launch = IncludeLaunchDescription(
@@ -37,6 +38,6 @@ def generate_launch_description():
     return LaunchDescription([
         gpsd_launch,
         boatcontrol,
-        sensorfusion,
+        imu,
         nav_launch
     ])

@@ -1,6 +1,5 @@
 from launch import LaunchDescription
-from launch_ros.actions import Node
-from launch_ros.actions import LifecycleNode
+from launch_ros.actions import Node, LifecycleNode
 import launch_testing.actions
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -12,17 +11,85 @@ def generate_launch_description():
         'config',
         'controller_server.yaml'
     )
+    planner_server_yaml = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'planner_server.yaml'
+    )
     behavior_yaml = os.path.join(
         get_package_share_directory('navigation'),
         'config',
         'behavior_server.yaml'
     )
-    map_yaml = os.path.join(
+    ekf_yaml = os.path.join(
         get_package_share_directory('navigation'),
-        'maps',
-        'empty.yml'
+        'config',
+        'ekf.yaml'
+    )
+    navsat_yaml = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'navsat.yaml'
     )
     nodes = [
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_tf_base_to_imu',
+            arguments=[
+                '--x', '0', '--y', '0', '--z', '0',
+                '--roll', '0', '--pitch', '0', '--yaw', '0',
+                '--frame-id', 'base_link',
+                '--child-frame-id', 'imu_link'
+            ],
+            output='screen'
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_tf_base_to_gps',
+            arguments=[
+                '--x', '0', '--y', '0', '--z', '0',
+                '--roll', '0', '--pitch', '0', '--yaw', '0',
+                '--frame-id', 'base_link',
+                '--child-frame-id', 'gps'
+            ],
+            output='screen'
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_map_to_odom',
+            arguments=[
+                '--x', '0', '--y', '0', '--z', '0',
+                '--roll', '0', '--pitch', '0', '--yaw', '0',
+                '--frame-id', 'map',
+                '--child-frame-id', 'odom'
+            ],
+            output='screen'
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_odom_to_base',
+            output='screen',
+            arguments=[
+                '--x', '0.0',
+                '--y', '0.0',
+                '--z', '0.0',
+                '--roll', '0.0',
+                '--pitch', '0.0',
+                '--yaw', '0.0',
+                '--frame-id', 'odom',
+                '--child-frame-id', 'base_link'
+            ]
+        ),
+        Node(
+            package='navigation',
+            executable='fix_status_override_node',
+            name='fix_status_override_node',
+            output='screen'
+        ),
         LifecycleNode(
             package='nav2_bt_navigator',
             executable='bt_navigator',
@@ -31,54 +98,24 @@ def generate_launch_description():
             parameters=[{'use_sim_time': False}],
         ),
         LifecycleNode(
-            package='nav2_planner',
-            executable='planner_server',
-            name='planner_server',
-            namespace='',
-            parameters=[{'use_sim_time': False}],
-        ),
-        LifecycleNode(
             package='nav2_controller',
             executable='controller_server',
             name='controller_server',
             namespace='',
-            parameters=[controller_yaml],
+            parameters=[
+                controller_yaml
+            ],
+            output='log'
         ),
         LifecycleNode(
-            package='nav2_map_server',
-            executable='map_server',
-            name='map_server',
+            package='nav2_planner',
+            executable='planner_server',
+            name='planner_server',
             namespace='',
-            parameters=[{
-                'yaml_filename': map_yaml,
-                'use_sim_time': False
-            }],
-        ),
-        Node(
-            package='nav2_amcl',
-            executable='amcl',
-            name='amcl',
-            parameters=[{'use_sim_time': False}],
-        ),
-        Node(
-            package='navigation',         # Je eigen package
-            executable='navigation_node', # De entrypoint (zoals in setup.py -> console_scripts)
-            name='navigation_node',
-            output='screen',
-            parameters=[{'use_sim_time': False}]
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_map_to_odom',
-            arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_tf_map_to_base_link',
-            arguments=['0', '0', '0', '0', '0', '0', 'map', 'base_link'],
-            output='screen'
+            parameters=[
+                planner_server_yaml
+            ],
+            output='log'
         ),
         LifecycleNode(
             package='nav2_behaviors',
@@ -89,6 +126,30 @@ def generate_launch_description():
             parameters=[behavior_yaml],
         ),
         Node(
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_filter_node',
+            namespace='',
+            output='screen',
+            parameters=[],
+            arguments=[
+              '--ros-args',
+              '--params-file', ekf_yaml,
+            ],
+        ),
+        Node(
+            package='robot_localization',
+            executable='navsat_transform_node',
+            name='navsat_transform_node',
+            parameters=[ navsat_yaml ],
+            remappings=[
+                ('/gps/fix', '/fix/valid'),
+                ('/imu', '/imu/data'),
+                ('/odometry/filtered', '/odometry/filtered'),
+                ('/odometry/gps', '/odometry/gps')
+            ]
+        ),
+        Node(
             package='nav2_lifecycle_manager',
             executable='lifecycle_manager',
             name='lifecycle_manager_navigation',
@@ -96,7 +157,6 @@ def generate_launch_description():
             parameters=[{
                 'autostart': True,
                 'node_names': [
-                    'map_server',
                     'controller_server',
                     'planner_server',
                     'behavior_server',

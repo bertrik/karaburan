@@ -11,8 +11,10 @@ setup(
         ('share/' + package_name + '/launch', ['launch/nav2_stack.launch.py']),
         ('share/' + package_name + '/launch', ['launch/boat.launch.py']),
         ('share/' + package_name + '/config', ['config/controller_server.yaml']),
+        ('share/' + package_name + '/config', ['config/planner_server.yaml']),
         ('share/' + package_name + '/config', ['config/behavior_server.yaml']),
-        ('share/' + package_name + '/maps', ['maps/empty.yml', 'maps/empty.pgm']),
+        ('share/' + package_name + '/config', ['config/ekf.yaml']),
+        ('share/' + package_name + '/config', ['config/navsat.yaml']),
         ('share/' + package_name, ['package.xml']),
     ],
     install_requires=['setuptools'],
@@ -24,7 +26,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'navigation_node = navigation.boatnavigator:main',
+            'my_navigation_node = navigation.boatnavigator:main',
+            'fix_status_override_node = navigation.fix_status_override_node:main',
         ],
     },
 )
