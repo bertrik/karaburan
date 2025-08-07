@@ -1,0 +1,15 @@
+/bt_navigator:
+  ros__parameters:
+    use_sim_time: false
+
+    # Path naar je behavior tree XML in de nav2_bringup package
+    default_bt_xml_filename: >
+      /opt/ros/jazzy/share/nav2_bt_navigator/behavior_trees/navigate_w_replanning_and_recovery.xml
+
+    # (optioneel) schakel recovery nodes in/uit
+    enable_recovery: true
+    # (optioneel) namen van recovery plugins
+    recovery_behaviors: ["spin", "backup"]
+
+    # (optioneel) hoeveel keer een recovery maximaal te proberen
+    expected_planner_frequency: 20.0

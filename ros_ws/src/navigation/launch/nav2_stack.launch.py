@@ -31,6 +31,11 @@ def generate_launch_description():
         'config',
         'navsat.yaml'
     )
+    bt_navigator_yaml = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'bt_navigator.yaml'
+    )
     nodes = [
         Node(
             package='tf2_ros',
@@ -95,7 +100,8 @@ def generate_launch_description():
             executable='bt_navigator',
             name='bt_navigator',
             namespace='',
-            parameters=[{'use_sim_time': False}],
+            parameters=[ bt_navigator_yaml ],
+            output='screen'
         ),
         LifecycleNode(
             package='nav2_controller',

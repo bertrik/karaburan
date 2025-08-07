@@ -11,5 +11,17 @@
     expected_planner_frequency: 20.0
 
     global_costmap:
+      global_frame: local_enu
+      robot_base_frame: base_link
+      rolling_window: true
+      width: 1000.0
+      height: 1000.0
+      resolution: 1.0
+      transform_tolerance: 0.5
+      robot_radius: 0.6
       static_layer:
         enabled: false
+
+    inflation_layer:
+      inflation_radius: 2.0
+      cost_scaling_factor: 8.0
