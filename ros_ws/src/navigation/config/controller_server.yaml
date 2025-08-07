@@ -24,14 +24,16 @@
       lookahead_dist: 0.5
       desired_linear_vel: 0.25
 
-    local_costmap:
+/local_costmap:
+  local_costmap:
+    ros__parameters:
       global_frame: local_enu
       robot_base_frame: base_link
       update_frequency: 5.0
       publish_frequency: 2.0
       rolling_window: true
-      width: 1000.0
-      height: 1000.0
+      width: 1000
+      height: 1000
       resolution: 5.0
       transform_tolerance: 0.5
       robot_radius: 0.6
