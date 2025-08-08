@@ -1,29 +1,54 @@
 /controller_server:
   ros__parameters:
     use_sim_time: false
-    controller_plugins: ["FollowWaypoints"]
+    controller_plugins: ["RegulatedPurePursuitController"]
+    controller_frequency: 10.0
+    transform_tolerance: 0.1
 
-    local_costmap:
+    progress_checker_plugins: ["progress_checker"]
+    goal_checker_plugins: ["goal_checker"]
+
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
+
+    goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.5
+      yaw_goal_tolerance: 0.2
+      stateful: true
+
+    RegulatedPurePursuitController:
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      lookahead_dist: 0.5
+      desired_linear_vel: 0.25
+
+/local_costmap:
+  local_costmap:
+    ros__parameters:
       global_frame: local_enu
       robot_base_frame: base_link
       update_frequency: 5.0
       publish_frequency: 2.0
       rolling_window: true
-      width: 1000.0
-      height: 1000.0
+      width: 1000
+      height: 1000
       resolution: 5.0
-      transform_tolerance: 1.0
-      inflation_radius: 0.5
+      transform_tolerance: 0.5
+      robot_radius: 0.6
       cost_scaling_factor: 10.0
 
-      plugins:
-        - name: obstacle_layer
-          type: "nav2_costmap_2d::ObstacleLayer"
-        - name: inflation_layer
-          type: "nav2_costmap_2d::InflationLayer"
+      static_layer:
+        enabled: false
 
-    FollowWaypoints:
-      plugin: "nav2_controller::FollowWaypoints"
-      allow_in_place_goal: true
-      controller_frequency: 10.0
+      plugins: ["obstacle_layer", "inflation_layer"]
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 2.0
+        cost_scaling_factor: 10.0
 

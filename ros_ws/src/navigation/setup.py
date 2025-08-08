@@ -13,6 +13,7 @@ setup(
         ('share/' + package_name + '/config', ['config/controller_server.yaml']),
         ('share/' + package_name + '/config', ['config/planner_server.yaml']),
         ('share/' + package_name + '/config', ['config/behavior_server.yaml']),
+        ('share/' + package_name + '/config', ['config/bt_navigator.yaml']),
         ('share/' + package_name + '/config', ['config/ekf.yaml']),
         ('share/' + package_name + '/config', ['config/navsat.yaml']),
         ('share/' + package_name, ['package.xml']),
