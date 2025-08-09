@@ -4,23 +4,24 @@ import time
 import math
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float64
+from geometry_msgs.msg import TwistStamped
 
 # Initialize serial communication for actuator control
 serial_port = "/dev/ttyUSB0"  # Update with your port
 baud_rate = 115200  # Adjust baud rate as per your actuator settings
 ser = serial.Serial(serial_port, baud_rate, timeout=1)
 
+def clip(x, lo, hi):
+    return max(lo, min(hi, x))
+
+def to_int8(u):
+    return int(clip(round(127 * u), -127, 127))
+
 class BoatControlNode(Node):
 
     def __init__(self):
         super().__init__('boat_control_node')
-        self.compass_pub = self.create_publisher(Float64, '/compass', 10)
-        self.heading_sub = self.create_subscription(Float64, '/desired_heading', self.heading_callback, 10)
-        self.speed_sub = self.create_subscription(Float64, '/desired_speed', self.speed_callback, 10)
-        self.current_heading = None
-        timer_period = 0.05  # Seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.cmd_sub = self.create_subscription(TwistStamped, '/cmd_vel', self.props_callback, 10)
 
     def start(self):
         time.sleep(0.5)
@@ -32,20 +33,21 @@ class BoatControlNode(Node):
         time.sleep(0.1)
         self.send_speed_command(30)
 
-    def timer_callback(self):
+    # Controls the propellors for the boat via duty cycle control.
+    def props_callback(self, cmd_vel):
         self.send_enable_command()
-        current_heading = self.get_heading_command()
-        current_heading = self.get_heading_command()# dual reading to flush !
 
-        msg = Float64()
-        msg.data = current_heading
-        self.compass_pub.publish(msg)
+        # Converting twist message to differntial drive control, includes clipping
+        # This is an electronic speed controller
+        v = cmd_vel.twist.linear.x     # (m/s)
+        w = cmd_vel.twist.angular.z    # (rad/s)
 
-    def heading_callback(self, heading):
-        self.send_nav_command(10, heading)
+        B = 0.3                        # (m)
+        K = 0.05                       # To be determined!
+        left  = (v - w*B/2) / K
+        right = (v + w*B/2) / K
 
-    def speed_callback(self, speed):
-        self.send_speed_command(speed)
+        self.send_pwm_command(to_int8(left), to_int8(right))
 
     def send_command(self, command):
         if ser.is_open:
@@ -67,29 +69,8 @@ class BoatControlNode(Node):
         self.send_command(f"POST WD 30") #enable motor for 30s
         
     # Function to send command to the actuator
-    def send_move_command(self, command):
-        self.send_command(f"POST MOVE {command}")
-
-    def send_nav_command(self, duration, heading):
-        self.send_command(f"POST NAV {duration} {heading}")
-
-    def send_speed_command(self, speed):
-        self.send_command(f"POST SPEED {speed}")
-
-    # Function to send command to the actuator
-    def get_heading_command(self):
-        response = self.send_command(f"GET HEADING")
-            
-        # Parse the heading from the response
-        try:
-            # Find the start and end of the heading value within the response string
-            start = response.index("heading:") + len("heading:")
-            end = response.index("}", start)
-            heading_value = float(response[start:end].strip())  # Convert to float
-            return heading_value
-        except (ValueError, IndexError) as e:
-            self.get_logger().info(f"Error parsing heading: {e}")
-            return None
+    def send_pwm_command(self, left, right):
+        self.send_command(f"POST PWM {left} {right}")
 
 def main():
     rclpy.init()
