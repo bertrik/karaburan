@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<robot name="karaburan">
+<robot name="karaburan" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <material name="black">
      <color rgba="0.9 0.9 0.9 0.8" />
   </material>
@@ -27,30 +27,25 @@
     </visual>
   </link>
 
-  <link name="left_prop">
-    <visual>
-      <geometry>
-        <cylinder radius="0.04" length="0.025" />
-      </geometry>
-      <origin xyz="0 0 0" rpy="0 1.57 0" />
-      <material name="black" />
-    </visual>
-  </link>
+  <xacro:macro name="prop_link" params="prefix">
+    <link name="${prefix}_prop">
+      <visual>
+        <geometry>
+          <cylinder radius="0.04" length="0.025" />
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 1.57 0" />
+        <material name="black" />
+      </visual>
+    </link>
+  </xacro:macro>
 
-  <link name="right_prop">
-    <visual>
-      <geometry>
-        <cylinder radius="0.04" length="0.025" />
-      </geometry>
-      <origin xyz="0 0 0" rpy="0 1.57 0" />
-      <material name="black" />
-    </visual>
-  </link>
+  <xacro:prop_link prefix="left" />
+  <xacro:prop_link prefix="right" />
 
   <joint name="base_joint" type="fixed">
     <parent link="base_footprint" />
     <child link="base_link" />
-    <origin xyz="0 -0.1 0" rpy="0 0 0" />
+    <origin xyz="0 0 -0.1" rpy="0 0 0" />
   </joint>
 
   <joint name="base_lidar_joint" type="fixed">
