@@ -23,6 +23,18 @@
     </collision> 
   </link>
 
+  <link name="imu">
+    <visual>
+      <geometry>
+        <box size="0.03 0.03 0.001"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="black" />
+    </visual>
+    <collision>
+    </collision>
+  </link>
+
   <link name="lidar">
     <visual>
       <geometry>
@@ -40,6 +52,18 @@
     </collision>
   </link>
 
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint" />
+    <child link="base_link" />
+    <origin xyz="0 0 -0.1" rpy="0 0 0" />
+  </joint>
+
+  <joint name="base_imu_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="imu" />
+    <origin xyz="0.55 0 0.201" rpy="0 0 0" />
+  </joint>
+
   <xacro:macro name="prop_link" params="prefix">
     <link name="${prefix}_prop">
       <visual>
@@ -54,12 +78,6 @@
 
   <xacro:prop_link prefix="left" />
   <xacro:prop_link prefix="right" />
-
-  <joint name="base_joint" type="fixed">
-    <parent link="base_footprint" />
-    <child link="base_link" />
-    <origin xyz="0 0 -0.1" rpy="0 0 0" />
-  </joint>
 
   <joint name="base_lidar_joint" type="fixed">
     <parent link="base_link" />
