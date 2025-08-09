@@ -7,6 +7,18 @@
 
   <link name="base_footprint" />
 
+  <!-- Box inertia (COM op link-origin) -->
+  <xacro:macro name="inertial_box" params="m x y z">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="${m}"/>
+      <inertia
+        ixx="${m*(y*y+z*z)/12.0}" ixy="0" ixz="0"
+        iyy="${m*(x*x+z*z)/12.0}" iyz="0"
+        izz="${m*(x*x+y*y)/12.0}"/>
+    </inertial>
+  </xacro:macro>
+
   <link name="base_link">
     <visual>
       <geometry>
@@ -20,7 +32,8 @@
         <box size="0.6 0.4 0.2" />
       </geometry>
       <origin xyz="0 0 0.1" rpy="0 0 0" />
-    </collision> 
+    </collision>
+    <xacro:inertial_box m="4.0" x="0.6" y="0.4" z="0.2" />
   </link>
 
   <link name="imu_link">
