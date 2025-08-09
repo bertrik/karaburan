@@ -31,8 +31,6 @@
       <origin xyz="0 0 0" rpy="0 0 0" />
       <material name="black" />
     </visual>
-    <collision>
-    </collision>
   </link>
 
   <link name="gps">
@@ -43,8 +41,6 @@
       <origin xyz="0 0 0" rpy="0 0 0" />
       <material name="black" />
     </visual>
-    <collision>
-    </collision>
   </link>
 
   <link name="lidar">
