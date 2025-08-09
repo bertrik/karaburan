@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<sdf version="1.10">
+  <world name="ocean">
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+
+    <!-- Buoyancy on world -->
+    <plugin filename="gz-sim-buoyancy-system" name="gz::sim::systems::Buoyancy">
+      <graded_buoyancy>
+        <default_density>1000</default_density>   <!-- water -->
+        <density_change>
+          <above_depth>0</above_depth>            <!-- waterline op z = 0 -->
+          <density>1.2</density>                  <!-- air -->
+        </density_change>
+      </graded_buoyancy>
+    </plugin>
+
+    <plugin filename="gz-sim-hydrodynamics-system" name="gz::sim::systems::Hydrodynamics">
+      <link_name>base_link</link_name>
+      <water_density>998</water_density>
+      <xU>50</xU>      <xUabsU>200</xUabsU>
+      <yV>50</yV>      <yVabsV>200</yVabsV>
+      <zW>100</zW>     <zWabsW>400</zWabsW>
+      <kP>20</kP>      <kPabsP>80</kPabsP>
+      <mQ>20</mQ>      <mQabsQ>80</mQabsQ>
+      <nR>20</nR>      <nRabsR>80</nRabsR>
+    </plugin>
+  </world>
+</sdf>
+
