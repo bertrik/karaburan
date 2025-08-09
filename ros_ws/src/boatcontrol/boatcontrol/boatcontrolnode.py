@@ -4,7 +4,7 @@ import time
 import math
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import Twist
 
 # Initialize serial communication for actuator control
 serial_port = "/dev/ttyUSB0"  # Update with your port
@@ -21,7 +21,7 @@ class BoatControlNode(Node):
 
     def __init__(self):
         super().__init__('boat_control_node')
-        self.cmd_sub = self.create_subscription(TwistStamped, '/cmd_vel', self.props_callback, 10)
+        self.cmd_sub = self.create_subscription(Twist, '/cmd_vel', self.props_callback, 10)
 
     def start(self):
         time.sleep(0.5)
@@ -30,8 +30,6 @@ class BoatControlNode(Node):
         response = ser.readline().decode().strip()  # Read response from the actuator
         self.get_logger().info(f"Received: {response}")
         self.send_enable_command()
-        time.sleep(0.1)
-        self.send_speed_command(30)
 
     # Controls the propellors for the boat via duty cycle control.
     def props_callback(self, cmd_vel):
@@ -39,11 +37,11 @@ class BoatControlNode(Node):
 
         # Converting twist message to differntial drive control, includes clipping
         # This is an electronic speed controller
-        v = cmd_vel.twist.linear.x     # (m/s)
-        w = cmd_vel.twist.angular.z    # (rad/s)
+        v = cmd_vel.linear.x     # (m/s)
+        w = cmd_vel.angular.z    # (rad/s)
 
-        B = 0.3                        # (m)
-        K = 0.05                       # To be determined!
+        B = 0.3                  # (m)
+        K = 1                    # To be determined!
         left  = (v - w*B/2) / K
         right = (v + w*B/2) / K
 
