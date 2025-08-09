@@ -23,7 +23,7 @@
     </collision> 
   </link>
 
-  <link name="imu">
+  <link name="imu_link">
     <visual>
       <geometry>
         <box size="0.03 0.03 0.001"/>
@@ -72,7 +72,7 @@
 
   <joint name="base_imu_joint" type="fixed">
     <parent link="base_link" />
-    <child link="imu" />
+    <child link="imu_link" />
     <origin xyz="0.25 0 0.201" rpy="0 0 0" />
   </joint>
 
