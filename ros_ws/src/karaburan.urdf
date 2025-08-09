@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+
+<robot name="karaburan">
+  <material name="black">
+     <color rgba="0.9 0.9 0.9 0.8" />
+  </material>
+
+  <link name="base_footprint" />
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.6 0.4 0.2" />
+      </geometry>
+      <origin xyz="0 0 0.1" rpy="0 0 0" />
+      <material name="black" />
+    </visual>
+  </link>
+
+  <link name="lidar">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05" length="0.05" />
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="black" />
+    </visual>
+  </link>
+
+  <link name="left_prop">
+    <visual>
+      <geometry>
+        <cylinder radius="0.04" length="0.025" />
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 1.57 0" />
+      <material name="black" />
+    </visual>
+  </link>
+
+  <link name="right_prop">
+    <visual>
+      <geometry>
+        <cylinder radius="0.04" length="0.025" />
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 1.57 0" />
+      <material name="black" />
+    </visual>
+  </link>
+
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint" />
+    <child link="base_link" />
+    <origin xyz="0 -0.1 0" rpy="0 0 0" />
+  </joint>
+
+  <joint name="base_lidar_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="lidar" />
+    <origin xyz="0 0 0.225" rpy="0 0 0" />
+  </joint>
+
+  <joint name="base_left_prop_joint" type="continuous">
+    <parent link="base_link" />
+    <child link="left_prop" />
+    <origin xyz="-0.25 0.1 -0.045" rpy="0 0 0" />
+    <axis xyz="1 0 0" />
+  </joint>
+
+  <joint name="base_right_prop_joint" type="continuous">
+    <parent link="base_link" />
+    <child link="right_prop" />
+    <origin xyz="-0.25 -0.1 -0.045" rpy="0 0 0" />
+    <axis xyz="1 0 0" />
+  </joint>
+</robot>
