@@ -116,10 +116,10 @@ class LidarNode(Node):
         msg.angle_min = math.radians(fsa)
         msg.angle_max = math.radians(lsa)
         msg.angle_increment = math.radians(step)
-        msg.range_min = 0.0
-        msg.range_max = float(0x3FFF)
+        msg.range_min = 0.02  # radius of scanner head is 2 cm
+        msg.range_max = 10.0  # assumed
         # time between full 360 sweep: approx 6 rotations per second
-        msg.scan_time = 1.0 / 6
+        msg.scan_time = 1.0 / 5.8
         # time between rays: 6 fps, 36*16 rays per scan
         msg.time_increment = msg.scan_time * 10 / (360 * 16)
 
@@ -128,7 +128,7 @@ class LidarNode(Node):
             dist = (frame[idx] + (frame[idx + 1] << 8)) & 0x3FFF
             intensity = frame[idx + 2]
             idx += 3
-            msg.ranges.append(float(dist))
+            msg.ranges.append(dist / 1000.0)  # normalize to meters
             msg.intensities.append(float(intensity))
 
         self.publisher.publish(msg)
