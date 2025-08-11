@@ -90,7 +90,7 @@ def generate_launch_description():
                         FindPackageShare("ros_gz_sim"), "launch", "gz_spawn_model.launch.py"
                     ])),
                     launch_arguments={
-                        "world": "default",
+                        "world": world_name,
                         "entity_name": entity_name,
                         "topic": "/robot_description",
                         "x": x, "y": y, "z": z,

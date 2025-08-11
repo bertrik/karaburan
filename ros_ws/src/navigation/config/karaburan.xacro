@@ -1,16 +1,34 @@
 <?xml version="1.0" ?>
 
 <robot name="karaburan" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:property name="with_gazebo" default="false"/>
+
+  <xacro:property name="WITH_GAZEBO"
+    value="${str(with_gazebo).lower() in ['1','true','yes']}"/>
+
+  <xacro:if value="${WITH_GAZEBO}">
+    <gazebo>
+      <plugin name="hydrodynamics" filename="gz-sim-hydrodynamics-system">
+        <link_name>base_link</link_name>
+        <water_density>998</water_density>
+        <xU>80</xU><xUabsU>300</xUabsU>
+        <yV>80</yV><yVabsV>300</yVabsV>
+        <zW>300</zW><zWabsW>1500</zWabsW>
+        <kP>80</kP><kPabsP>300</kPabsP>
+        <mQ>80</mQ><mQabsQ>300</mQabsQ>
+        <nR>40</nR><nRabsR>200</nRabsR>
+      </plugin>
+    </gazebo>
+  </xacro:if>
+
   <material name="black">
      <color rgba="0.9 0.9 0.9 0.8" />
   </material>
 
-  <link name="base_footprint" />
-
   <!-- Box inertia (COM op link-origin) -->
   <xacro:macro name="inertial_box" params="m x y z">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 ${z/2 + 0.01} " rpy="0 0 0"/>
       <mass value="${m}"/>
       <inertia
         ixx="${m*(y*y+z*z)/12.0}" ixy="0" ixz="0"
@@ -72,12 +90,6 @@
       <material name="black" />
     </collision>
   </link>
-
-  <joint name="base_joint" type="fixed">
-    <parent link="base_footprint" />
-    <child link="base_link" />
-    <origin xyz="0 0 -0.1" rpy="0 0 0" />
-  </joint>
 
   <joint name="base_imu_joint" type="fixed">
     <parent link="base_link" />
