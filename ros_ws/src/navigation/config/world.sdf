@@ -1,6 +1,12 @@
 <?xml version="1.0"?>
 <sdf version="1.10">
   <world name="ocean">
+    <!--<gravity>0 0 9.81</gravity> -->
+
+    <physics name="default" type="dart">
+      <max_step_size>0.002</max_step_size>
+      <real_time_update_rate>500</real_time_update_rate>
+    </physics>
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
     <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
     <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
@@ -11,10 +17,41 @@
         <default_density>1000</default_density>   <!-- water -->
         <density_change>
           <above_depth>0</above_depth>            <!-- waterline op z = 0 -->
-          <density>1.2</density>                  <!-- air -->
+          <density>1</density>                  <!-- air -->
         </density_change>
       </graded_buoyancy>
+      <enable>karaburan::hull</enable>
     </plugin>
+
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <plugin filename="gz-sim-imu-system"
+        name="gz::sim::systems::Imu">
+    </plugin>
+
+    <model name="water_surface">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+      <link name="water_visual">
+        <gravity>false</gravity>
+	<self_collide>false</self_collide>
+        <visual name="water_plane">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>500 500</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.1 0.3 0.8 0.6</ambient>
+            <diffuse>0.1 0.3 0.8 0.6</diffuse>
+          </material>
+          <transparency>0.3</transparency>
+        </visual>
+      </link>
+    </model>
   </world>
 </sdf>
 

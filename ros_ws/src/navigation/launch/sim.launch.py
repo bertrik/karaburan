@@ -19,6 +19,7 @@ def generate_launch_description():
     # --- Launch arguments ---
     xacro_file = LaunchConfiguration("xacro_file")
     world_sdf = LaunchConfiguration("world_sdf")
+    model_sdf = LaunchConfiguration("model_sdf")
     world_name = LaunchConfiguration("world_name")
     entity_name = LaunchConfiguration("entity_name")
     x = LaunchConfiguration("x")
@@ -43,10 +44,15 @@ def generate_launch_description():
             description="Path to world (SDF). 'empty.sdf' also works."
         ),
         DeclareLaunchArgument("world_name", default_value="ocean"),
+        DeclareLaunchArgument(
+            "model_sdf",
+            default_value="navigation/config/karaburan_boat.sdf",
+            description="Pad naar SDF-model met hydrodynamics plugin"
+        ),
         DeclareLaunchArgument("entity_name", default_value="karaburan"),
         DeclareLaunchArgument("x", default_value="0.0"),
         DeclareLaunchArgument("y", default_value="0.0"),
-        DeclareLaunchArgument("z", default_value="0.15"),
+        DeclareLaunchArgument("z", default_value="-0.015"),
         DeclareLaunchArgument("R", default_value="0.0"),
         DeclareLaunchArgument("P", default_value="0.0"),
         DeclareLaunchArgument("Y", default_value="0.0"),
@@ -92,7 +98,7 @@ def generate_launch_description():
                     launch_arguments={
                         "world": world_name,
                         "entity_name": entity_name,
-                        "topic": "/robot_description",
+                        "file": model_sdf,
                         "x": x, "y": y, "z": z,
                         "R": R, "P": P, "Y": Y
                     }.items()

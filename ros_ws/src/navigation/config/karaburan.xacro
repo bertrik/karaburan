@@ -2,6 +2,7 @@
 
 <robot name="karaburan" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:property name="with_gazebo" default="false"/>
+  <xacro:property name="hydro_link" value="base_foutprint"/>
 
   <xacro:property name="WITH_GAZEBO"
     value="${str(with_gazebo).lower() in ['1','true','yes']}"/>
@@ -9,14 +10,16 @@
   <xacro:if value="${WITH_GAZEBO}">
     <gazebo>
       <plugin name="hydrodynamics" filename="gz-sim-hydrodynamics-system">
-        <link_name>base_link</link_name>
+        <link_name>${hydro_link}</link_name>
         <water_density>998</water_density>
-        <xU>80</xU><xUabsU>300</xUabsU>
-        <yV>80</yV><yVabsV>300</yVabsV>
-        <zW>300</zW><zWabsW>1500</zWabsW>
-        <kP>80</kP><kPabsP>300</kPabsP>
-        <mQ>80</mQ><mQabsQ>300</mQabsQ>
-        <nR>40</nR><nRabsR>200</nRabsR>
+        <disable_coriolis>true</disable_coriolis>
+        <disable_added_mass>true</disable_added_mass>
+        <xU>10</xU><xUabsU>60</xUabsU>
+        <yV>10</yV><yVabsV>60</yVabsV>-->
+        <zW>20</zW><!--zWabsW>1500</zWabsW-->
+        <kP>25</kP><kPabsP>80</kPabsP>
+        <mQ>50</mQ><mQabsQ>80</mQabsQ>
+        <nR>20</nR><nRabsR>60</nRabsR>-->
       </plugin>
     </gazebo>
   </xacro:if>
@@ -28,7 +31,7 @@
   <!-- Box inertia (COM op link-origin) -->
   <xacro:macro name="inertial_box" params="m x y z">
     <inertial>
-      <origin xyz="0 0 ${z/2 + 0.01} " rpy="0 0 0"/>
+      <origin xyz="0 0 ${z*0.4}" rpy="0 0 0"/>
       <mass value="${m}"/>
       <inertia
         ixx="${m*(y*y+z*z)/12.0}" ixy="0" ixz="0"
@@ -37,6 +40,18 @@
     </inertial>
   </xacro:macro>
 
+  <xacro:macro name="inertial_cylinder_z" params="m r l">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="${m}"/>
+      <inertia
+        ixx="${m*(3*r*r + l*l)/12.0}" ixy="0" ixz="0"
+        iyy="${m*(3*r*r + l*l)/12.0}" iyz="0"
+        izz="${0.5*m*r*r}"/>
+    </inertial>
+  </xacro:macro>
+
+  <link name="base_footprint"/>
   <link name="base_link">
     <visual>
       <geometry>
@@ -62,6 +77,13 @@
       <origin xyz="0 0 0" rpy="0 0 0" />
       <material name="black" />
     </visual>
+
+    <sensor name="imu_sensor" type="imu">
+      <always_on>1</always_on>
+      <update_rate>1</update_rate>
+      <visualize>true</visualize>
+      <topic>imu</topic>
+    </sensor>
   </link>
 
   <link name="gps">
@@ -89,7 +111,41 @@
       <origin xyz="0 0 0" rpy="0 0 0" />
       <material name="black" />
     </collision>
+
+    <sensor name="lidar" type="gpu_lidar">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>5</update_rate>
+      <topic>scan</topic>
+      <gz_frame_id>lidar_link</gz_frame_id>
+      <lidar>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1.000000</resolution>
+            <min_angle>0.000000</min_angle>
+            <max_angle>6.280000</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.120000</min>
+          <max>3.5</max>
+          <resolution>0.015000</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </lidar>
+    </sensor>
   </link>
+
+  <joint name="base_footprint_to_base_link" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
 
   <joint name="base_imu_joint" type="fixed">
     <parent link="base_link" />
@@ -112,6 +168,7 @@
         <origin xyz="0 0 0" rpy="0 1.57 0" />
         <material name="black" />
       </visual>
+      <xacro:inertial_cylinder_z m="0.05" r="0.03" l="0.01"/>
     </link>
   </xacro:macro>
 
