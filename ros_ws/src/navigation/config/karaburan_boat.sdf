@@ -28,7 +28,7 @@
       </inertial>
       <velocity_decay>
         <linear>0.02</linear>
-        <angular>0.08</angular>
+        <angular>0.15</angular>
       </velocity_decay>
     </link>
 
@@ -41,7 +41,7 @@
       <xDotU>0</xDotU> <yDotV>0</yDotV> <zDotW>0</zDotW>
       <kDotP>0</kDotP> <mDotQ>0</mDotQ> <nDotR>0</nDotR>
 
-      <xU>-1.5</xU>  <yV>-2.0</yV>  <zW>-3.0</zW>
+      <xU>-2.0</xU>  <yV>-3.0</yV>  <zW>-60.0</zW>
 
       <xUabsU>-0.6</xUabsU>  <yVabsV>-1.0</yVabsV>  <zWabsW>-4.0</zWabsW>
 
