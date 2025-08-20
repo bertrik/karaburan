@@ -43,11 +43,11 @@
 
       <xU>-2.0</xU>  <yV>-3.0</yV>  <zW>-60.0</zW>
 
-      <xUabsU>-0.6</xUabsU>  <yVabsV>-1.0</yVabsV>  <zWabsW>-4.0</zWabsW>
+      <xUabsU>-0.6</xUabsU>  <yVabsV>-1.0</yVabsV>  <zWabsW>-9.0</zWabsW>
 
       <kP>-4.0</kP>      <kPabsP>-10.0</kPabsP>   <!-- roll -->
       <mQ>-4.0</mQ>      <mQabsQ>-10.0</mQabsQ>   <!-- pitch -->
-      <nR>-1.0</nR>      <nRabsR>-3.0</nRabsR>   <!-- yaw -->
+      <nR>-2.0</nR>      <nRabsR>-3.0</nRabsR>   <!-- yaw -->
     </plugin>
   </model>
 </sdf>
