@@ -20,7 +20,6 @@
           <density>1</density>                  <!-- air -->
         </density_change>
       </graded_buoyancy>
-      <enable>karaburan::hull</enable>
     </plugin>
 
     <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">

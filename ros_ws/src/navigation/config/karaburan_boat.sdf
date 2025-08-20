@@ -17,7 +17,7 @@
 
       <!-- Massa/inertie van de romp; COM iets lager dan midden (0.07) -->
       <inertial>
-        <pose>0 0 0.07 0 0 0</pose>
+        <pose>0 0 0.03 0 0 0</pose>
         <mass>4.0</mass>
         <inertia>
           <ixx>0.0666667</ixx>
@@ -38,11 +38,16 @@
       <disable_coriolis>true</disable_coriolis>
       <disable_added_mass>true</disable_added_mass>
 
-      <!-- Alleen ABS-kwadratische demping; begint stabiel -->
-      <mQabsQ>120</mQabsQ>   <!-- pitch -->
-      <kPabsP>80</kPabsP>    <!-- roll -->
-      <nRabsR>60</nRabsR>    <!-- yaw -->
-      <!-- Heave evt. later: <zWabsW>120</zWabsW> -->
+      <xDotU>0</xDotU> <yDotV>0</yDotV> <zDotW>0</zDotW>
+      <kDotP>0</kDotP> <mDotQ>0</mDotQ> <nDotR>0</nDotR>
+
+      <xU>-1.5</xU>  <yV>-2.0</yV>  <zW>-3.0</zW>
+
+      <xUabsU>-0.6</xUabsU>  <yVabsV>-1.0</yVabsV>  <zWabsW>-4.0</zWabsW>
+
+      <kP>-3.0</kP>      <kPabsP>-8.0</kPabsP>   <!-- roll -->
+      <mQ>-3.0</mQ>      <mQabsQ>-8.0</mQabsQ>   <!-- pitch -->
+      <nR>-1.0</nR>      <nRabsR>-3.0</nRabsR>   <!-- yaw -->
     </plugin>
   </model>
 </sdf>
