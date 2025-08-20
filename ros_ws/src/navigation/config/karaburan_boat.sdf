@@ -32,6 +32,80 @@
       </velocity_decay>
     </link>
 
+      <!-- LEFT PROPELLER (link + joint) -->
+  <link name="left_prop">
+    <inertial>
+      <pose>0 0 0 0 0 0</pose>
+      <mass>0.05</mass>
+      <inertia>
+        <ixx>1e-5</ixx><iyy>1e-5</iyy><izz>1e-5</izz>
+        <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+      </inertia>
+    </inertial>
+    <visual name="left_prop_vis">
+      <geometry><cylinder><radius>0.04</radius><length>0.02</length></cylinder></geometry>
+      <!-- achter de romp (x<0), bakboord (y>0), op halve hoogte z=0.10 -->
+      <pose>-0.35 0.18 0.10 0 0 0</pose>
+    </visual>
+    <!-- GEEN collision -> geen extra drijfkracht -->
+  </link>
+
+  <joint name="left_prop_joint" type="revolute">
+    <parent>hull</parent>
+    <child>left_prop</child>
+    <!-- as = +X in child-frame: “vooruit” is +thrust -->
+    <pose>-0.35 0.18 0.10 0 0 0</pose>
+    <axis>
+      <xyz>1 0 0</xyz>
+      <limit><lower>-1e16</lower><upper>1e16</upper></limit>
+    </axis>
+  </joint>
+
+  <!-- RIGHT PROPELLER -->
+  <link name="right_prop">
+    <inertial>
+      <pose>0 0 0 0 0 0</pose>
+      <mass>0.05</mass>
+      <inertia>
+        <ixx>1e-5</ixx><iyy>1e-5</iyy><izz>1e-5</izz>
+        <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+      </inertia>
+    </inertial>
+    <visual name="right_prop_vis">
+      <geometry><cylinder><radius>0.04</radius><length>0.02</length></cylinder></geometry>
+      <pose>-0.35 -0.18 0.10 0 0 0</pose>
+    </visual>
+  </link>
+
+  <joint name="right_prop_joint" type="revolute">
+    <parent>hull</parent>
+    <child>right_prop</child>
+    <pose>-0.35 -0.18 0.10 0 0 0</pose>
+    <axis>
+      <xyz>1 0 0</xyz>
+      <limit><lower>-1e16</lower><upper>1e16</upper></limit>
+    </axis>
+  </joint>
+
+  <!-- Thruster plugins: 1 per joint -->
+  <plugin filename="gz-sim-thruster-system" name="gz::sim::systems::Thruster">
+    <namespace>karaburan</namespace>
+    <joint_name>left_prop_joint</joint_name>
+    <fluid_density>1000</fluid_density>
+    <propeller_diameter>0.08</propeller_diameter>
+    <thrust_coefficient>0.004</thrust_coefficient>
+    <!-- standaard: cmd_thrust (N), joint wordt visueel gesponnen -->
+  </plugin>
+
+  <plugin filename="gz-sim-thruster-system" name="gz::sim::systems::Thruster">
+    <namespace>karaburan</namespace>
+    <joint_name>right_prop_joint</joint_name>
+    <fluid_density>1000</fluid_density>
+    <propeller_diameter>0.08</propeller_diameter>
+    <thrust_coefficient>0.004</thrust_coefficient>
+  </plugin>
+
+
     <plugin name="gz::sim::systems::Hydrodynamics" filename="gz-sim-hydrodynamics-system">
       <link_name>hull</link_name>
       <water_density>998</water_density>
