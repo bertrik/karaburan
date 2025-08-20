@@ -1,0 +1,174 @@
+<?xml version="1.0" ?>
+
+<robot name="karaburan" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <material name="black">
+     <color rgba="0.9 0.9 0.9 0.8" />
+  </material>
+
+  <!-- Box inertia (COM op link-origin) -->
+  <xacro:macro name="inertial_box" params="m x y z">
+    <inertial>
+      <origin xyz="0 0 ${z*0.4}" rpy="0 0 0"/>
+      <mass value="${m}"/>
+      <inertia
+        ixx="${m*(y*y+z*z)/12.0}" ixy="0" ixz="0"
+        iyy="${m*(x*x+z*z)/12.0}" iyz="0"
+        izz="${m*(x*x+y*y)/12.0}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="inertial_cylinder_z" params="m r l">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="${m}"/>
+      <inertia
+        ixx="${m*(3*r*r + l*l)/12.0}" ixy="0" ixz="0"
+        iyy="${m*(3*r*r + l*l)/12.0}" iyz="0"
+        izz="${0.5*m*r*r}"/>
+    </inertial>
+  </xacro:macro>
+
+  <link name="base_footprint"/>
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="0.6 0.4 0.2" />
+      </geometry>
+      <origin xyz="0 0 0.1" rpy="0 0 0" />
+      <material name="black" />
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.6 0.4 0.2" />
+      </geometry>
+      <origin xyz="0 0 0.1" rpy="0 0 0" />
+    </collision>
+    <xacro:inertial_box m="4.0" x="0.6" y="0.4" z="0.2" />
+  </link>
+
+  <link name="imu_link">
+    <visual>
+      <geometry>
+        <box size="0.03 0.03 0.001"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="black" />
+    </visual>
+
+    <sensor name="imu_sensor" type="imu">
+      <always_on>1</always_on>
+      <update_rate>1</update_rate>
+      <visualize>true</visualize>
+      <topic>imu</topic>
+    </sensor>
+  </link>
+
+  <link name="gps">
+    <visual>
+      <geometry>
+        <box size="0.03 0.03 0.01"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="black" />
+    </visual>
+  </link>
+
+  <link name="lidar">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05" length="0.05" />
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="black" />
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.1 0.1 0.05" />
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="black" />
+    </collision>
+
+    <sensor name="lidar" type="gpu_lidar">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>5</update_rate>
+      <topic>scan</topic>
+      <gz_frame_id>lidar_link</gz_frame_id>
+      <lidar>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1.000000</resolution>
+            <min_angle>0.000000</min_angle>
+            <max_angle>6.280000</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.120000</min>
+          <max>3.5</max>
+          <resolution>0.015000</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </lidar>
+    </sensor>
+  </link>
+
+  <joint name="base_footprint_to_base_link" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="base_imu_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="imu_link" />
+    <origin xyz="0.25 0 0.201" rpy="0 0 0" />
+  </joint>
+
+  <joint name="base_gps_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="gps" />
+    <origin xyz="-0.25 0 0.201" rpy="0 0 0" />
+  </joint>
+
+  <xacro:macro name="prop_link" params="prefix">
+    <link name="${prefix}_prop">
+      <visual>
+        <geometry>
+          <cylinder radius="0.04" length="0.025" />
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 1.57 0" />
+        <material name="black" />
+      </visual>
+      <xacro:inertial_cylinder_z m="0.05" r="0.03" l="0.01"/>
+    </link>
+  </xacro:macro>
+
+  <xacro:prop_link prefix="left" />
+  <xacro:prop_link prefix="right" />
+
+  <joint name="base_lidar_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="lidar" />
+    <origin xyz="0 0 0.225" rpy="0 0 0" />
+  </joint>
+
+  <joint name="base_left_prop_joint" type="continuous">
+    <parent link="base_link" />
+    <child link="left_prop" />
+    <origin xyz="-0.25 0.1 -0.045" rpy="0 0 0" />
+    <axis xyz="1 0 0" />
+  </joint>
+
+  <joint name="base_right_prop_joint" type="continuous">
+    <parent link="base_link" />
+    <child link="right_prop" />
+    <origin xyz="-0.25 -0.1 -0.045" rpy="0 0 0" />
+    <axis xyz="1 0 0" />
+  </joint>
+</robot>

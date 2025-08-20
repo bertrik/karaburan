@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<sdf version="1.10">
+  <model name="karaburan">
+    <static>false</static>
+    <pose>0 0 0 0 0 0</pose>
+
+    <link name="hull">
+      <!-- Ondervlak van de doos precies op het link-origin -->
+      <collision name="hull_col">
+        <geometry><box><size>0.6 0.4 0.2</size></box></geometry>
+        <pose>0 0 0.1 0 0 0</pose>
+      </collision>
+      <visual name="hull_vis">
+        <geometry><box><size>0.6 0.4 0.2</size></box></geometry>
+        <pose>0 0 0.1 0 0 0</pose>
+      </visual>
+
+      <!-- Massa/inertie van de romp; COM iets lager dan midden (0.07) -->
+      <inertial>
+        <pose>0 0 -0.02 0 0 0</pose>
+        <mass>4.0</mass>
+        <inertia>
+          <ixx>0.0666667</ixx>
+          <iyy>0.1333333</iyy>
+          <izz>0.1733333</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <velocity_decay>
+        <linear>0.02</linear>
+        <angular>0.15</angular>
+      </velocity_decay>
+    </link>
+
+      <!-- LEFT PROPELLER (link + joint) -->
+  <link name="left_prop">
+    <inertial>
+      <pose>0 0 0 0 0 0</pose>
+      <mass>0.05</mass>
+      <inertia>
+        <ixx>1e-5</ixx><iyy>1e-5</iyy><izz>1e-5</izz>
+        <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+      </inertia>
+    </inertial>
+    <visual name="left_prop_vis">
+      <geometry><cylinder><radius>0.04</radius><length>0.02</length></cylinder></geometry>
+      <!-- achter de romp (x<0), bakboord (y>0), op halve hoogte z=0.10 -->
+      <pose>-0.35 0.18 0.10 0 0 0</pose>
+    </visual>
+    <!-- GEEN collision -> geen extra drijfkracht -->
+  </link>
+
+  <joint name="left_prop_joint" type="revolute">
+    <parent>hull</parent>
+    <child>left_prop</child>
+    <!-- as = +X in child-frame: “vooruit” is +thrust -->
+    <pose>-0.35 0.18 0.10 0 0 0</pose>
+    <axis>
+      <xyz>1 0 0</xyz>
+      <limit><lower>-1e16</lower><upper>1e16</upper></limit>
+    </axis>
+  </joint>
+
+  <!-- RIGHT PROPELLER -->
+  <link name="right_prop">
+    <inertial>
+      <pose>0 0 0 0 0 0</pose>
+      <mass>0.05</mass>
+      <inertia>
+        <ixx>1e-5</ixx><iyy>1e-5</iyy><izz>1e-5</izz>
+        <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+      </inertia>
+    </inertial>
+    <visual name="right_prop_vis">
+      <geometry><cylinder><radius>0.04</radius><length>0.02</length></cylinder></geometry>
+      <pose>-0.35 -0.18 0.10 0 0 0</pose>
+    </visual>
+  </link>
+
+  <joint name="right_prop_joint" type="revolute">
+    <parent>hull</parent>
+    <child>right_prop</child>
+    <pose>-0.35 -0.18 0.10 0 0 0</pose>
+    <axis>
+      <xyz>1 0 0</xyz>
+      <limit><lower>-1e16</lower><upper>1e16</upper></limit>
+    </axis>
+  </joint>
+
+  <!-- Thruster plugins: 1 per joint -->
+  <plugin filename="gz-sim-thruster-system" name="gz::sim::systems::Thruster">
+    <namespace>karaburan</namespace>
+    <joint_name>left_prop_joint</joint_name>
+    <fluid_density>1000</fluid_density>
+    <propeller_diameter>0.06</propeller_diameter>
+    <thrust_coefficient>0.0004</thrust_coefficient>
+    <!-- standaard: cmd_thrust (N), joint wordt visueel gesponnen -->
+  </plugin>
+
+  <plugin filename="gz-sim-thruster-system" name="gz::sim::systems::Thruster">
+    <namespace>karaburan</namespace>
+    <joint_name>right_prop_joint</joint_name>
+    <fluid_density>1000</fluid_density>
+    <propeller_diameter>0.06</propeller_diameter>
+    <thrust_coefficient>0.0004</thrust_coefficient>
+  </plugin>
+
+
+    <plugin name="gz::sim::systems::Hydrodynamics" filename="gz-sim-hydrodynamics-system">
+      <link_name>hull</link_name>
+      <water_density>998</water_density>
+      <disable_coriolis>true</disable_coriolis>
+      <disable_added_mass>true</disable_added_mass>
+
+      <xDotU>0</xDotU> <yDotV>0</yDotV> <zDotW>0</zDotW>
+      <kDotP>0</kDotP> <mDotQ>0</mDotQ> <nDotR>0</nDotR>
+
+      <xU>-2.0</xU>  <yV>-3.0</yV>  <zW>-80.0</zW>
+
+      <xUabsU>-0.6</xUabsU>  <yVabsV>-1.0</yVabsV>  <zWabsW>-9.0</zWabsW>
+
+      <kP>-4.0</kP>      <kPabsP>-10.0</kPabsP>   <!-- roll -->
+      <mQ>-4.0</mQ>      <mQabsQ>-10.0</mQabsQ>   <!-- pitch -->
+      <nR>-2.0</nR>      <nRabsR>-3.0</nRabsR>   <!-- yaw -->
+    </plugin>
+  </model>
+</sdf>
+
