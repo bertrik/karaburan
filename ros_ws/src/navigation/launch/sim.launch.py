@@ -57,9 +57,6 @@ def generate_launch_description():
         DeclareLaunchArgument("P", default_value="0.0"),
         DeclareLaunchArgument("Y", default_value="0.0"),
         DeclareLaunchArgument(
-            "with_gazebo", default_value="true",
-        ),
-        DeclareLaunchArgument(
             "xacro_args", default_value="",
         ),
 
@@ -82,7 +79,6 @@ def generate_launch_description():
                 "robot_description": Command([
                     FindExecutable(name="xacro"), " ",
                     xacro_file, " ",
-                    "with_gazebo:=", with_gazebo, " ",
                     xacro_args
                 ])
             }]

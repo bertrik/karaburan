@@ -1,29 +1,6 @@
 <?xml version="1.0" ?>
 
 <robot name="karaburan" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:property name="with_gazebo" default="false"/>
-  <xacro:property name="hydro_link" value="base_foutprint"/>
-
-  <xacro:property name="WITH_GAZEBO"
-    value="${str(with_gazebo).lower() in ['1','true','yes']}"/>
-
-  <xacro:if value="${WITH_GAZEBO}">
-    <gazebo>
-      <plugin name="hydrodynamics" filename="gz-sim-hydrodynamics-system">
-        <link_name>${hydro_link}</link_name>
-        <water_density>998</water_density>
-        <disable_coriolis>true</disable_coriolis>
-        <disable_added_mass>true</disable_added_mass>
-        <xU>10</xU><xUabsU>60</xUabsU>
-        <yV>10</yV><yVabsV>60</yVabsV>-->
-        <zW>20</zW><!--zWabsW>1500</zWabsW-->
-        <kP>25</kP><kPabsP>80</kPabsP>
-        <mQ>50</mQ><mQabsQ>80</mQabsQ>
-        <nR>20</nR><nRabsR>60</nRabsR>-->
-      </plugin>
-    </gazebo>
-  </xacro:if>
-
   <material name="black">
      <color rgba="0.9 0.9 0.9 0.8" />
   </material>
