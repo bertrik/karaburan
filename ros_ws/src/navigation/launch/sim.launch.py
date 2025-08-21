@@ -11,7 +11,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -30,6 +30,15 @@ def generate_launch_description():
     Y = LaunchConfiguration("Y")
     with_gazebo = LaunchConfiguration("with_gazebo")
     xacro_args = LaunchConfiguration("xacro_args")
+
+    # Build parameter_bridge arguments (GZ -> ROS for sensors)
+    ns = LaunchConfiguration('ns')
+    imu_topic = LaunchConfiguration('imu_topic')
+    gps_topic = LaunchConfiguration('gps_topic')
+    publish_static_tf = LaunchConfiguration('publish_static_tf')
+    base_frame = LaunchConfiguration('base_frame')
+    imu_frame = LaunchConfiguration('imu_frame')
+    gps_frame = LaunchConfiguration('gps_frame') 
 
     return LaunchDescription([
         # Paths / args
@@ -59,6 +68,13 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "xacro_args", default_value="",
         ),
+        # Launch args for the GZ - ROS2 bridge
+        DeclareLaunchArgument('ns', default_value='', description='ROS namespace for the bridge'),
+        DeclareLaunchArgument('imu_topic', default_value='/imu', description='GZ/ROS topic for IMU'),
+        DeclareLaunchArgument('gps_topic', default_value='/gps', description='GZ/ROS topic for GPS/NavSat'),
+        DeclareLaunchArgument('base_frame', default_value='base_link', description='Base frame id'),
+        DeclareLaunchArgument('imu_frame', default_value='imu_link', description='IMU frame id (must match gz_frame_id in SDF)'),
+        DeclareLaunchArgument('gps_frame', default_value='gps_link', description='GPS frame id (must match gz_frame_id in SDF)'),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([
@@ -98,6 +114,18 @@ def generate_launch_description():
                         "x": x, "y": y, "z": z,
                         "R": R, "P": P, "Y": Y
                     }.items()
+                ),
+                Node(
+                    package='ros_gz_bridge',
+                    executable='parameter_bridge',
+                    name='ros_gz_parameter_bridge',
+                    namespace=ns,
+                    output='screen',
+                    arguments=[
+                        PythonExpression(['"', imu_topic, '" + \'@sensor_msgs/msg/Imu[gz.msgs.IMU\'']),
+                        PythonExpression(['"', gps_topic, '" + \'@sensor_msgs/msg/NavSatFix[gz.msgs.NavSat\'']),
+                        '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
+                    ],
                 )
             ]
         ),

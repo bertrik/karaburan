@@ -15,7 +15,7 @@
         <pose>0 0 0.1 0 0 0</pose>
       </visual>
 
-      <!-- Massa/inertie van de romp; COM iets lager dan midden (0.07) -->
+      <!-- Massa/inertie van de romp; COM iets lager dan midden -->
       <inertial>
         <pose>0 0 -0.02 0 0 0</pose>
         <mass>4.0</mass>
@@ -30,6 +30,20 @@
         <linear>0.02</linear>
         <angular>0.15</angular>
       </velocity_decay>
+
+      <sensor name="imu_sensor" type="imu">
+        <gz_frame_id>imu_link</gz_frame_id>
+        <always_on>1</always_on>
+        <update_rate>30</update_rate>
+        <visualize>false</visualize>
+        <topic>/imu</topic>
+      </sensor>
+      <sensor name="gps_sensor" type="navsat">
+        <gz_frame_id>gps_link</gz_frame_id>
+        <always_on>1</always_on>
+        <update_rate>5</update_rate>
+        <topic>/gps</topic>
+      </sensor>
     </link>
 
       <!-- LEFT PROPELLER (link + joint) -->
