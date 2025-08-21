@@ -11,7 +11,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -121,9 +121,9 @@ def generate_launch_description():
                     name='ros_gz_parameter_bridge',
                     namespace=ns,
                     output='screen',
-                    arguments= [ 
-                        f"{imu_topic}@sensor_msgs/msg/Imu[gz.msgs.IMU", 
-                        f"{gps_topic}@sensor_msgs/msg/NavSatFix[gz.msgs.NavSat", 
+                    arguments=[
+                        PythonExpression(['"', imu_topic, '" + \'@sensor_msgs/msg/Imu[gz.msgs.IMU\'']),
+                        PythonExpression(['"', gps_topic, '" + \'@sensor_msgs/msg/NavSatFix[gz.msgs.NavSat\'']),
                         '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
                     ],
                 )
