@@ -35,6 +35,7 @@ def generate_launch_description():
     ns = LaunchConfiguration('ns')
     imu_topic = LaunchConfiguration('imu_topic')
     gps_topic = LaunchConfiguration('gps_topic')
+    lidar_topic = LaunchConfiguration('lidar_topic')
     publish_static_tf = LaunchConfiguration('publish_static_tf')
     base_frame = LaunchConfiguration('base_frame')
     imu_frame = LaunchConfiguration('imu_frame')
@@ -72,6 +73,7 @@ def generate_launch_description():
         DeclareLaunchArgument('ns', default_value='', description='ROS namespace for the bridge'),
         DeclareLaunchArgument('imu_topic', default_value='/imu', description='GZ/ROS topic for IMU'),
         DeclareLaunchArgument('gps_topic', default_value='/gps', description='GZ/ROS topic for GPS/NavSat'),
+        DeclareLaunchArgument('lidar_topic', default_value='/scan', description='LiDAR LaserScan topic'),
         DeclareLaunchArgument('base_frame', default_value='base_link', description='Base frame id'),
         DeclareLaunchArgument('imu_frame', default_value='imu_link', description='IMU frame id (must match gz_frame_id in SDF)'),
         DeclareLaunchArgument('gps_frame', default_value='gps_link', description='GPS frame id (must match gz_frame_id in SDF)'),
@@ -124,6 +126,7 @@ def generate_launch_description():
                     arguments=[
                         PythonExpression(['"', imu_topic, '" + \'@sensor_msgs/msg/Imu[gz.msgs.IMU\'']),
                         PythonExpression(['"', gps_topic, '" + \'@sensor_msgs/msg/NavSatFix[gz.msgs.NavSat\'']),
+                        PythonExpression(['"', lidar_topic, '" + \'@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan\'']),
                         '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
                     ],
                 )
