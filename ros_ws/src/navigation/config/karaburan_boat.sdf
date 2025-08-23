@@ -46,7 +46,7 @@
       <!-- 2D LiDAR -->
       <sensor name="lidar_sensor" type="gpu_lidar">
         <gz_frame_id>lidar_link</gz_frame_id>
-        <topic>/boat/scan</topic>
+        <topic>/scan</topic>
         <update_rate>10</update_rate>
         <ray>
           <scan>
