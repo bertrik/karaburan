@@ -14,6 +14,8 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from ament_index_python.packages import get_package_share_directory
+import os
 
 def generate_launch_description():
     # --- Launch arguments ---
@@ -40,6 +42,12 @@ def generate_launch_description():
     base_frame = LaunchConfiguration('base_frame')
     imu_frame = LaunchConfiguration('imu_frame')
     gps_frame = LaunchConfiguration('gps_frame') 
+    nav_dir = get_package_share_directory('navigation')
+    nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(nav_dir, 'launch', 'nav2_stack.launch.py')
+        )
+    )
 
     return LaunchDescription([
         # Paths / args
@@ -71,8 +79,8 @@ def generate_launch_description():
         ),
         # Launch args for the GZ - ROS2 bridge
         DeclareLaunchArgument('ns', default_value='', description='ROS namespace for the bridge'),
-        DeclareLaunchArgument('imu_topic', default_value='/imu', description='GZ/ROS topic for IMU'),
-        DeclareLaunchArgument('gps_topic', default_value='/gps', description='GZ/ROS topic for GPS/NavSat'),
+        DeclareLaunchArgument('imu_topic', default_value='/imu/data', description='GZ/ROS topic for IMU'),
+        DeclareLaunchArgument('gps_topic', default_value='/fix/valid', description='GZ/ROS topic for GPS/NavSat'),
         DeclareLaunchArgument('lidar_topic', default_value='/scan', description='LiDAR LaserScan topic'),
         DeclareLaunchArgument('base_frame', default_value='base_link', description='Base frame id'),
         DeclareLaunchArgument('imu_frame', default_value='imu_link', description='IMU frame id (must match gz_frame_id in SDF)'),
@@ -101,6 +109,7 @@ def generate_launch_description():
                 ])
             }]
         ),
+        nav_launch,
 
         TimerAction(
             period=2.0,

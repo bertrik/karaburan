@@ -35,13 +35,13 @@
         <always_on>1</always_on>
         <update_rate>30</update_rate>
         <visualize>false</visualize>
-        <topic>/imu</topic>
+	<topic>/imu/data</topic>
       </sensor>
       <sensor name="gps_sensor" type="navsat">
         <gz_frame_id>gps_link</gz_frame_id>
         <always_on>1</always_on>
         <update_rate>5</update_rate>
-        <topic>/gps</topic>
+	<topic>/fix/valid</topic>
       </sensor>
       <!-- 2D LiDAR -->
       <sensor name="lidar_sensor" type="gpu_lidar">

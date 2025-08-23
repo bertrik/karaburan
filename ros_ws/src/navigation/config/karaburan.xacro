@@ -63,7 +63,7 @@
     </sensor>
   </link>
 
-  <link name="gps">
+  <link name="gps_link">
     <visual>
       <geometry>
         <box size="0.03 0.03 0.01"/>
@@ -132,7 +132,7 @@
 
   <joint name="base_gps_joint" type="fixed">
     <parent link="base_link" />
-    <child link="gps" />
+    <child link="gps_link" />
     <origin xyz="-0.23 0 0.131" rpy="0 0 0" />
   </joint>
 
