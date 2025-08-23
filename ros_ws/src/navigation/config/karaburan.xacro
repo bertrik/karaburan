@@ -32,18 +32,18 @@
   <link name="base_link">
     <visual>
       <geometry>
-        <box size="0.6 0.4 0.2" />
+        <box size="0.5 0.25 0.13" />
       </geometry>
-      <origin xyz="0 0 0.1" rpy="0 0 0" />
+      <origin xyz="0 0 0.065" rpy="0 0 0" />
       <material name="black" />
     </visual>
     <collision>
       <geometry>
-        <box size="0.6 0.4 0.2" />
+        <box size="0.5 0.25 0.13" />
       </geometry>
-      <origin xyz="0 0 0.1" rpy="0 0 0" />
+      <origin xyz="0 0 0.065" rpy="0 0 0" />
     </collision>
-    <xacro:inertial_box m="4.0" x="0.6" y="0.4" z="0.2" />
+    <xacro:inertial_box m="2.0" x="0.5" y="0.25" z="0.13" />
   </link>
 
   <link name="imu_link">
@@ -127,25 +127,25 @@
   <joint name="base_imu_joint" type="fixed">
     <parent link="base_link" />
     <child link="imu_link" />
-    <origin xyz="0.25 0 0.201" rpy="0 0 0" />
+    <origin xyz="0.23 0 0.131" rpy="0 0 0" />
   </joint>
 
   <joint name="base_gps_joint" type="fixed">
     <parent link="base_link" />
     <child link="gps" />
-    <origin xyz="-0.25 0 0.201" rpy="0 0 0" />
+    <origin xyz="-0.23 0 0.131" rpy="0 0 0" />
   </joint>
 
   <xacro:macro name="prop_link" params="prefix">
     <link name="${prefix}_prop">
       <visual>
         <geometry>
-          <cylinder radius="0.04" length="0.025" />
+          <cylinder radius="0.025" length="0.01" />
         </geometry>
         <origin xyz="0 0 0" rpy="0 1.57 0" />
         <material name="black" />
       </visual>
-      <xacro:inertial_cylinder_z m="0.05" r="0.03" l="0.01"/>
+      <xacro:inertial_cylinder_z m="0.05" r="0.025" l="0.01"/>
     </link>
   </xacro:macro>
 
@@ -155,20 +155,20 @@
   <joint name="base_lidar_joint" type="fixed">
     <parent link="base_link" />
     <child link="lidar" />
-    <origin xyz="0 0 0.225" rpy="0 0 0" />
+    <origin xyz="0 0 0.155" rpy="0 0 0" />
   </joint>
 
   <joint name="base_left_prop_joint" type="continuous">
     <parent link="base_link" />
     <child link="left_prop" />
-    <origin xyz="-0.25 0.1 -0.045" rpy="0 0 0" />
+    <origin xyz="-0.25 0.09 -0.045" rpy="0 0 0" />
     <axis xyz="1 0 0" />
   </joint>
 
   <joint name="base_right_prop_joint" type="continuous">
     <parent link="base_link" />
     <child link="right_prop" />
-    <origin xyz="-0.25 -0.1 -0.045" rpy="0 0 0" />
+    <origin xyz="-0.25 -0.09 -0.045" rpy="0 0 0" />
     <axis xyz="1 0 0" />
   </joint>
 </robot>
