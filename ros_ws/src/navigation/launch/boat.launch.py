@@ -37,6 +37,12 @@ def generate_launch_description():
 
     return LaunchDescription([
         gpsd_launch,
+        Node(
+            package='navigation',
+            executable='fix_status_override_node',
+            name='fix_status_override_node',
+            output='screen'
+        ),
         boatcontrol,
         imu,
         nav_launch

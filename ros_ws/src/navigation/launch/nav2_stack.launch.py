@@ -85,12 +85,6 @@ def generate_launch_description():
                 '--child-frame-id', 'base_link'
             ]
         ),
-        Node(
-            package='navigation',
-            executable='fix_status_override_node',
-            name='fix_status_override_node',
-            output='screen'
-        ),
         LifecycleNode(
             package='nav2_bt_navigator',
             executable='bt_navigator',
@@ -132,7 +126,6 @@ def generate_launch_description():
             executable='waypoint_follower',
             name='waypoint_follower',
             namespace='',
-            parameters=[{'use_sim_time': False}],
             output='screen',
         ),
         Node(

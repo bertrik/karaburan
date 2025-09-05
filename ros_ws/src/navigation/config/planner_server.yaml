@@ -20,7 +20,7 @@
       height: 1000
       resolution: 1.0
       transform_tolerance: 0.5
-      robot_radius: 0.6
+      robot_radius: 0.5
       static_layer:
         enabled: false
 
