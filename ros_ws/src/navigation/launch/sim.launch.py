@@ -142,6 +142,7 @@ def generate_launch_description():
                         PythonExpression(['"', lidar_topic, '" + \'@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan\'']),
                         PythonExpression(['"', left_topic, '" + \'@std_msgs/msg/Float[gz.msgs.Float\'']),
                         PythonExpression(['"', right_topic, '" + \'@std_msgs/msg/Float[gz.msgs.Float\'']),
+                        '/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V',
                         '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
                     ],
                 )
