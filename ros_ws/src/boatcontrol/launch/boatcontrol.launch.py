@@ -9,7 +9,6 @@ def generate_launch_description():
             executable='boatcontrol_node',
             name='boatcontrol_node',
             output='screen',
-            parameters=[{'use_sim_time': False}]
         )
     ]
 
