@@ -136,6 +136,7 @@
     <fluid_density>1000</fluid_density>
     <propeller_diameter>0.025</propeller_diameter>
     <thrust_coefficient>0.0004</thrust_coefficient>
+    <topic>/left</topic>
     <!-- standaard: cmd_thrust (N), joint wordt visueel gesponnen -->
   </plugin>
 
@@ -145,6 +146,7 @@
     <fluid_density>1000</fluid_density>
     <propeller_diameter>0.025</propeller_diameter>
     <thrust_coefficient>0.0004</thrust_coefficient>
+    <topic>/right</topic>
   </plugin>
 
 
