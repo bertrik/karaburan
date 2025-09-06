@@ -103,7 +103,12 @@ class LidarNode(Node):
         self.msg.range_min = 0.02  # radius of scanner head is 2 cm
         self.msg.range_max = 10.0  # assumed
         self.msg.scan_time = 1.0 / 5.8  # time between full 360 sweep: approx 6 rotations per second
+        self.msg.intensities = [0.0] * 576
+        self.msg.ranges = [0.0] * 576
         self.msg.time_increment = self.msg.scan_time * 10 / (360 * 16)  # time between rays
+        self.msg.angle_min = math.radians(0.0)
+        self.msg.angle_max = math.radians(360.0 * 575 / 576)
+        self.msg.angle_increment = math.radians(360.0 / 576)
 
         # create and starting listen thread
         self.thread = threading.Thread(target=self.node_task())
@@ -134,9 +139,10 @@ class LidarNode(Node):
             intensity = frame[idx + 2]
             idx += 3
 
-            self.msg.ranges.append(dist / 1000.0)  # normalize to meters
-            self.msg.intensities.append(float(intensity))
-            self.msg.angle_max = math.radians(angle)
+            pos = int(angle * 576 / 360)
+            if pos < 576:
+                self.msg.ranges[575 - pos] = dist / 1000.0
+                self.msg.intensities[575 - pos] = float(intensity)
 
             angle += step
             if angle >= 360.0:
@@ -147,10 +153,6 @@ class LidarNode(Node):
 
                 # initialise next message
                 self.msg.header.stamp = now.to_msg()
-                self.msg.ranges = []
-                self.msg.intensities = []
-                self.msg.angle_min = math.radians(angle)
-                self.msg.angle_increment = math.radians(step)
 
 
 def main(args=None):
