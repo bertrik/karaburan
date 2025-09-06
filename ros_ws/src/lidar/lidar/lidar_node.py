@@ -2,6 +2,7 @@
 # Copyright 2025 Bertrik Sikken <bertrik@sikken.nl>
 import math
 import threading
+import time
 from enum import Enum
 
 import rclpy
@@ -56,7 +57,7 @@ class FrameExtractor:
 
 class MysteryLidar:
     def __init__(self, device):
-        self.serial = serial.Serial(device, baudrate=230400, timeout=0.1)
+        self.serial = serial.Serial(device, baudrate=230400, timeout=None)
         self.extractor = FrameExtractor()
 
     def open(self) -> None:
@@ -64,14 +65,18 @@ class MysteryLidar:
             self.serial.open()
 
     def poll(self) -> bytes | None:
+        poll_result = None
         num = self.serial.in_waiting
-        while num > 0:
-            num -= 1
-            b = self.serial.read()[0]
-            result = self.extractor.process(b)
-            if result:
-                return result
-        return None
+        if num == 0:
+            # chill a bit and let bytes accumulate in the serial buffer
+            time.sleep(0.001)
+        else:
+            data = self.serial.read(num)
+            for b in data:
+                result = self.extractor.process(b)
+                if result:
+                    poll_result = result
+        return poll_result
 
     def close(self) -> None:
         self.serial.close()
