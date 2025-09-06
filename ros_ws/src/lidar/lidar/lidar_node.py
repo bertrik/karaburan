@@ -8,7 +8,6 @@ import rclpy
 import serial
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
-from std_msgs.msg import Header
 
 
 class FrameExtractor:
@@ -93,6 +92,15 @@ class LidarNode(Node):
         topic = self.get_parameter('topic').get_parameter_value().string_value
         self.publisher = self.create_publisher(LaserScan, topic, 10)
 
+        # initialise LaserScan message
+        self.msg = LaserScan()
+        self.msg.header.frame_id = self.frame_id
+        self.msg.range_min = 0.02  # radius of scanner head is 2 cm
+        self.msg.range_max = 10.0  # assumed
+        self.msg.scan_time = 1.0 / 5.8  # time between full 360 sweep: approx 6 rotations per second
+        self.msg.time_increment = self.msg.scan_time * 10 / (360 * 16)  # time between rays
+
+        # create and starting listen thread
         self.thread = threading.Thread(target=self.node_task())
         self.thread.start()
 
@@ -101,37 +109,43 @@ class LidarNode(Node):
         while rclpy.ok():
             frame = self.lidar.poll()
             if frame:
-                self.publish_scan(frame)
+                self.process_frame(frame)
+                # self.publish_scan(frame)
         self.lidar.close()
 
-    def publish_scan(self, frame: bytes) -> None:
+    def process_frame(self, frame: bytes) -> None:
+        now = self.get_clock().now()
+
         fsa = (frame[6] + (frame[7] << 8)) / 64.0 - 640
         lsa = (frame[56] + (frame[57] << 8)) / 64.0 - 640
         if lsa < fsa:
-            lsa += 360
+            lsa += 360.0
         step = (lsa - fsa) / 16
 
-        header = Header(frame_id=self.frame_id, stamp=self.get_clock().now().to_msg())
-        msg = LaserScan(header=header)
-        msg.angle_min = math.radians(fsa)
-        msg.angle_max = math.radians(lsa)
-        msg.angle_increment = math.radians(step)
-        msg.range_min = 0.02  # radius of scanner head is 2 cm
-        msg.range_max = 10.0  # assumed
-        # time between full 360 sweep: approx 6 rotations per second
-        msg.scan_time = 1.0 / 5.8
-        # time between rays: 6 fps, 36*16 rays per scan
-        msg.time_increment = msg.scan_time * 10 / (360 * 16)
-
         idx = 8
+        angle = fsa
         for i in range(16):
             dist = (frame[idx] + (frame[idx + 1] << 8)) & 0x3FFF
             intensity = frame[idx + 2]
             idx += 3
-            msg.ranges.append(dist / 1000.0)  # normalize to meters
-            msg.intensities.append(float(intensity))
 
-        self.publisher.publish(msg)
+            self.msg.ranges.append(dist / 1000.0)  # normalize to meters
+            self.msg.intensities.append(float(intensity))
+            self.msg.angle_max = math.radians(angle)
+
+            angle += step
+            if angle >= 360.0:
+                angle -= 360.0
+
+                # publish current message
+                self.publisher.publish(self.msg)
+
+                # initialise next message
+                self.msg.header.stamp = now.to_msg()
+                self.msg.ranges = []
+                self.msg.intensities = []
+                self.msg.angle_min = math.radians(angle)
+                self.msg.angle_increment = math.radians(step)
 
 
 def main(args=None):
