@@ -11,9 +11,9 @@ navsat_transform_node:
     use_odometry_yaw: false        # We hebben een IMU!
     use_local_cartesian: true      # Handig voor testgebieden
     wait_for_datum: false          # Gebruik eerste fix als referentie
-    world_frame: map
+    world_frame: local_enu
     map_frame: map
-    child_frame_id: local_enu
+    child_frame_id: base_link
 
     gps_topic: /fix/valid
     imu_topic: /imu/data

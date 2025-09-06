@@ -88,6 +88,7 @@ def generate_launch_description():
             parameters=[
                 controller_yaml, { 'use_sim_time': use_sim_time }
             ],
+            arguments=['--ros-args', '--log-level', 'controller_server:=debug', '--log-level', 'regulated_pure_pursuit_controller:=debug'],
             output='log'
         ),
         LifecycleNode(
@@ -135,9 +136,7 @@ def generate_launch_description():
             parameters=[ navsat_yaml, { 'use_sim_time': use_sim_time } ],
             remappings=[
                 ('/gps/fix', '/fix/valid'),
-                ('/imu', '/imu/data'),
-                ('/odometry/filtered', '/odometry/filtered'),
-                ('/odometry/gps', '/odometry/gps')
+                ('/imu', '/imu/data')
             ]
         ),
         Node(
