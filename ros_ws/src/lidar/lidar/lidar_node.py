@@ -56,6 +56,8 @@ class FrameExtractor:
 
 
 class MysteryLidar:
+    RAYS_PER_ROTATION = 576  # 16 rays per 10 degree packet
+
     def __init__(self, device):
         self.serial = serial.Serial(device, baudrate=230400, timeout=None)
         self.extractor = FrameExtractor()
@@ -103,14 +105,14 @@ class LidarNode(Node):
         self.msg.range_min = 0.02  # radius of scanner head is 2 cm
         self.msg.range_max = 10.0  # assumed
         self.msg.scan_time = 1.0 / 5.8  # time between full 360 sweep: approx 6 rotations per second
-        self.msg.intensities = [0.0] * 576
-        self.msg.ranges = [0.0] * 576
-        self.msg.time_increment = self.msg.scan_time * 10 / (360 * 16)  # time between rays
+        self.msg.intensities = [0.0] * MysteryLidar.RAYS_PER_ROTATION
+        self.msg.ranges = [0.0] * MysteryLidar.RAYS_PER_ROTATION
+        self.msg.time_increment = self.msg.scan_time / MysteryLidar.RAYS_PER_ROTATION  # time between rays
         self.msg.angle_min = math.radians(0.0)
-        self.msg.angle_max = math.radians(360.0 * 575 / 576)
-        self.msg.angle_increment = math.radians(360.0 / 576)
+        self.msg.angle_max = math.radians(360.0)
+        self.msg.angle_increment = math.radians(360.0 / MysteryLidar.RAYS_PER_ROTATION)
 
-        # create and starting listen thread
+        # create and start listen thread
         self.thread = threading.Thread(target=self.node_task())
         self.thread.start()
 
@@ -120,7 +122,6 @@ class LidarNode(Node):
             frame = self.lidar.poll()
             if frame:
                 self.process_frame(frame)
-                # self.publish_scan(frame)
         self.lidar.close()
 
     def process_frame(self, frame: bytes) -> None:
@@ -139,10 +140,10 @@ class LidarNode(Node):
             intensity = frame[idx + 2]
             idx += 3
 
-            pos = int(angle * 576 / 360)
-            if pos < 576:
-                self.msg.ranges[575 - pos] = dist / 1000.0
-                self.msg.intensities[575 - pos] = float(intensity)
+            ray = int(angle * MysteryLidar.RAYS_PER_ROTATION / 360)
+            if ray < MysteryLidar.RAYS_PER_ROTATION:
+                self.msg.ranges[-ray] = dist / 1000.0
+                self.msg.intensities[-ray] = float(intensity)
 
             angle += step
             if angle >= 360.0:
@@ -158,7 +159,7 @@ class LidarNode(Node):
 def main(args=None):
     # Set up a transformer using:
     #   ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 base_link laser
-    # Visualize using rvis2, add a 'LaserScan' display and choose topic '/scan' and style 'Points'
+    # Visualize using rviz2, add a 'LaserScan' display and choose topic '/scan' and style 'Points'
     #
     rclpy.init(args=args)
     lidar_node = LidarNode()
