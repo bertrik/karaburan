@@ -32,26 +32,23 @@ class FrameExtractor:
             self.index += 1
 
         # update state
-        match self.state:
-            case self.STATE_HEADER_1:
-                if b != 0x55:
-                    self.index = 0
-                else:
-                    self.state = self.STATE_HEADER_2
-
-            case self.STATE_HEADER_2:
-                if b != 0xAA:
-                    self.index = 0
-                    self.state = self.STATE_HEADER_1
-                    return self.process(b)
-                else:
-                    self.state = self.STATE_COLLECT
-
-            case self.STATE_COLLECT:
-                if self.index == FrameExtractor.FRAME_SIZE:
-                    self.index = 0
-                    self.state = self.STATE_HEADER_1
-                    return bytes(self.data)
+        if self.state == self.STATE_HEADER_1:
+            if b != 0x55:
+                self.index = 0
+            else:
+                self.state = self.STATE_HEADER_2
+        elif self.state == self.STATE_HEADER_2:
+            if b != 0xAA:
+                self.index = 0
+                self.state = self.STATE_HEADER_1
+                return self.process(b)
+            else:
+                self.state = self.STATE_COLLECT
+        elif self.state == self.STATE_COLLECT:
+            if self.index == FrameExtractor.FRAME_SIZE:
+                self.index = 0
+                self.state = self.STATE_HEADER_1
+                return bytes(self.data)
 
         return None
 
