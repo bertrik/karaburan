@@ -12,46 +12,47 @@ from sensor_msgs.msg import LaserScan
 
 
 class FrameExtractor:
-    class State(Enum):
-        HEADER_1 = 1
-        HEADER_2 = 2
-        COLLECT = 3
+    FRAME_SIZE = 60
+
+    STATE_HEADER_1 = 1
+    STATE_HEADER_2 = 2
+    STATE_COLLECT = 3
 
     def __init__(self) -> None:
-        self.state = self.State.HEADER_1
+        self.state = self.STATE_HEADER_1
         self.index = 0
-        self.length = 0
-        self.data = bytearray(60)
-
-    def __add_data(self, b):
-        self.data[self.index] = b
-        self.index += 1
+        self.data = bytearray(FrameExtractor.FRAME_SIZE)
 
     def process(self, b) -> bytes | None:
-        """ processes one byte, returns True if a full frame was received """
+        """ Processes one byte, returns bytes if a full frame was received, otherwise None """
+
+        # store byte if it fits
+        if self.index < FrameExtractor.FRAME_SIZE:
+            self.data[self.index] = b
+            self.index += 1
+
+        # update state
         match self.state:
-            case self.State.HEADER_1:
-                self.index = 0
-                if b == 0x55:
-                    self.__add_data(b)
-                    self.state = self.State.HEADER_2
-
-            case self.State.HEADER_2:
-                if b == 0xAA:
-                    self.__add_data(b)
-                    self.length = len(self.data)
-                    self.state = self.State.COLLECT
+            case self.STATE_HEADER_1:
+                if b != 0x55:
+                    self.index = 0
                 else:
-                    self.state = self.State.HEADER_1
-                    self.process(b)
+                    self.state = self.STATE_HEADER_2
 
-            case self.State.COLLECT:
-                if self.index < self.length:
-                    self.__add_data(b)
-                if self.index == self.length:
-                    # done
-                    self.state = self.State.HEADER_1
-                    return self.data
+            case self.STATE_HEADER_2:
+                if b != 0xAA:
+                    self.index = 0
+                    self.state = self.STATE_HEADER_1
+                    return self.process(b)
+                else:
+                    self.state = self.STATE_COLLECT
+
+            case self.STATE_COLLECT:
+                if self.index == FrameExtractor.FRAME_SIZE:
+                    self.index = 0
+                    self.state = self.STATE_HEADER_1
+                    return bytes(self.data)
+
         return None
 
 
