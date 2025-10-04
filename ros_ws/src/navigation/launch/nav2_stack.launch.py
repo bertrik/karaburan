@@ -117,6 +117,21 @@ def generate_launch_description():
             parameters=[{ 'use_sim_time': use_sim_time }],
             output='screen',
         ),
+        LifecycleNode(
+            package='nav2_smoother',
+            executable='smoother_server',
+            name='smoother_server',
+            namespace='',
+            output='screen',
+            parameters=[{
+                "use_sim_time": True,
+                "smoother_plugins": ["simple_smoother"],
+                "simple_smoother": {
+                    "plugin": "nav2_smoother::SimpleSmoother",
+                    "tolerance": 0.1
+                }
+            }]
+        ),
         Node(
             package='robot_localization',
             executable='ekf_node',
@@ -150,6 +165,7 @@ def generate_launch_description():
                     'controller_server',
                     'planner_server',
                     'behavior_server',
+                    'smoother_server',
                     'bt_navigator',
                     'waypoint_follower'
                 ]
