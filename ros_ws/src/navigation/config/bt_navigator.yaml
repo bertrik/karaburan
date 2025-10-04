@@ -13,3 +13,5 @@
 
     # (optioneel) hoeveel keer een recovery maximaal te proberen
     expected_planner_frequency: 20.0
+
+    odom_topic: /odometry/filtered
