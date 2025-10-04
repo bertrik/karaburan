@@ -39,10 +39,10 @@
 /local_costmap:
   local_costmap:
     ros__parameters:
-      global_frame: local_enu
+      global_frame: odom
       robot_base_frame: base_link
-      update_frequency: 5.0
-      publish_frequency: 2.0
+      update_frequency: 10.0
+      publish_frequency: 5.0
       rolling_window: true
       width: 1000
       height: 1000
@@ -51,16 +51,14 @@
       robot_radius: 0.6
       cost_scaling_factor: 10.0
 
+      always_send_full_costmap: true
       static_layer:
         enabled: false
 
-      plugins: ["obstacle_layer", "inflation_layer"]
-
-      obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
+      plugins: ["inflation_layer"]
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        inflation_radius: 0.5
+        inflation_radius: 0.6
         cost_scaling_factor: 10.0
 
