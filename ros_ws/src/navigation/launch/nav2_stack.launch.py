@@ -1,5 +1,6 @@
 from launch import LaunchDescription
-from launch.substitutions import Command, PathJoinSubstitution, FindExecutable
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import Command, PathJoinSubstitution, FindExecutable, LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node, LifecycleNode
 import launch_testing.actions
@@ -48,13 +49,15 @@ def generate_launch_description():
         'config',
         'bt_navigator.yaml'
     )
+    use_sim_time = LaunchConfiguration('use_sim_time')
     nodes = [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             name='robot_state_publisher',
             parameters=[{'robot_description': robot_description,
-                         'publish_frequency': 1.0}],
+                         'publish_frequency': 1.0,
+                         'use_sim_time': use_sim_time }],
             output='screen',
         ),
         Node(
@@ -69,34 +72,12 @@ def generate_launch_description():
             ],
             output='screen'
         ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_odom_to_base',
-            output='screen',
-            arguments=[
-                '--x', '0.0',
-                '--y', '0.0',
-                '--z', '0.0',
-                '--roll', '0.0',
-                '--pitch', '0.0',
-                '--yaw', '0.0',
-                '--frame-id', 'odom',
-                '--child-frame-id', 'base_link'
-            ]
-        ),
-        Node(
-            package='navigation',
-            executable='fix_status_override_node',
-            name='fix_status_override_node',
-            output='screen'
-        ),
         LifecycleNode(
             package='nav2_bt_navigator',
             executable='bt_navigator',
             name='bt_navigator',
             namespace='',
-            parameters=[ bt_navigator_yaml ],
+            parameters=[ bt_navigator_yaml, { 'use_sim_time': use_sim_time } ],
             output='screen'
         ),
         LifecycleNode(
@@ -105,8 +86,9 @@ def generate_launch_description():
             name='controller_server',
             namespace='',
             parameters=[
-                controller_yaml
+                controller_yaml, { 'use_sim_time': use_sim_time }
             ],
+            arguments=['--ros-args', '--log-level', 'controller_server:=debug', '--log-level', 'regulated_pure_pursuit_controller:=debug'],
             output='log'
         ),
         LifecycleNode(
@@ -115,7 +97,7 @@ def generate_launch_description():
             name='planner_server',
             namespace='',
             parameters=[
-                planner_server_yaml
+                planner_server_yaml, { 'use_sim_time': use_sim_time }
             ],
             output='log'
         ),
@@ -125,15 +107,30 @@ def generate_launch_description():
             name='behavior_server',
             namespace='',
             output='screen',
-            parameters=[behavior_yaml],
+            parameters=[behavior_yaml, { 'use_sim_time': use_sim_time }],
         ),
         LifecycleNode(
             package='nav2_waypoint_follower',
             executable='waypoint_follower',
             name='waypoint_follower',
             namespace='',
-            parameters=[{'use_sim_time': False}],
+            parameters=[{ 'use_sim_time': use_sim_time }],
             output='screen',
+        ),
+        LifecycleNode(
+            package='nav2_smoother',
+            executable='smoother_server',
+            name='smoother_server',
+            namespace='',
+            output='screen',
+            parameters=[{
+                "use_sim_time": True,
+                "smoother_plugins": ["simple_smoother"],
+                "simple_smoother": {
+                    "plugin": "nav2_smoother::SimpleSmoother",
+                    "tolerance": 0.1
+                }
+            }]
         ),
         Node(
             package='robot_localization',
@@ -141,7 +138,7 @@ def generate_launch_description():
             name='ekf_filter_node',
             namespace='',
             output='screen',
-            parameters=[],
+            parameters=[{ 'use_sim_time': use_sim_time }],
             arguments=[
               '--ros-args',
               '--params-file', ekf_yaml,
@@ -151,12 +148,10 @@ def generate_launch_description():
             package='robot_localization',
             executable='navsat_transform_node',
             name='navsat_transform_node',
-            parameters=[ navsat_yaml ],
+            parameters=[ navsat_yaml, { 'use_sim_time': use_sim_time } ],
             remappings=[
                 ('/gps/fix', '/fix/valid'),
-                ('/imu', '/imu/data'),
-                ('/odometry/filtered', '/odometry/filtered'),
-                ('/odometry/gps', '/odometry/gps')
+                ('/imu', '/imu/data')
             ]
         ),
         Node(
@@ -170,6 +165,7 @@ def generate_launch_description():
                     'controller_server',
                     'planner_server',
                     'behavior_server',
+                    'smoother_server',
                     'bt_navigator',
                     'waypoint_follower'
                 ]
@@ -177,6 +173,8 @@ def generate_launch_description():
         ),
     ]
 
-    return LaunchDescription(nodes + [
+    return LaunchDescription(
+            [ DeclareLaunchArgument('use_sim_time', default_value='true', description='Gebruik /clock (true) of systeemklok (false)') ] +
+            nodes + [
         launch_testing.actions.ReadyToTest()
     ])

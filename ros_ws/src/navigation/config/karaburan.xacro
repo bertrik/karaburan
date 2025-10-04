@@ -28,7 +28,6 @@
     </inertial>
   </xacro:macro>
 
-  <link name="base_footprint"/>
   <link name="base_link">
     <visual>
       <geometry>
@@ -63,7 +62,7 @@
     </sensor>
   </link>
 
-  <link name="gps">
+  <link name="gps_link">
     <visual>
       <geometry>
         <box size="0.03 0.03 0.01"/>
@@ -118,12 +117,6 @@
     </sensor>
   </link>
 
-  <joint name="base_footprint_to_base_link" type="fixed">
-    <parent link="base_footprint"/>
-    <child link="base_link"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-  </joint>
-
   <joint name="base_imu_joint" type="fixed">
     <parent link="base_link" />
     <child link="imu_link" />
@@ -132,7 +125,7 @@
 
   <joint name="base_gps_joint" type="fixed">
     <parent link="base_link" />
-    <child link="gps" />
+    <child link="gps_link" />
     <origin xyz="-0.23 0 0.131" rpy="0 0 0" />
   </joint>
 

@@ -14,6 +14,8 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from ament_index_python.packages import get_package_share_directory
+import os
 
 def generate_launch_description():
     # --- Launch arguments ---
@@ -36,10 +38,18 @@ def generate_launch_description():
     imu_topic = LaunchConfiguration('imu_topic')
     gps_topic = LaunchConfiguration('gps_topic')
     lidar_topic = LaunchConfiguration('lidar_topic')
+    left_topic = LaunchConfiguration('left_topic')
+    right_topic = LaunchConfiguration('right_topic')
     publish_static_tf = LaunchConfiguration('publish_static_tf')
     base_frame = LaunchConfiguration('base_frame')
     imu_frame = LaunchConfiguration('imu_frame')
     gps_frame = LaunchConfiguration('gps_frame') 
+    nav_dir = get_package_share_directory('navigation')
+    nav_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(nav_dir, 'launch', 'nav2_stack.launch.py')
+        )
+    )
 
     return LaunchDescription([
         # Paths / args
@@ -71,9 +81,11 @@ def generate_launch_description():
         ),
         # Launch args for the GZ - ROS2 bridge
         DeclareLaunchArgument('ns', default_value='', description='ROS namespace for the bridge'),
-        DeclareLaunchArgument('imu_topic', default_value='/imu', description='GZ/ROS topic for IMU'),
-        DeclareLaunchArgument('gps_topic', default_value='/gps', description='GZ/ROS topic for GPS/NavSat'),
+        DeclareLaunchArgument('imu_topic', default_value='/imu/data', description='GZ/ROS topic for IMU'),
+        DeclareLaunchArgument('gps_topic', default_value='/fix/valid', description='GZ/ROS topic for GPS/NavSat'),
         DeclareLaunchArgument('lidar_topic', default_value='/scan', description='LiDAR LaserScan topic'),
+        DeclareLaunchArgument('left_topic', default_value='/left', description='Left propellor topic'),
+        DeclareLaunchArgument('right_topic', default_value='/right', description='Right propellor topic'),
         DeclareLaunchArgument('base_frame', default_value='base_link', description='Base frame id'),
         DeclareLaunchArgument('imu_frame', default_value='imu_link', description='IMU frame id (must match gz_frame_id in SDF)'),
         DeclareLaunchArgument('gps_frame', default_value='gps_link', description='GPS frame id (must match gz_frame_id in SDF)'),
@@ -101,6 +113,7 @@ def generate_launch_description():
                 ])
             }]
         ),
+        nav_launch,
 
         TimerAction(
             period=2.0,
@@ -127,6 +140,9 @@ def generate_launch_description():
                         PythonExpression(['"', imu_topic, '" + \'@sensor_msgs/msg/Imu[gz.msgs.IMU\'']),
                         PythonExpression(['"', gps_topic, '" + \'@sensor_msgs/msg/NavSatFix[gz.msgs.NavSat\'']),
                         PythonExpression(['"', lidar_topic, '" + \'@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan\'']),
+                        PythonExpression(['"', left_topic, '" + \'@std_msgs/msg/Float[gz.msgs.Float\'']),
+                        PythonExpression(['"', right_topic, '" + \'@std_msgs/msg/Float[gz.msgs.Float\'']),
+                        '/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V',
                         '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
                     ],
                 )
