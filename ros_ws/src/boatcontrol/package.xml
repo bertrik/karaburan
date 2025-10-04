@@ -13,7 +13,6 @@
   <depend>time</depend>
   <depend>std_msgs</depend>
 
-  <exec_depend>boat_interfaces</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_testing</exec_depend>
   <exec_depend>launch_ros</exec_depend>
