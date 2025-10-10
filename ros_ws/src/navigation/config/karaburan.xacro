@@ -72,7 +72,7 @@
     </visual>
   </link>
 
-  <link name="lidar">
+  <link name="lidar_link">
     <visual>
       <geometry>
         <cylinder radius="0.05" length="0.05" />
@@ -147,7 +147,7 @@
 
   <joint name="base_lidar_joint" type="fixed">
     <parent link="base_link" />
-    <child link="lidar" />
+    <child link="lidar_link" />
     <origin xyz="0 0 0.155" rpy="0 0 0" />
   </joint>
 
