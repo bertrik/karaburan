@@ -148,8 +148,8 @@ def generate_launch_description():
                         PythonExpression(['"', imu_topic, '" + \'@sensor_msgs/msg/Imu[gz.msgs.IMU\'']),
                         PythonExpression(['"', gps_topic, '" + \'@sensor_msgs/msg/NavSatFix[gz.msgs.NavSat\'']),
                         PythonExpression(['"', lidar_topic, '" + \'@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan\'']),
-                        PythonExpression(['"', left_topic, '" + \'@std_msgs/msg/Float64[gz.msgs.Float\'']),
-                        PythonExpression(['"', right_topic, '" + \'@std_msgs/msg/Float64[gz.msgs.Float\'']),
+                        PythonExpression(['"', left_topic, '" + \'@std_msgs/msg/Float64[gz.msgs.Double\'']),
+                        PythonExpression(['"', right_topic, '" + \'@std_msgs/msg/Float64[gz.msgs.Double\'']),
                         '/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V',
                         '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
                     ],
