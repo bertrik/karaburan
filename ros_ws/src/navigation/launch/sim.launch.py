@@ -18,6 +18,13 @@ from ament_index_python.packages import get_package_share_directory
 import os
 
 def generate_launch_description():
+    boatcontrol_dir = get_package_share_directory('boatcontrol')
+    boatcontrol = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(boatcontrol_dir, 'launch', 'simcontrol.launch.py')
+        )
+    )
+
     # --- Launch arguments ---
     xacro_file = LaunchConfiguration("xacro_file")
     world_sdf = LaunchConfiguration("world_sdf")
@@ -114,6 +121,7 @@ def generate_launch_description():
             }]
         ),
         nav_launch,
+        boatcontrol,
 
         TimerAction(
             period=2.0,
@@ -140,8 +148,8 @@ def generate_launch_description():
                         PythonExpression(['"', imu_topic, '" + \'@sensor_msgs/msg/Imu[gz.msgs.IMU\'']),
                         PythonExpression(['"', gps_topic, '" + \'@sensor_msgs/msg/NavSatFix[gz.msgs.NavSat\'']),
                         PythonExpression(['"', lidar_topic, '" + \'@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan\'']),
-                        PythonExpression(['"', left_topic, '" + \'@std_msgs/msg/Float[gz.msgs.Float\'']),
-                        PythonExpression(['"', right_topic, '" + \'@std_msgs/msg/Float[gz.msgs.Float\'']),
+                        PythonExpression(['"', left_topic, '" + \'@std_msgs/msg/Float64[gz.msgs.Float\'']),
+                        PythonExpression(['"', right_topic, '" + \'@std_msgs/msg/Float64[gz.msgs.Float\'']),
                         '/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V',
                         '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
                     ],
