@@ -48,7 +48,7 @@
         <gz_frame_id>lidar_link</gz_frame_id>
         <topic>/scan</topic>
         <update_rate>10</update_rate>
-        <ray>
+        <lidar>
           <scan>
             <horizontal>
               <samples>720</samples>
@@ -68,7 +68,7 @@
             <max>50.0</max>
             <resolution>0.01</resolution>
           </range>
-        </ray>
+        </lidar>
         <always_on>1</always_on>
         <visualize>true</visualize>
       </sensor>
