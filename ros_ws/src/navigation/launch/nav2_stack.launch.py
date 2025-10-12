@@ -51,15 +51,15 @@ def generate_launch_description():
     )
     use_sim_time = LaunchConfiguration('use_sim_time')
     nodes = [
-        Node(
-            package='robot_state_publisher',
-            executable='robot_state_publisher',
-            name='karaburan_robot_state_publisher',
-            parameters=[{'robot_description': robot_description,
-                         'publish_frequency': 1.0,
-                         'use_sim_time': use_sim_time }],
-            output='screen',
-        ),
+#        Node(
+#            package='robot_state_publisher',
+#            executable='robot_state_publisher',
+#            name='karaburan_robot_state_publisher',
+#            parameters=[{'robot_description': robot_description,
+#                         'publish_frequency': 1.0,
+#                         'use_sim_time': use_sim_time }],
+#            output='screen',
+#        ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
