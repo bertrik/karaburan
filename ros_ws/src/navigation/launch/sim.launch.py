@@ -106,20 +106,6 @@ def generate_launch_description():
             }.items()
         ),
 
-        Node(
-            package="robot_state_publisher",
-            executable="robot_state_publisher",
-            name="robot_state_publisher",
-            output="screen",
-            parameters=[{
-                "use_sim_time": True,
-                "robot_description": Command([
-                    FindExecutable(name="xacro"), " ",
-                    xacro_file, " ",
-                    xacro_args
-                ])
-            }]
-        ),
         nav_launch,
         boatcontrol,
 
