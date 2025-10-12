@@ -4,7 +4,7 @@ slam_toolbox:
 
     # Frames — laat SLAM de TF map->odom publiceren
     odom_frame: "odom"
-    map_frame: "local_enu"
+    map_frame: "map"
     base_frame: "base_link"
     publish_tf: true
     tf_buffer_duration: 10.0
