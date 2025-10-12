@@ -18,6 +18,13 @@ from ament_index_python.packages import get_package_share_directory
 import os
 
 def generate_launch_description():
+    boatcontrol_dir = get_package_share_directory('boatcontrol')
+    boatcontrol = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(boatcontrol_dir, 'launch', 'simcontrol.launch.py')
+        )
+    )
+
     # --- Launch arguments ---
     xacro_file = LaunchConfiguration("xacro_file")
     world_sdf = LaunchConfiguration("world_sdf")
@@ -54,11 +61,6 @@ def generate_launch_description():
     return LaunchDescription([
         # Paths / args
         DeclareLaunchArgument(
-            "xacro_file",
-            default_value="navigation/config/karaburan.xacro",
-            description="Path to .urdf.xacro file"
-        ),
-        DeclareLaunchArgument(
             "world_sdf",
             default_value="navigation/config/world.sdf",
             description="Path to world (SDF). 'empty.sdf' also works."
@@ -76,9 +78,6 @@ def generate_launch_description():
         DeclareLaunchArgument("R", default_value="0.0"),
         DeclareLaunchArgument("P", default_value="0.0"),
         DeclareLaunchArgument("Y", default_value="0.0"),
-        DeclareLaunchArgument(
-            "xacro_args", default_value="",
-        ),
         # Launch args for the GZ - ROS2 bridge
         DeclareLaunchArgument('ns', default_value='', description='ROS namespace for the bridge'),
         DeclareLaunchArgument('imu_topic', default_value='/imu/data', description='GZ/ROS topic for IMU'),
@@ -99,21 +98,8 @@ def generate_launch_description():
             }.items()
         ),
 
-        Node(
-            package="robot_state_publisher",
-            executable="robot_state_publisher",
-            name="robot_state_publisher",
-            output="screen",
-            parameters=[{
-                "use_sim_time": True,
-                "robot_description": Command([
-                    FindExecutable(name="xacro"), " ",
-                    xacro_file, " ",
-                    xacro_args
-                ])
-            }]
-        ),
         nav_launch,
+        boatcontrol,
 
         TimerAction(
             period=2.0,
@@ -140,8 +126,8 @@ def generate_launch_description():
                         PythonExpression(['"', imu_topic, '" + \'@sensor_msgs/msg/Imu[gz.msgs.IMU\'']),
                         PythonExpression(['"', gps_topic, '" + \'@sensor_msgs/msg/NavSatFix[gz.msgs.NavSat\'']),
                         PythonExpression(['"', lidar_topic, '" + \'@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan\'']),
-                        PythonExpression(['"', left_topic, '" + \'@std_msgs/msg/Float[gz.msgs.Float\'']),
-                        PythonExpression(['"', right_topic, '" + \'@std_msgs/msg/Float[gz.msgs.Float\'']),
+                        PythonExpression(['"', left_topic, '" + \'@std_msgs/msg/Float64[gz.msgs.Double\'']),
+                        PythonExpression(['"', right_topic, '" + \'@std_msgs/msg/Float64[gz.msgs.Double\'']),
                         '/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V',
                         '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
                     ],

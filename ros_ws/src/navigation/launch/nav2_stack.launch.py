@@ -1,5 +1,6 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, PathJoinSubstitution, FindExecutable, LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node, LifecycleNode
@@ -50,11 +51,18 @@ def generate_launch_description():
         'bt_navigator.yaml'
     )
     use_sim_time = LaunchConfiguration('use_sim_time')
+    slam_file = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'slam_params_file.yaml'
+    )
+
+
     nodes = [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
-            name='robot_state_publisher',
+            name='karaburan_robot_state_publisher',
             parameters=[{'robot_description': robot_description,
                          'publish_frequency': 1.0,
                          'use_sim_time': use_sim_time }],
@@ -174,7 +182,17 @@ def generate_launch_description():
     ]
 
     return LaunchDescription(
-            [ DeclareLaunchArgument('use_sim_time', default_value='true', description='Gebruik /clock (true) of systeemklok (false)') ] +
+            [ DeclareLaunchArgument('use_sim_time', default_value='true', description='Gebruik /clock (true) of systeemklok (false)'),
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(PathJoinSubstitution([
+                        FindPackageShare("slam_toolbox"), "launch", "online_async_launch.py"
+                    ])),
+                    launch_arguments={
+                        'use_sim_time': use_sim_time,
+                        'slam_params_file': slam_file
+                    }.items()
+                )
+             ] +
             nodes + [
         launch_testing.actions.ReadyToTest()
     ])

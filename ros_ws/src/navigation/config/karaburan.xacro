@@ -53,13 +53,6 @@
       <origin xyz="0 0 0" rpy="0 0 0" />
       <material name="black" />
     </visual>
-
-    <sensor name="imu_sensor" type="imu">
-      <always_on>1</always_on>
-      <update_rate>1</update_rate>
-      <visualize>true</visualize>
-      <topic>imu</topic>
-    </sensor>
   </link>
 
   <link name="gps_link">
@@ -72,7 +65,7 @@
     </visual>
   </link>
 
-  <link name="lidar">
+  <link name="lidar_link">
     <visual>
       <geometry>
         <cylinder radius="0.05" length="0.05" />
@@ -87,34 +80,6 @@
       <origin xyz="0 0 0" rpy="0 0 0" />
       <material name="black" />
     </collision>
-
-    <sensor name="lidar" type="gpu_lidar">
-      <always_on>true</always_on>
-      <visualize>true</visualize>
-      <update_rate>5</update_rate>
-      <topic>scan</topic>
-      <gz_frame_id>lidar_link</gz_frame_id>
-      <lidar>
-        <scan>
-          <horizontal>
-            <samples>360</samples>
-            <resolution>1.000000</resolution>
-            <min_angle>0.000000</min_angle>
-            <max_angle>6.280000</max_angle>
-          </horizontal>
-        </scan>
-        <range>
-          <min>0.120000</min>
-          <max>3.5</max>
-          <resolution>0.015000</resolution>
-        </range>
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>0.01</stddev>
-        </noise>
-      </lidar>
-    </sensor>
   </link>
 
   <joint name="base_imu_joint" type="fixed">
@@ -147,7 +112,7 @@
 
   <joint name="base_lidar_joint" type="fixed">
     <parent link="base_link" />
-    <child link="lidar" />
+    <child link="lidar_link" />
     <origin xyz="0 0 0.155" rpy="0 0 0" />
   </joint>
 

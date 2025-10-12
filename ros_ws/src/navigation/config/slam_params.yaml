@@ -1,0 +1,26 @@
+slam_toolbox:
+  ros__parameters:
+    use_sim_time: true
+
+    # Frames — laat SLAM de TF map->odom publiceren
+    odom_frame: "odom"
+    map_frame: "map"
+    base_frame: "base_link"
+    publish_tf: true
+    tf_buffer_duration: 10.0
+
+    # Sensor
+    scan_topic: "/scan"           # <-- zet jouw topic hier
+    use_imu_data: true            # IMU yaw helpt bij water/reflecties
+    imu_data_topic: "/imu/data"   # als je een ander pad hebt, aanpassen
+
+    # Matcher / update-trigger (beetje ruim voor eerste test)
+    minimum_travel_distance: 0.10
+    minimum_travel_heading: 0.10   # rad ~ 6°
+    transform_publish_period: 0.02 # 50 Hz TF is prima
+
+    # Kaart
+    resolution: 0.05               # m/cel
+    map_update_interval: 2.0       # s
+    enable_interactive_mode: false
+
