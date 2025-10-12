@@ -61,11 +61,6 @@ def generate_launch_description():
     return LaunchDescription([
         # Paths / args
         DeclareLaunchArgument(
-            "xacro_file",
-            default_value="navigation/config/karaburan.xacro",
-            description="Path to .urdf.xacro file"
-        ),
-        DeclareLaunchArgument(
             "world_sdf",
             default_value="navigation/config/world.sdf",
             description="Path to world (SDF). 'empty.sdf' also works."
@@ -83,9 +78,6 @@ def generate_launch_description():
         DeclareLaunchArgument("R", default_value="0.0"),
         DeclareLaunchArgument("P", default_value="0.0"),
         DeclareLaunchArgument("Y", default_value="0.0"),
-        DeclareLaunchArgument(
-            "xacro_args", default_value="",
-        ),
         # Launch args for the GZ - ROS2 bridge
         DeclareLaunchArgument('ns', default_value='', description='ROS namespace for the bridge'),
         DeclareLaunchArgument('imu_topic', default_value='/imu/data', description='GZ/ROS topic for IMU'),
