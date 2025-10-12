@@ -54,7 +54,7 @@ def generate_launch_description():
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
-            name='robot_state_publisher',
+            name='karaburan_robot_state_publisher',
             parameters=[{'robot_description': robot_description,
                          'publish_frequency': 1.0,
                          'use_sim_time': use_sim_time }],
