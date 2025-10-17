@@ -22,6 +22,7 @@ class BoatControlNode(Node):
     def __init__(self):
         super().__init__('boat_control_node')
         self.cmd_sub = self.create_subscription(Twist, '/cmd_vel', self.props_callback, 10)
+        self.id = 0
 
     def start(self):
         time.sleep(0.5)
@@ -29,12 +30,9 @@ class BoatControlNode(Node):
         self.get_logger().info(f"Received: {response}")
         response = ser.readline().decode().strip()  # Read response from the actuator
         self.get_logger().info(f"Received: {response}")
-        self.send_enable_command()
 
     # Controls the propellors for the boat via duty cycle control.
     def props_callback(self, cmd_vel):
-        self.send_enable_command()
-
         # Converting twist message to differntial drive control, includes clipping
         # This is an electronic speed controller
         v = cmd_vel.linear.x     # (m/s)
@@ -45,6 +43,9 @@ class BoatControlNode(Node):
         left  = (v - w*B/2) / K
         right = (v + w*B/2) / K
 
+        self.id = self.id + 1
+
+        self.get_logger().info(f"{left} {to_int8(left)} {right} {to_int8(right)} {self.id}")
         self.send_pwm_command(to_int8(left), to_int8(right))
 
     def send_command(self, command):
@@ -55,20 +56,12 @@ class BoatControlNode(Node):
             while "OK" not in response: 
               response = ser.readline().decode().strip()  # Read response from the actuator
               time.sleep(0.01)
-            self.get_logger().debug(f"Sent: {command}, Received: {response}")
+            self.get_logger().info(f"Sent: {command}, Received: {response}")
             return response
 
-    # Function to send enable motor command
-    def send_calib_command(self):
-        self.send_command(f"POST CALIB")
-
-    # Function to send enable motor command
-    def send_enable_command(self):
-        self.send_command(f"POST WD 30") #enable motor for 30s
-        
     # Function to send command to the actuator
     def send_pwm_command(self, left, right):
-        self.send_command(f"POST PWM {left} {right}")
+        self.send_command(f"POST PWM {left} {right} {self.id}")
 
 def main():
     rclpy.init()
