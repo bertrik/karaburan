@@ -12,6 +12,6 @@ jobs:
           required-ros-distributions: jazzy
       - uses: ros-tooling/action-ros-ci@v0.3
         with:
-          package-name: boatcontrol navigation tempreader lidar
+          package-name: boatcontrol navigation tempreader lidar sonar
           target-ros2-distro: jazzy
 
