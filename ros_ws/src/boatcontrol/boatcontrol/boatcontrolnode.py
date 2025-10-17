@@ -22,8 +22,6 @@ class BoatControlNode(Node):
     def __init__(self):
         super().__init__('boat_control_node')
         self.cmd_sub = self.create_subscription(Twist, '/cmd_vel', self.props_callback, 10)
-        self.left_pub = self.create_publisher(Double, '/left', 10)
-        self.right_pub = self.create_publisher(Double, '/right', 10)
 
     def start(self):
         time.sleep(0.5)
@@ -48,8 +46,6 @@ class BoatControlNode(Node):
         right = (v + w*B/2) / K
 
         self.send_pwm_command(to_int8(left), to_int8(right))
-        self.left.publish(left)
-        self.right.publish(right)
 
     def send_command(self, command):
         if ser.is_open:
