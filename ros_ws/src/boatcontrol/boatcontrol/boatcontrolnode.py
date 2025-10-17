@@ -40,12 +40,11 @@ class BoatControlNode(Node):
 
         B = 0.3                  # (m)
         K = 1                    # To be determined!
-        left  = (v - w*B/2) / K
-        right = (v + w*B/2) / K
+        left  = (v + w*B/2) / K
+        right = (v - w*B/2) / K
 
         self.id = self.id + 1
 
-        self.get_logger().info(f"{left} {to_int8(left)} {right} {to_int8(right)} {self.id}")
         self.send_pwm_command(to_int8(left), to_int8(right))
 
     def send_command(self, command):
