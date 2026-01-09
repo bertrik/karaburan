@@ -9,7 +9,8 @@
 #
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction, RegisterEventHandler
+from launch.event_handlers import OnProcessStart
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
@@ -58,6 +59,27 @@ def generate_launch_description():
         )
     )
 
+    gazebo = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([
+                FindPackageShare("ros_gz_sim"), "launch", "gz_sim.launch.py"
+            ])),
+            launch_arguments={
+                "gz_args": world_sdf
+            }.items()
+        )
+    rviz = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        parameters=[{'use_sim_time': True}],
+        output='screen'
+    )
+
+    delayed_rviz = TimerAction(
+            period = 10.0,
+            actions = [rviz]
+        )
+
     return LaunchDescription([
         # Paths / args
         DeclareLaunchArgument(
@@ -89,17 +111,10 @@ def generate_launch_description():
         DeclareLaunchArgument('imu_frame', default_value='imu_link', description='IMU frame id (must match gz_frame_id in SDF)'),
         DeclareLaunchArgument('gps_frame', default_value='gps_link', description='GPS frame id (must match gz_frame_id in SDF)'),
 
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(PathJoinSubstitution([
-                FindPackageShare("ros_gz_sim"), "launch", "gz_sim.launch.py"
-            ])),
-            launch_arguments={
-                "gz_args": world_sdf
-            }.items()
-        ),
-
+        gazebo,
         nav_launch,
         boatcontrol,
+        delayed_rviz,
 
         TimerAction(
             period=2.0,
