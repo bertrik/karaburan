@@ -64,7 +64,7 @@ def generate_launch_description():
                 FindPackageShare("ros_gz_sim"), "launch", "gz_sim.launch.py"
             ])),
             launch_arguments={
-                "gz_args": world_sdf
+                "gz_args": [world_sdf, " -r"]
             }.items()
         )
     rviz = Node(
