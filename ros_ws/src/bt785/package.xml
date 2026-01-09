@@ -8,6 +8,7 @@
   <license>MIT</license>
   
   <depend>std_msgs</depend>
+  <depend>karaburan_msgs</depend>
   <depend>rclcpp</depend>
   <depend>bleak</depend>
 

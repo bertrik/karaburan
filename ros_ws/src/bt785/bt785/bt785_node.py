@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # Copyright 2025 Bertrik Sikken <bertrik@sikken.nl>
-import math
 import threading
+import time
 
 import rclpy
-from bleak import BleakClient, BleakError
 from karaburan_msgs.msg import ElectricalConductivity
 from rclpy.node import Node
 
@@ -22,7 +21,7 @@ class BT785Node(Node):
         self.frame_id = self.get_parameter('frame_id').get_parameter_value().string_value
 
         topic = self.get_parameter('topic').get_parameter_value().string_value
-        self.publisher = self.create_publisher(Range, topic, 10)
+        self.publisher = self.create_publisher(ElectricalConductivity, topic, 10)
 
         # initialise Range message
         self.msg = ElectricalConductivity()
@@ -34,7 +33,11 @@ class BT785Node(Node):
 
     def node_task(self) -> None:
         while rclpy.ok():
-            pass
+            self.msg.header.stamp = self.get_clock().now().to_msg()
+            self.msg.temperature = 25.0
+            self.msg.conductivity = 50.0
+            self.publisher.publish(self.msg)
+            time.sleep(10)
 
     def publish_ec(self, sd: ElectricalConductivity) -> None:
         now = self.get_clock().now()
