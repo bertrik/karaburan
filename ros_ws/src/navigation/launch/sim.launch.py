@@ -114,7 +114,6 @@ def generate_launch_description():
         gazebo,
         nav_launch,
         boatcontrol,
-        delayed_rviz,
 
         TimerAction(
             period=2.0,
@@ -131,6 +130,7 @@ def generate_launch_description():
                         "R": R, "P": P, "Y": Y
                     }.items()
                 ),
+                delayed_rviz,
                 Node(
                     package='ros_gz_bridge',
                     executable='parameter_bridge',
