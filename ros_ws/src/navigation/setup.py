@@ -18,6 +18,7 @@ setup(
         ('share/' + package_name + '/config', ['config/ekf.yaml']),
         ('share/' + package_name + '/config', ['config/navsat.yaml']),
         ('share/' + package_name + '/config', ['config/slam_params.yaml']),
+        ('share/' + package_name + '/config', ['config/world.sdf']),
         ('share/' + package_name, ['package.xml']),
     ],
     install_requires=['setuptools'],
