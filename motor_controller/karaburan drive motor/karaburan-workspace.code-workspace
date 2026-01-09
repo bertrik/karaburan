@@ -1,0 +1,63 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../.."
+		},
+		{
+			"name": "250429-214431-esp32doit-devkit-v1",
+			"path": "../250429-214431-esp32doit-devkit-v1"
+		},
+		{
+			"name": "karaburan drive motor",
+			"path": "."
+		},
+		{
+			"name": "ESP32_bluetooth_esp32_boat",
+			"path": "../ESP32_bluetooth_esp32_boat"
+		},
+		{
+			"name": "OTA_esp32",
+			"path": "../OTA_esp32"
+		},
+		{
+			"name": "test_Compass",
+			"path": "../test_Compass"
+		},
+		{
+			"name": "I2C master",
+			"path": "../I2C master"
+		},
+		{
+			"name": "new bootloader atm328",
+			"path": "../new bootloader atm328"
+		},
+		{
+			"name": "HotRC PWM to H bridge",
+			"path": "../HotRC PWM to H bridge"
+		},
+		{
+			"name": "step motor",
+			"path": "../step motor"
+		},
+		{
+			"name": "karaburan_relay",
+			"path": "../karaburan_relay"
+		},
+		{
+			"path": "../imu90393"
+		},
+		{
+			"name": "trial_esp32-c_oled",
+			"path": "../trial_esp32-c_oled"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"array": "cpp",
+			"string": "cpp",
+			"string_view": "cpp",
+			"ranges": "cpp",
+			"span": "cpp"
+		}
+	}
+}
