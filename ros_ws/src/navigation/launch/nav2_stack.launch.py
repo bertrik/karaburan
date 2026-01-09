@@ -78,6 +78,9 @@ def generate_launch_description():
                 '--frame-id', 'map',
                 '--child-frame-id', 'odom'
             ],
+            parameters=[
+                { 'use_sim_time': use_sim_time }
+            ],
             output='screen'
         ),
         LifecycleNode(
@@ -132,7 +135,7 @@ def generate_launch_description():
             namespace='',
             output='screen',
             parameters=[{
-                "use_sim_time": True,
+                "use_sim_time": use_sim_time,
                 "smoother_plugins": ["simple_smoother"],
                 "simple_smoother": {
                     "plugin": "nav2_smoother::SimpleSmoother",
