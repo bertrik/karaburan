@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, PathJoinSubstitution, FindExecutable, LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
@@ -54,7 +54,7 @@ def generate_launch_description():
     slam_file = os.path.join(
         get_package_share_directory('navigation'),
         'config',
-        'slam_params_file.yaml'
+        'slam_params.yaml'
     )
 
 
@@ -186,6 +186,7 @@ def generate_launch_description():
 
     return LaunchDescription(
             [ DeclareLaunchArgument('use_sim_time', default_value='true', description='Gebruik /clock (true) of systeemklok (false)'),
+             LogInfo(msg=["slam_params_file = ", slam_file]),
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(PathJoinSubstitution([
                         FindPackageShare("slam_toolbox"), "launch", "online_async_launch.py"
