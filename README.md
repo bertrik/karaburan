@@ -26,6 +26,31 @@ Read temperature:
 This currently works on My Machine TM (use the generic instructions at the top first):
 `colcon build && source install/setup.bash && ros2 launch navigation boat.launch.py`
 
+Replace `boat.launch.py` with `sim.launch.py` for the simulated stuff (laptop only! Requires GUI!)
+
+## Manual control via partial setup
+
+The current setup does not provide `/cmd_vel` commands other than 'stop'.
+So you can try to do that yourself:
+
+```
+# Forward
+ros2 topic pub -r 10 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.2}, angular: {z: 0.0}}"
+# Turn left
+ros2 topic pub -r 10 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.0}, angular: {z: 0.5}}"
+# Stop
+ros2 topic pub -1 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
+
+# Useful checks:
+ros2 topic info /cmd_vel
+ros2 interface show geometry_msgs/msg/Twist
+ros2 topic echo /cmd_vel
+ros2 topic list | grep cmd_vel
+
+# Keyboard-control:
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r cmd_vel:=/cmd_vel
+```
+
 ## Installation of ROS2 packages
 
 Currently the following packages have been installed (these will introduce many dependencies, list generated with `apt-mark showmanual > ~/manual-packages.txt`:
@@ -41,5 +66,7 @@ ros-jazzy-ros-base
 ros-jazzy-ros2-control
 ros-jazzy-ros2-controllers
 ros-jazzy-tf-transformations
+ros-jazzy-ros-gz
+ros-jazzy-rviz2
 ros2-apt-source
 
