@@ -59,6 +59,7 @@ def generate_launch_description():
                 'frame_id': 'laser',
             }],
         ),
+        # ToF (Time of Flight): the VL53L0X measures distance from a laser pulse's round-trip time.
         Node(
             package='vl53l0x',
             executable='vl53l0x_node',
