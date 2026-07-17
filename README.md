@@ -69,11 +69,9 @@ ros-jazzy-tf-transformations
 ros-jazzy-ros-gz
 ros-jazzy-rviz2
 ros2-apt-source
+## MCAP recording
 
-
-## MCAP-opnamen
-
-Installeer op de boot naast ROS 2 Jazzy ook de MCAP-storageplugin:
+Install the MCAP storage plugin alongside ROS 2 Jazzy on the boat:
 
 ```bash
 sudo apt install ros-jazzy-rosbag2 ros-jazzy-rosbag2-storage-mcap
@@ -81,8 +79,8 @@ sudo mkdir -p /data/karaburan/bags
 sudo chown "$USER":"$USER" /data/karaburan/bags
 ```
 
-Opnemen staat standaard uit. Start de echte boot met het standaard
-`navigation`-profiel zonder LiDAR:
+Recording is disabled by default. Start the physical boat with the standard
+`navigation` profile without LiDAR:
 
 ```bash
 ros2 launch navigation boat.launch.py \
@@ -92,7 +90,7 @@ ros2 launch navigation boat.launch.py \
   record_output_dir:=/data/karaburan/bags
 ```
 
-Voor de simulator:
+For the simulator:
 
 ```bash
 ros2 launch navigation sim.launch.py \
@@ -102,16 +100,16 @@ ros2 launch navigation sim.launch.py \
   record_output_dir:=./bags
 ```
 
-Beschikbare profielen:
+Available profiles:
 
-| Profiel | Topics |
+| Profile | Topics |
 |---|---|
-| `minimal` | GPS, temperatuur, sonar, ToF en BT785 |
-| `navigation` | `minimal` plus IMU, odometrie, commando, TF en TF-static |
+| `minimal` | GPS, temperature, sonar, VL53L0X time-of-flight (ToF), and BT785 |
+| `navigation` | `minimal` plus IMU, odometry, commands, TF, and TF-static |
 | `full` | `navigation` plus `/scan` |
 
-`record_include_scan:=true` voegt `/scan` ook aan `minimal` of `navigation` toe.
-Met `record_extra_topics` kunnen kommagescheiden topics worden toegevoegd:
+`record_include_scan:=true` also adds `/scan` to `minimal` or `navigation`.
+Use `record_extra_topics` to add comma-separated topics:
 
 ```bash
 ros2 launch navigation boat.launch.py \
@@ -120,68 +118,66 @@ ros2 launch navigation boat.launch.py \
   record_extra_topics:="/diagnostics,/battery_state"
 ```
 
-Overige opnameargumenten:
+Additional recording arguments:
 
-| Argument | Standaard | Betekenis |
+| Argument | Default | Meaning |
 |---|---:|---|
-| `record_enabled` | `false` | MCAP-recorder aan/uit |
-| `record_profile` | `navigation` | `minimal`, `navigation` of `full` |
-| `record_include_scan` | `false` | LiDAR expliciet toevoegen |
-| `record_output_dir` | boot: `/data/karaburan/bags`; sim: `./bags` | Hoofdmap voor opnamen |
-| `record_max_bag_duration` | `900` | Nieuw segment na 15 minuten; `0` schakelt dit uit |
-| `record_max_bag_size` | `2147483648` | Nieuw segment na 2 GiB; `0` schakelt dit uit |
-| `record_start_delay` | `5.0` | Wachttijd voor topic-discovery |
+| `record_enabled` | `false` | Enable or disable MCAP recording |
+| `record_profile` | `navigation` | `minimal`, `navigation`, or `full` |
+| `record_include_scan` | `false` | Explicitly include LiDAR |
+| `record_output_dir` | boat: `/data/karaburan/bags`; sim: `./bags` | Recording root directory |
+| `record_max_bag_duration` | `900` | Start a new segment after 15 minutes; `0` disables duration-based rotation |
+| `record_max_bag_size` | `2147483648` | Start a new segment after 2 GiB; `0` disables size-based rotation |
+| `record_start_delay` | `5.0` | Delay recording to allow topic discovery |
 
-De recorder gebruikt MCAP met het `zstd_fast`-profiel. Iedere start maakt een
-UTC-gedateerde map. Controleer een opname met:
+The recorder uses MCAP with the `zstd_fast` profile. Each launch creates a
+UTC-dated directory. Inspect a recording with:
 
 ```bash
-ros2 bag info /data/karaburan/bags/<opnamemap>
+ros2 bag info /data/karaburan/bags/<recording-directory>
 ```
 
-### Opslagschatting
+### Storage estimate
 
-De schatting gebruikt de afgestemde frequenties voor de echte boot:
+The estimate uses the agreed frequencies for the physical boat:
 
-| Datastroom | Frequentie |
+| Data stream | Frequency |
 |---|---:|
 | GPS | 1 Hz |
 | IMU | 30 Hz |
 | Sonar | 1 Hz |
-| Temperatuur | 0,2 Hz |
-| Fysieke LiDAR | circa 5,8 Hz |
-| ToF/VL53L0X | 20 Hz |
-| BT785 | 0,1 Hz |
-| Gefilterde odometrie | 40 Hz |
+| Temperature | 0.2 Hz |
+| Physical LiDAR | approximately 5.8 Hz |
+| VL53L0X ToF sensor | 20 Hz |
+| BT785 | 0.1 Hz |
+| Filtered odometry | 40 Hz |
 
-Aannames: één vaardag is 8 opname-uren en lokale retentie is twee vaardagen,
-dus 16 opname-uren. De berekening gebruikt de geschatte geserialiseerde
-ROS-berichtgrootte plus 25% marge voor MCAP-indexen, metadata, variatie en
-filesystemruimte. Er wordt conservatief geen voordeel van Zstd-compressie
-ingeboekt.
+Assumptions: one sailing day contains eight recording hours and local retention
+covers two sailing days, or 16 recording hours. The calculation uses estimated
+serialized ROS message sizes plus a 25% allowance for MCAP indexes, metadata,
+variation, and filesystem overhead. It conservatively assumes no reduction from
+Zstd compression.
 
-| Opname | Rekenwaarde per uur | 8 uur | 2 vaardagen / 16 uur |
+| Recording | Planning rate per hour | 8 hours | 2 sailing days / 16 hours |
 |---|---:|---:|---:|
-| `navigation`, zonder `/scan` | circa 0,23 GB | circa 1,8 GB | circa 3,6 GB; reserveer 4 GB |
-| Alleen fysieke `/scan` extra | circa 0,13 GB | circa 1,0 GB | circa 2,0 GB |
-| `navigation` met `/scan` | circa 0,36 GB | circa 2,8 GB | circa 5,6 GB; reserveer 6 GB |
+| `navigation`, excluding `/scan` | approximately 0.23 GB | approximately 1.8 GB | approximately 3.6 GB; reserve 4 GB |
+| Physical `/scan` only, additional | approximately 0.13 GB | approximately 1.0 GB | approximately 2.0 GB |
+| `navigation` including `/scan` | approximately 0.36 GB | approximately 2.8 GB | approximately 5.6 GB; reserve 6 GB |
 
-De fysieke `LaserScan` bevat 576 afstanden en 576 intensiteiten per scan. Daarom
-voegt `/scan` ondanks 5,8 Hz ongeveer 2 GB toe over twee vaardagen. De werkelijke
-compressie hangt sterk af van de omgeving en intensiteitswaarden. Meet na de
-eerste vaart met `du -sh` en pas de raming daarop aan.
+The physical `LaserScan` contains 576 ranges and 576 intensities per scan.
+Consequently, `/scan` adds approximately 2 GB over two sailing days, despite its
+5.8 Hz rate. Actual compression depends heavily on the environment and intensity
+values. Measure the first real voyage with `du -sh` and adjust this estimate.
 
-Als twee dagen later **48 uur continu opnemen** betekent, reserveer dan ongeveer
-12 GB zonder `/scan` of 18 GB met `/scan`. Praktisch advies: houd minimaal 16 GB
-vrij voor het profiel zonder LiDAR en 32 GB wanneer LiDAR wordt opgenomen. Dit
-geeft ruimte voor segmenten die nog worden geüpload en voorkomt een volle
-systeemschijf.
+If two days later means **48 hours of continuous recording**, reserve
+approximately 12 GB without `/scan` or 18 GB with `/scan`. In practice, keep at
+least 16 GB free without LiDAR and 32 GB when recording LiDAR. This allows space
+for segments awaiting upload and prevents the system disk from filling up.
 
-## Optionele meetinstrumenten
+### Optional measurement instruments
 
-`measurement_instruments.launch.py` bevat de fysieke instrumenten die nog niet in
-`boat.launch.py` stonden. Alle instrumenten staan standaard uit en kunnen
-onafhankelijk worden aangezet:
+The physical measurement drivers are disabled by default. Enable only the
+instruments connected to the boat:
 
 ```bash
 ros2 launch navigation boat.launch.py \
@@ -197,38 +193,33 @@ ros2 launch navigation boat.launch.py \
   bt785_device:=AA:BB:CC:DD:EE:FF
 ```
 
-Dezelfde argumenten bestaan op `sim.launch.py`, maar starten daar nog steeds de
-**fysieke drivers**. Ze zijn bedoeld voor hardware-in-the-loop-tests en blijven
-standaard uit. De simulator levert zelf al `/scan`, `/imu/data` en `/fix/valid`;
-start daarom niet ook de fysieke LiDAR op hetzelfde `/scan`-topic tenzij dat
-bewust de testopzet is.
+The same arguments are available on `sim.launch.py`, but enabling them starts
+the physical hardware drivers. This is intended for hardware-in-the-loop tests.
+They remain disabled by default because the simulator already publishes
+`/scan`, `/imu/data`, and `/fix/valid`.
 
-Voor opname hoeven instrumenten niet aan te staan. De recorder neemt alleen data
-op voor topics waarop werkelijk wordt gepubliceerd.
+### Testing with Rancher Desktop and Docker
 
-## Testen met Rancher Desktop / Docker
+The launch files and MCAP recording can be tested on this laptop without a
+local ROS installation. Start Rancher Desktop, select a Docker-compatible
+container engine, and run:
 
-De launchbestanden en MCAP-recorder kunnen op een beheerde Windows-laptop worden
-getest zonder ROS 2 lokaal te installeren. Zorg dat Rancher Desktop draait en de
-Docker CLI de `default` context gebruikt:
-
-```powershell
+```bash
 docker context use default
 docker build -f docker/Dockerfile.ros-jazzy-test -t karaburan-ros-test .
 docker run --rm karaburan-ros-test
 ```
 
-De image:
+The container builds the ROS workspace and performs a smoke test that:
 
-1. bouwt de relevante ROS 2 Jazzy-packages;
-2. compileert alle Pythonbestanden;
-3. controleert de argumenten van beide nieuwe launchbestanden;
-4. controleert de executables van de vijf meetinstrumenten;
-5. publiceert test-GPS-data;
-6. maakt een echte, gesegmenteerde MCAP-opname;
-7. valideert die opname met `ros2 bag info`.
+1. starts the storage launch file with a short rotation interval;
+2. publishes sample `sensor_msgs/NavSatFix` messages on `/fix`;
+3. verifies that multiple MCAP segments are created;
+4. inspects the recording with `ros2 bag info`;
+5. verifies that the `/fix` topic and message count are present;
+6. checks that disabled storage creates no files; and
+7. imports all launch files to catch Python syntax and dependency errors.
 
-Deze smoke-test valideert geen seriële, Bluetooth- of I2C-hardware. Daarvoor zijn
-mocks of een latere hardware-in-the-loop-test met device-passthrough nodig. Ook
-de volledige Gazebo/RViz-GUI wordt niet in deze compacte testimage gestart; de
-sim-launch wordt wel door Python gecompileerd.
+This test does not emulate I2C, serial, Bluetooth, or 1-Wire hardware. Testing
+the physical sensor drivers still requires the boat or explicit device
+passthrough into the container.
