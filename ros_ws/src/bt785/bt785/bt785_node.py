@@ -9,6 +9,7 @@ from rclpy.node import Node
 
 
 class BT785Node(Node):
+
     def __init__(self):
         super().__init__('bt785')
         self.declare_parameter('device', value='D3:01:01:02:2F:C6')

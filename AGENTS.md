@@ -11,7 +11,7 @@ Docker tests, or GitHub Actions, run the complete local CI check from the
 repository root:
 
 ```bash
-docker build -f docker/Dockerfile.ros-jazzy-test -t karaburan-ros-test .
+docker build --pull --no-cache -f docker/Dockerfile.ros-jazzy-test -t karaburan-ros-test .
 docker run --rm karaburan-ros-test
 ```
 
@@ -21,3 +21,8 @@ the storage and instrument launch files, and creates and inspects a sample MCAP
 recording. If packages are added or dependency metadata changes, also verify
 that `.github/workflows/action.yml` includes the package and that `rosdep` can
 resolve every key.
+The `--pull --no-cache` flags are intentional: GitHub Actions installs current
+ROS lint packages, so a cached local apt layer can otherwise miss new lint
+rules. Treat all lint warnings as failures. In particular, ROS
+`ament_flake8` requires a blank line between a class declaration and its first
+method (`CNL100`).
