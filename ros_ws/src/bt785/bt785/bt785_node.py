@@ -28,7 +28,7 @@ class BT785Node(Node):
         self.msg.header.frame_id = self.frame_id
 
         # create and start listen thread
-        self.thread = threading.Thread(target=self.node_task())
+        self.thread = threading.Thread(target=self.node_task, daemon=True)
         self.thread.start()
 
     def node_task(self) -> None:

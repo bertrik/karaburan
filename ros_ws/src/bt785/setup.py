@@ -27,6 +27,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'bt785_node = bt785.bt785_node:main',
         ],
     },
 )

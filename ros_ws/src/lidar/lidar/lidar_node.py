@@ -111,7 +111,7 @@ class LidarNode(Node):
         self.msg.angle_increment = math.radians(360.0 / MysteryLidar.RAYS_PER_ROTATION)
 
         # create and start listen thread
-        self.thread = threading.Thread(target=self.node_task())
+        self.thread = threading.Thread(target=self.node_task, daemon=True)
         self.thread.start()
 
     def node_task(self) -> None:

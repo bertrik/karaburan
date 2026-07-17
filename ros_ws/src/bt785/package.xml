@@ -8,8 +8,9 @@
   <license>MIT</license>
   
   <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>karaburan_msgs</depend>
-  <depend>rclcpp</depend>
+  <depend>rclpy</depend>
   <depend>bleak</depend>
 
   <test_depend>ament_copyright</test_depend>

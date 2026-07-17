@@ -19,6 +19,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'vl53l0x_node = vl53l0x.vl53l0x:main',
         ],
     },
 )

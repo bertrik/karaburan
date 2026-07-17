@@ -56,7 +56,42 @@ def generate_launch_description():
     nav_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(nav_dir, 'launch', 'nav2_stack.launch.py')
-        )
+        ),
+        launch_arguments={'use_sim_time': 'true'}.items()
+    )
+    measurement_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(nav_dir, 'launch', 'measurement_instruments.launch.py')
+        ),
+        launch_arguments={
+            'temperature_enabled': LaunchConfiguration('with_temperature'),
+            'temperature_sensor_id': LaunchConfiguration('temperature_sensor_id'),
+            'sonar_enabled': LaunchConfiguration('with_sonar'),
+            'sonar_device': LaunchConfiguration('sonar_device'),
+            'lidar_enabled': LaunchConfiguration('with_lidar'),
+            'lidar_device': LaunchConfiguration('lidar_device'),
+            'tof_enabled': LaunchConfiguration('with_tof'),
+            'tof_rate_hz': LaunchConfiguration('tof_rate_hz'),
+            'bt785_enabled': LaunchConfiguration('with_bt785'),
+            'bt785_device': LaunchConfiguration('bt785_device'),
+        }.items()
+    )
+    storage_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(nav_dir, 'launch', 'storage.launch.py')
+        ),
+        launch_arguments={
+            'enabled': LaunchConfiguration('record_enabled'),
+            'profile': LaunchConfiguration('record_profile'),
+            'include_scan': LaunchConfiguration('record_include_scan'),
+            'extra_topics': LaunchConfiguration('record_extra_topics'),
+            'output_dir': LaunchConfiguration('record_output_dir'),
+            'bag_prefix': 'karaburan-sim',
+            'max_bag_duration': LaunchConfiguration('record_max_bag_duration'),
+            'max_bag_size': LaunchConfiguration('record_max_bag_size'),
+            'start_delay': LaunchConfiguration('record_start_delay'),
+            'use_sim_time': 'true',
+        }.items()
     )
 
     gazebo = IncludeLaunchDescription(
@@ -110,10 +145,32 @@ def generate_launch_description():
         DeclareLaunchArgument('base_frame', default_value='base_link', description='Base frame id'),
         DeclareLaunchArgument('imu_frame', default_value='imu_link', description='IMU frame id (must match gz_frame_id in SDF)'),
         DeclareLaunchArgument('gps_frame', default_value='gps_link', description='GPS frame id (must match gz_frame_id in SDF)'),
+        # Optional MCAP recording
+        DeclareLaunchArgument('record_enabled', default_value='false'),
+        DeclareLaunchArgument('record_profile', default_value='navigation'),
+        DeclareLaunchArgument('record_include_scan', default_value='false'),
+        DeclareLaunchArgument('record_extra_topics', default_value=''),
+        DeclareLaunchArgument('record_output_dir', default_value='./bags'),
+        DeclareLaunchArgument('record_max_bag_duration', default_value='900'),
+        DeclareLaunchArgument('record_max_bag_size', default_value='2147483648'),
+        DeclareLaunchArgument('record_start_delay', default_value='5.0'),
+        # Optional physical instruments (hardware-in-the-loop only in sim)
+        DeclareLaunchArgument('with_temperature', default_value='false'),
+        DeclareLaunchArgument('temperature_sensor_id', default_value='28.7AAB46D42000'),
+        DeclareLaunchArgument('with_sonar', default_value='false'),
+        DeclareLaunchArgument('sonar_device', default_value='D3:01:01:02:2F:C6'),
+        DeclareLaunchArgument('with_lidar', default_value='false'),
+        DeclareLaunchArgument('lidar_device', default_value='/dev/ttyUSB0'),
+        DeclareLaunchArgument('with_tof', default_value='false'),
+        DeclareLaunchArgument('tof_rate_hz', default_value='20.0'),
+        DeclareLaunchArgument('with_bt785', default_value='false'),
+        DeclareLaunchArgument('bt785_device', default_value='D3:01:01:02:2F:C6'),
 
         gazebo,
         nav_launch,
         boatcontrol,
+        measurement_launch,
+        storage_launch,
 
         TimerAction(
             period=2.0,
