@@ -6,6 +6,8 @@ source /karaburan/ros_ws/install/setup.bash
 set -u
 
 python3 -m compileall -q /karaburan/ros_ws/src
+colcon test --event-handlers console_direct+
+colcon test-result --verbose
 ros2 launch navigation storage.launch.py --show-args >/tmp/storage-args.txt
 ros2 launch navigation measurement_instruments.launch.py --show-args >/tmp/instrument-args.txt
 
