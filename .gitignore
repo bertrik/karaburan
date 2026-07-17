@@ -1,4 +1,6 @@
 .*
+!.github/
+!.github/**
 ros_ws/log/*
 ros_ws/src/log/*
 ros_ws/build/*

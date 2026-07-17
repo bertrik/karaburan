@@ -15,7 +15,7 @@ SHELL ["/bin/bash", "-c"]
 RUN source /opt/ros/jazzy/setup.bash \
     && colcon build --event-handlers console_direct+ \
         --packages-select \
-        karaburan_msgs tempreader sonar lidar vl53l0x bt785 navigation
+        karaburan_msgs boatcontrol tempreader sonar lidar vl53l0x bt785 navigation
 
 COPY docker/ros-test.sh /usr/local/bin/karaburan-ros-test
 RUN chmod +x /usr/local/bin/karaburan-ros-test
