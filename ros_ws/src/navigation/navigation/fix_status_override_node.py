@@ -2,7 +2,9 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 
+
 class FixStatusOverrideNode(Node):
+
     def __init__(self):
         super().__init__('fix_status_override_node')
         self.sub = self.create_subscription(
@@ -18,6 +20,7 @@ class FixStatusOverrideNode(Node):
             msg.status.status = NavSatStatus.STATUS_FIX
         self.pub.publish(msg)
 
+
 def main(args=None):
     rclpy.init(args=args)
     node = FixStatusOverrideNode()
@@ -25,6 +28,6 @@ def main(args=None):
     node.destroy_node()
     rclpy.shutdown()
 
+
 if __name__ == '__main__':
     main()
-

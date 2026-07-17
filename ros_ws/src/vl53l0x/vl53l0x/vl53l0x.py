@@ -2,21 +2,21 @@
 # -*- coding: utf-8 -*-
 
 import math
-import time
 
-import rclpy
-from rclpy.node import Node
-from sensor_msgs.msg import Range
+import adafruit_vl53l0x
 
 # Bibliothèque Adafruit pour VL53L0X
 import board
 import busio
-import adafruit_vl53l0x
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import Range
 
 
 class VL53L0XPublisher(Node):
     """
     Nœud ROS2 qui publie la mesure du VL53L0X sur un topic sensor_msgs/Range.
+
     Paramètres ROS :
       - topic (string): nom du topic (défaut: /tof/distance)
       - frame_id (string): frame TF associée (défaut: tof_link)
@@ -61,7 +61,7 @@ class VL53L0XPublisher(Node):
             if hasattr(self.vl53, 'set_address') and i2c_addr != 0x29:
                 self.vl53.set_address(i2c_addr)
         except Exception as e:
-            self.get_logger().fatal(f"Échec init I2C/VL53L0X : {e}")
+            self.get_logger().fatal(f'Échec init I2C/VL53L0X : {e}')
             raise
 
         # Préparer message "Range" constant
@@ -98,7 +98,7 @@ class VL53L0XPublisher(Node):
             self.pub.publish(self.msg)
         except Exception as e:
             # On journalise mais on continue (le capteur peut rater une lecture de temps en temps)
-            self.get_logger().warn(f"Lecture VL53L0X échouée : {e}")
+            self.get_logger().warn(f'Lecture VL53L0X échouée : {e}')
 
 
 def main():
@@ -115,4 +115,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

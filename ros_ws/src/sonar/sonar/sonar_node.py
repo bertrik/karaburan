@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 # Copyright 2025 Bertrik Sikken <bertrik@sikken.nl>
 import asyncio
+from dataclasses import dataclass, field
+from enum import IntFlag
 import math
 import queue
 import threading
-from dataclasses import dataclass, field
-from enum import IntFlag
 
-import rclpy
 from bleak import BleakClient, BleakError
+import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Range
 
 
 class BleSerialPort:
-    NOTIFY_UUID = "0000fff1-0000-1000-8000-00805f9b34fb"
-    WRITE_UUID = "0000fff2-0000-1000-8000-00805f9b34fb"
-    READ_UUID = "0000fff3-0000-1000-8000-00805f9b34fb"
+
+    NOTIFY_UUID = '0000fff1-0000-1000-8000-00805f9b34fb'
+    WRITE_UUID = '0000fff2-0000-1000-8000-00805f9b34fb'
+    READ_UUID = '0000fff3-0000-1000-8000-00805f9b34fb'
 
     def __init__(self, address, reconnect_delay=3):
         self.address = address
@@ -31,26 +32,26 @@ class BleSerialPort:
         asyncio.set_event_loop(self.loop)
         self.loop.run_forever()
 
-    def open(self):
+    def open(self):  # noqa: A003 - mirrors the serial-port API
         self._thread.start()
         self._call(self._connect())  # block until connected
 
     async def _connect(self):
         while not self._closing:
             try:
-                print("Connecting...")
+                print('Connecting...')
                 self.client = BleakClient(self.address, disconnected_callback=self._on_disconnect)
                 await self.client.connect()
                 await self.client.start_notify(self.NOTIFY_UUID, self._on_notify)
-                print(f"Connected to {self.address}")
+                print(f'Connected to {self.address}')
                 return
             except Exception as e:
-                print(f"Connection failed: {e}")
+                print(f'Connection failed: {e}')
                 await asyncio.sleep(self.reconnect_delay)
 
     def _on_disconnect(self, _client):
         if not self._closing:
-            print("Disconnected, will retry...")
+            print('Disconnected, will retry...')
             asyncio.run_coroutine_threadsafe(self._connect(), self.loop)
 
     def _on_notify(self, _sender, data: bytearray):
@@ -59,7 +60,7 @@ class BleSerialPort:
 
     def write(self, data: bytes, timeout=None):
         if not self.client or not self.client.is_connected:
-            raise BleakError("Not connected")
+            raise BleakError('Not connected')
         return self._call(self.client.write_gatt_char(self.WRITE_UUID, data), timeout)
 
     def read(self, timeout=None) -> int | None:
@@ -80,7 +81,7 @@ class BleSerialPort:
             await self.client.stop_notify(self.NOTIFY_UUID)
             await self.client.disconnect()
         self.client = None
-        print("Disconnected cleanly")
+        print('Disconnected cleanly')
 
     def _call(self, coro, timeout=None):
         fut = asyncio.run_coroutine_threadsafe(coro, self.loop)
@@ -95,6 +96,7 @@ class BleSerialPort:
 
 
 class Protocol:
+
     NOISE_OFF = 0
     NOISE_LOW = 1
     NOISE_MEDIUM = 2
@@ -170,6 +172,7 @@ class Protocol:
 
 @dataclass
 class SensorData:
+
     status: int
     bottom: int
     fishdepth: int
@@ -189,7 +192,7 @@ class SensorData:
     def from_bytes(cls, data: bytes):
         # Expect at least 13 bytes (since we access up to index 12)
         if len(data) < 13:
-            raise ValueError(f"SensorData requires at least 13 bytes, got {len(data)}")
+            raise ValueError(f'SensorData requires at least 13 bytes, got {len(data)}')
         return cls(
             status=data[2],
             bottom=(data[3] << 8) + data[4],
@@ -228,6 +231,7 @@ class SensorData:
 
 
 class SonarNode(Node):
+
     def __init__(self):
         super().__init__('sonar')
         self.declare_parameter('device', value='D3:01:01:02:2F:C6')
@@ -265,9 +269,9 @@ class SonarNode(Node):
                         sd = SensorData.from_bytes(frame)
                         if sd and not sd.get_status():
                             self.publish_range(sd)
-                        print(f"status={sd.get_status()},temp={sd.get_temperature():.1f}degC,"
-                              f"batt={sd.get_battery():.1f}%,"
-                              f"depth={sd.get_depth():.2f}m,range={sd.get_depth_range():.1f}m")
+                        print(f'status={sd.get_status()},temp={sd.get_temperature():.1f}degC,'
+                              f'batt={sd.get_battery():.1f}%,'
+                              f'depth={sd.get_depth():.2f}m,range={sd.get_depth_range():.1f}m')
 
     def publish_range(self, sd: SensorData) -> None:
         now = self.get_clock().now()

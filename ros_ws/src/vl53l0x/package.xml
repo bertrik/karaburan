@@ -12,6 +12,7 @@
   <depend>rclpy</depend>
   <exec_depend>adafruit-circuitpython-vl53l0x</exec_depend>
 
+  <test_depend>ament_flake8</test_depend>
   <test_depend>python3-pytest</test_depend>
 
   <export>
