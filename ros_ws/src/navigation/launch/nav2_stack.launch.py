@@ -1,12 +1,13 @@
+import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, PathJoinSubstitution, FindExecutable, LaunchConfiguration
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch_ros.actions import LifecycleNode, Node
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import Node, LifecycleNode
 import launch_testing.actions
-from ament_index_python.packages import get_package_share_directory
-import os
 
 
 def generate_launch_description():
@@ -57,7 +58,6 @@ def generate_launch_description():
         'slam_params.yaml'
     )
 
-
     nodes = [
         Node(
             package='robot_state_publisher',
@@ -65,7 +65,7 @@ def generate_launch_description():
             name='karaburan_robot_state_publisher',
             parameters=[{'robot_description': robot_description,
                          'publish_frequency': 1.0,
-                         'use_sim_time': use_sim_time }],
+                         'use_sim_time': use_sim_time}],
             output='screen',
         ),
         Node(
@@ -79,7 +79,7 @@ def generate_launch_description():
                 '--child-frame-id', 'odom'
             ],
             parameters=[
-                { 'use_sim_time': use_sim_time }
+                {'use_sim_time': use_sim_time}
             ],
             output='screen'
         ),
@@ -88,7 +88,7 @@ def generate_launch_description():
             executable='bt_navigator',
             name='bt_navigator',
             namespace='',
-            parameters=[ bt_navigator_yaml, { 'use_sim_time': use_sim_time } ],
+            parameters=[bt_navigator_yaml, {'use_sim_time': use_sim_time}],
             output='screen'
         ),
         LifecycleNode(
@@ -97,9 +97,10 @@ def generate_launch_description():
             name='controller_server',
             namespace='',
             parameters=[
-                controller_yaml, { 'use_sim_time': use_sim_time }
+                controller_yaml, {'use_sim_time': use_sim_time}
             ],
-            arguments=['--ros-args', '--log-level', 'controller_server:=debug', '--log-level', 'regulated_pure_pursuit_controller:=debug'],
+            arguments=['--ros-args', '--log-level', 'controller_server:=debug',
+                       '--log-level', 'regulated_pure_pursuit_controller:=debug'],
             output='log'
         ),
         LifecycleNode(
@@ -108,7 +109,7 @@ def generate_launch_description():
             name='planner_server',
             namespace='',
             parameters=[
-                planner_server_yaml, { 'use_sim_time': use_sim_time }
+                planner_server_yaml, {'use_sim_time': use_sim_time}
             ],
             output='log'
         ),
@@ -118,14 +119,14 @@ def generate_launch_description():
             name='behavior_server',
             namespace='',
             output='screen',
-            parameters=[behavior_yaml, { 'use_sim_time': use_sim_time }],
+            parameters=[behavior_yaml, {'use_sim_time': use_sim_time}],
         ),
         LifecycleNode(
             package='nav2_waypoint_follower',
             executable='waypoint_follower',
             name='waypoint_follower',
             namespace='',
-            parameters=[{ 'use_sim_time': use_sim_time }],
+            parameters=[{'use_sim_time': use_sim_time}],
             output='screen',
         ),
         LifecycleNode(
@@ -135,11 +136,11 @@ def generate_launch_description():
             namespace='',
             output='screen',
             parameters=[{
-                "use_sim_time": use_sim_time,
-                "smoother_plugins": ["simple_smoother"],
-                "simple_smoother": {
-                    "plugin": "nav2_smoother::SimpleSmoother",
-                    "tolerance": 0.1
+                'use_sim_time': use_sim_time,
+                'smoother_plugins': ['simple_smoother'],
+                'simple_smoother': {
+                    'plugin': 'nav2_smoother::SimpleSmoother',
+                    'tolerance': 0.1
                 }
             }]
         ),
@@ -149,17 +150,17 @@ def generate_launch_description():
             name='ekf_filter_node',
             namespace='',
             output='screen',
-            parameters=[{ 'use_sim_time': use_sim_time }],
+            parameters=[{'use_sim_time': use_sim_time}],
             arguments=[
-              '--ros-args',
-              '--params-file', ekf_yaml,
+                '--ros-args',
+                '--params-file', ekf_yaml,
             ],
         ),
         Node(
             package='robot_localization',
             executable='navsat_transform_node',
             name='navsat_transform_node',
-            parameters=[ navsat_yaml, { 'use_sim_time': use_sim_time } ],
+            parameters=[navsat_yaml, {'use_sim_time': use_sim_time}],
             remappings=[
                 ('/gps/fix', '/fix/valid'),
                 ('/imu', '/imu/data')
@@ -184,19 +185,27 @@ def generate_launch_description():
         ),
     ]
 
+    launch_actions = [
+        DeclareLaunchArgument(
+            'use_sim_time',
+            default_value='true',
+            description='Use /clock (true) or the system clock (false)',
+        ),
+        LogInfo(msg=['slam_params_file = ', slam_file]),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution([
+                    FindPackageShare('slam_toolbox'),
+                    'launch',
+                    'online_async_launch.py',
+                ])
+            ),
+            launch_arguments={
+                'use_sim_time': use_sim_time,
+                'slam_params_file': slam_file,
+            }.items(),
+        ),
+    ]
     return LaunchDescription(
-            [ DeclareLaunchArgument('use_sim_time', default_value='true', description='Gebruik /clock (true) of systeemklok (false)'),
-             LogInfo(msg=["slam_params_file = ", slam_file]),
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(PathJoinSubstitution([
-                        FindPackageShare("slam_toolbox"), "launch", "online_async_launch.py"
-                    ])),
-                    launch_arguments={
-                        'use_sim_time': use_sim_time,
-                        'slam_params_file': slam_file
-                    }.items()
-                )
-             ] +
-            nodes + [
-        launch_testing.actions.ReadyToTest()
-    ])
+        launch_actions + nodes + [launch_testing.actions.ReadyToTest()]
+    )

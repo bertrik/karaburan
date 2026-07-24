@@ -1,21 +1,24 @@
-#python 3
-import serial
+# python 3
 import time
-import math
+
+from geometry_msgs.msg import Twist
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
+import serial
 
 # Initialize serial communication for actuator control
-serial_port = "/dev/ttyUSB0"  # Update with your port
+serial_port = '/dev/ttyUSB0'  # Update with your port
 baud_rate = 115200  # Adjust baud rate as per your actuator settings
 ser = serial.Serial(serial_port, baud_rate, timeout=1)
+
 
 def clip(x, lo, hi):
     return max(lo, min(hi, x))
 
+
 def to_int8(u):
     return int(clip(round(127 * u), -127, 127))
+
 
 class BoatControlNode(Node):
 
@@ -27,9 +30,9 @@ class BoatControlNode(Node):
     def start(self):
         time.sleep(0.5)
         response = ser.readline().decode().strip()  # Read response from the actuator
-        self.get_logger().info(f"Received: {response}")
+        self.get_logger().info(f'Received: {response}')
         response = ser.readline().decode().strip()  # Read response from the actuator
-        self.get_logger().info(f"Received: {response}")
+        self.get_logger().info(f'Received: {response}')
 
     # Controls the propellors for the boat via duty cycle control.
     def props_callback(self, cmd_vel):
@@ -40,8 +43,8 @@ class BoatControlNode(Node):
 
         B = 0.3                  # (m)
         K = 1                    # To be determined!
-        left  = (v + w*B/2) / K
-        right = (v - w*B/2) / K
+        left = (v + w * B / 2) / K
+        right = (v - w * B / 2) / K
 
         self.id = self.id + 1
 
@@ -51,16 +54,17 @@ class BoatControlNode(Node):
         if ser.is_open:
             ser.write(command.encode())
             time.sleep(0.01)
-            response=""
-            while "OK" not in response: 
-              response = ser.readline().decode().strip()  # Read response from the actuator
-              time.sleep(0.01)
-            self.get_logger().info(f"Sent: {command}, Received: {response}")
+            response = ''
+            while 'OK' not in response:
+                response = ser.readline().decode().strip()  # Read response from the actuator
+                time.sleep(0.01)
+            self.get_logger().info(f'Sent: {command}, Received: {response}')
             return response
 
     # Function to send command to the actuator
     def send_pwm_command(self, left, right):
-        self.send_command(f"POST PWM {left} {right} {self.id}")
+        self.send_command(f'POST PWM {left} {right} {self.id}')
+
 
 def main():
     rclpy.init()
@@ -75,7 +79,7 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("Control loop interrupted. Exiting...")
+        print('Control loop interrupted. Exiting...')
     finally:
         if ser.is_open:
             ser.close()

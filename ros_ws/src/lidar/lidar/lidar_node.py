@@ -3,15 +3,15 @@
 import math
 import threading
 import time
-from enum import Enum
 
 import rclpy
-import serial
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
+import serial
 
 
 class FrameExtractor:
+
     FRAME_SIZE = 60
 
     STATE_HEADER_1 = 1
@@ -24,8 +24,7 @@ class FrameExtractor:
         self.data = bytearray(FrameExtractor.FRAME_SIZE)
 
     def process(self, b) -> bytes | None:
-        """ Processes one byte, returns bytes if a full frame was received, otherwise None """
-
+        """Process one byte and return a complete frame when available."""
         # store byte if it fits
         if self.index < FrameExtractor.FRAME_SIZE:
             self.data[self.index] = b
@@ -54,13 +53,14 @@ class FrameExtractor:
 
 
 class MysteryLidar:
+
     RAYS_PER_ROTATION = 576  # 16 rays per 10 degree packet
 
     def __init__(self, device):
         self.serial = serial.Serial(device, baudrate=230400, timeout=None)
         self.extractor = FrameExtractor()
 
-    def open(self) -> None:
+    def open(self) -> None:  # noqa: A003 - mirrors the serial-port API
         if not self.serial.is_open:
             self.serial.open()
 
@@ -83,6 +83,7 @@ class MysteryLidar:
 
 
 class LidarNode(Node):
+
     def __init__(self):
         super().__init__('lidar')
         self.declare_parameter('device', value='/dev/ttyUSB0')
@@ -102,10 +103,13 @@ class LidarNode(Node):
         self.msg.header.frame_id = self.frame_id
         self.msg.range_min = 0.02  # radius of scanner head is 2 cm
         self.msg.range_max = 10.0  # assumed
-        self.msg.scan_time = 1.0 / 5.8  # time between full 360 sweep: approx 6 rotations per second
+        # Time between full 360-degree sweeps: approximately 6 rotations/second.
+        self.msg.scan_time = 1.0 / 5.8
         self.msg.intensities = [0.0] * MysteryLidar.RAYS_PER_ROTATION
         self.msg.ranges = [0.0] * MysteryLidar.RAYS_PER_ROTATION
-        self.msg.time_increment = self.msg.scan_time / MysteryLidar.RAYS_PER_ROTATION  # time between rays
+        self.msg.time_increment = (
+            self.msg.scan_time / MysteryLidar.RAYS_PER_ROTATION
+        )  # time between rays
         self.msg.angle_min = math.radians(0.0)
         self.msg.angle_max = math.radians(360.0)
         self.msg.angle_increment = math.radians(360.0 / MysteryLidar.RAYS_PER_ROTATION)

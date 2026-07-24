@@ -1,10 +1,9 @@
-#python 3
-import time
-import math
+# python 3
+from geometry_msgs.msg import Twist
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
 from std_msgs.msg import Float64
+
 
 class SimControlNode(Node):
 
@@ -23,11 +22,12 @@ class SimControlNode(Node):
 
         B = 0.3                  # (m)
         K = 1                    # To be determined!
-        left  = (v - w*B/2) / K
-        right = (v + w*B/2) / K
+        left = (v - w * B / 2) / K
+        right = (v + w * B / 2) / K
 
-        self.left_pub.publish(Float64(data = left))
-        self.right_pub.publish(Float64(data = right))
+        self.left_pub.publish(Float64(data=left))
+        self.right_pub.publish(Float64(data=right))
+
 
 def main():
     rclpy.init()
@@ -36,6 +36,6 @@ def main():
     node.destroy_node()
     rclpy.shutdown()
 
+
 if __name__ == '__main__':
     main()
-
