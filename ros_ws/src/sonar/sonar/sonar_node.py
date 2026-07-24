@@ -251,7 +251,7 @@ class SonarNode(Node):
         self.msg.max_range = 60.0  # 200 feet actually
 
         # create and start listen thread
-        self.thread = threading.Thread(target=self.node_task())
+        self.thread = threading.Thread(target=self.node_task, daemon=True)
         self.thread.start()
 
     def node_task(self) -> None:

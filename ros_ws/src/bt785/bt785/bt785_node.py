@@ -3,12 +3,13 @@
 import threading
 import time
 
-import rclpy
 from karaburan_msgs.msg import ElectricalConductivity
+import rclpy
 from rclpy.node import Node
 
 
 class BT785Node(Node):
+
     def __init__(self):
         super().__init__('bt785')
         self.declare_parameter('device', value='D3:01:01:02:2F:C6')
@@ -28,7 +29,7 @@ class BT785Node(Node):
         self.msg.header.frame_id = self.frame_id
 
         # create and start listen thread
-        self.thread = threading.Thread(target=self.node_task())
+        self.thread = threading.Thread(target=self.node_task, daemon=True)
         self.thread.start()
 
     def node_task(self) -> None:
@@ -59,4 +60,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-

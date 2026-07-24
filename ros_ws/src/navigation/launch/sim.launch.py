@@ -16,6 +16,12 @@ from launch.substitutions import Command, FindExecutable, LaunchConfiguration, P
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from ament_index_python.packages import get_package_share_directory
+from navigation.launch_arguments import (
+    instrument_argument_declarations,
+    instrument_launch_arguments,
+    recording_argument_declarations,
+    recording_launch_arguments,
+)
 import os
 
 def generate_launch_description():
@@ -56,7 +62,22 @@ def generate_launch_description():
     nav_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(nav_dir, 'launch', 'nav2_stack.launch.py')
-        )
+        ),
+        launch_arguments={'use_sim_time': 'true'}.items()
+    )
+    measurement_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(nav_dir, 'launch', 'measurement_instruments.launch.py')
+        ),
+        launch_arguments=instrument_launch_arguments().items()
+    )
+    storage_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(nav_dir, 'launch', 'storage.launch.py')
+        ),
+        launch_arguments=recording_launch_arguments(
+            bag_prefix='karaburan-sim', use_sim_time='true'
+        ).items()
     )
 
     gazebo = IncludeLaunchDescription(
@@ -110,10 +131,15 @@ def generate_launch_description():
         DeclareLaunchArgument('base_frame', default_value='base_link', description='Base frame id'),
         DeclareLaunchArgument('imu_frame', default_value='imu_link', description='IMU frame id (must match gz_frame_id in SDF)'),
         DeclareLaunchArgument('gps_frame', default_value='gps_link', description='GPS frame id (must match gz_frame_id in SDF)'),
+        # Optional MCAP recording and physical instruments (HIL only in sim)
+        *recording_argument_declarations('./bags'),
+        *instrument_argument_declarations(),
 
         gazebo,
         nav_launch,
         boatcontrol,
+        measurement_launch,
+        storage_launch,
 
         TimerAction(
             period=2.0,

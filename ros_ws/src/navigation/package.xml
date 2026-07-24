@@ -9,9 +9,9 @@
 
   <depend>rclpy</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>nav2_simple_commander</depend>
-  <depend>math</depend>
 
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_testing</exec_depend>
@@ -20,6 +20,13 @@
   <exec_depend>nav2_bt_navigator</exec_depend>
   <exec_depend>gpsd_client</exec_depend>
   <exec_depend>gps_tools</exec_depend>
+  <exec_depend>rosbag2</exec_depend>
+  <exec_depend>rosbag2_storage_mcap</exec_depend>
+  <exec_depend>tempreader</exec_depend>
+  <exec_depend>sonar</exec_depend>
+  <exec_depend>lidar</exec_depend>
+  <exec_depend>vl53l0x</exec_depend>
+  <exec_depend>bt785</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>python3-pytest</test_depend>

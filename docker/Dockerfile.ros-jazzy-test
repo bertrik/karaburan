@@ -1,0 +1,21 @@
+FROM ros:jazzy-ros-base
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3-colcon-common-extensions \
+        ros-jazzy-rosbag2-storage-mcap \
+        ros-jazzy-rosidl-default-generators \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /karaburan/ros_ws
+COPY ros_ws/src ./src
+
+SHELL ["/bin/bash", "-c"]
+RUN source /opt/ros/jazzy/setup.bash \
+    && colcon build --event-handlers console_direct+
+
+COPY docker/ros-test.sh /usr/local/bin/karaburan-ros-test
+RUN chmod +x /usr/local/bin/karaburan-ros-test
+
+CMD ["/usr/local/bin/karaburan-ros-test"]

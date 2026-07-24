@@ -11,7 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'adafruit-circuitpython-vl53l0x'],
     zip_safe=True,
     maintainer='Julien Guitter',
     description='VL53l0x distance sensor driver',
@@ -19,6 +19,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'vl53l0x_node = vl53l0x.vl53l0x:main',
         ],
     },
 )

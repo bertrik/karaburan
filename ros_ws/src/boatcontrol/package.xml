@@ -7,11 +7,10 @@
   <maintainer email="mleegwt@users.noreply.github.com">pi</maintainer>
   <license>TODO: License declaration</license>
 
-  <depend>math</depend>
   <depend>rclpy</depend>
-  <depend>serial</depend>
-  <depend>time</depend>
   <depend>std_msgs</depend>
+
+  <exec_depend>python3-serial</exec_depend>
 
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_testing</exec_depend>

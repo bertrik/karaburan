@@ -8,8 +8,9 @@
   <license>MIT</license>
 
   <depend>std_msgs</depend>
-  <depend>rclcpp</depend>
-  <depend>bleak</depend>
+  <depend>sensor_msgs</depend>
+  <depend>rclpy</depend>
+  <exec_depend>python3-bleak</exec_depend>
 
   <test_depend>python3-pytest</test_depend>
 

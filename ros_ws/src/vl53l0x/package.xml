@@ -8,8 +8,9 @@
   <license>MIT</license>
 
   <depend>std_msgs</depend>
-  <depend>rclcpp</depend>
-  <depend>adafruit-circuitpython-vl53l0x</depend>
+  <depend>sensor_msgs</depend>
+  <depend>rclpy</depend>
+  <exec_depend>adafruit-circuitpython-vl53l0x</exec_depend>
 
   <test_depend>python3-pytest</test_depend>
 

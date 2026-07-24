@@ -11,7 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'bleak'],
     zip_safe=True,
     maintainer='bertrik',
     maintainer_email='bertrik@sikken.nl',
@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'sonar_node = sonar.sonar_node:main',
         ],
     },
 )
