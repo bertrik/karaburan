@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import asyncio
+import json
 import math
 import queue
 import threading
@@ -8,6 +9,8 @@ from dataclasses import dataclass, field
 from enum import IntFlag
 
 from bleak import BleakClient, BleakError
+
+from databus import DataBusClient
 
 NOTIFY_UUID = "0000fff1-0000-1000-8000-00805f9b34fb"
 WRITE_UUID = "0000fff2-0000-1000-8000-00805f9b34fb"
@@ -41,7 +44,7 @@ class BleSerialPort:
                 await self.client.start_notify(NOTIFY_UUID, self._on_notify)
                 print(f"Connected to {self.address}")
                 return
-            except Exception as e:
+            except Exception as e: # noqa: BLE001
                 print(f"Connection failed: {e}")
                 await asyncio.sleep(self.reconnect_delay)
 
@@ -225,12 +228,15 @@ class SensorData:
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    DataBusClient.add_arguments(parser)
     parser.add_argument("-d", "--device",
                         help="The FishHelper bluetooth device address", default="D3:01:01:02:2F:C6")
     args = parser.parse_args()
 
     print(f"Opening BleSerialPort '{args.device}'")
     with BleSerialPort(args.device) as port:
+        client = DataBusClient(args.broker, "sonar", args.device)
+        client.start()
         protocol = Protocol()
         while True:
             b = port.read()
@@ -242,6 +248,10 @@ def main():
                 print(f"status={sd.get_status()},temp={sd.get_temperature():.1f}degC,"
                       f"batt={sd.get_battery():.1f}%,"
                       f"depth={sd.get_depth():.2f}m,range={sd.get_depth_range():.1f}m")
+                data = {'depth': round(sd.get_depth(), 2),
+                        'temperature': round(sd.get_temperature(), 1),
+                        'battery': int(sd.get_battery())}
+                client.publish(json.dumps(data))
 
 
 if __name__ == "__main__":
