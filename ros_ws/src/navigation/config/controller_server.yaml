@@ -33,7 +33,9 @@
       max_lookahead_dist: 3.0
       use_velocity_scaled_lookahead_dist: true
       max_robot_pose_search_dist: 10.0
-      use_rotate_to_heading: false
+      use_rotate_to_heading: true
+      rotate_to_heading_angular_vel: 1.0
+      max_angular_accel: 10.0
       enable_collision_checking: false
       min_x_velocity_threshold: 0.001
       min_theta_velocity_threshold: 0.001

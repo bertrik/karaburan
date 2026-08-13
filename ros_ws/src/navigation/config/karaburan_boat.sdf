@@ -124,7 +124,9 @@
     <child>right_prop</child>
     <pose>-0.25 -0.11 0.065 0 0 0</pose>
     <axis>
-      <xyz>1 0 0</xyz>
+      <!-- Counter-rotating starboard propeller. Its negative command still
+           produces forward thrust because both axis and velocity are reversed. -->
+      <xyz>-1 0 0</xyz>
       <limit><lower>-1e16</lower><upper>1e16</upper></limit>
     </axis>
   </joint>
