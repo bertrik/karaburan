@@ -26,6 +26,18 @@ Read temperature:
 This currently works on My Machine TM (use the generic instructions at the top first):
 `colcon build && source install/setup.bash && ros2 launch navigation boat.launch.py`
 
+Clone the repository with its MPU9250 driver reference, or initialise it after
+an existing clone:
+
+```bash
+git submodule update --init --recursive
+```
+
+The physical boat enables LiDAR by default. Disable it explicitly with
+`with_lidar:=false` when the sensor is disconnected. The GPS status workaround
+also remains enabled by default; use `fix_status_override_enabled:=false` to
+relay `/fix` to `/fix/valid` without changing the receiver-provided status.
+
 Replace `boat.launch.py` with `sim.launch.py` for the simulated stuff (laptop only! Requires GUI!)
 
 ## Manual control via partial setup
@@ -176,8 +188,9 @@ for segments awaiting upload and prevents the system disk from filling up.
 
 ### Optional measurement instruments
 
-The physical measurement drivers are disabled by default. Enable only the
-instruments connected to the boat:
+The physical LiDAR driver is enabled by default for `boat.launch.py`; the other
+measurement drivers remain disabled. Configure the instruments connected to
+the boat as needed:
 
 ```bash
 ros2 launch navigation boat.launch.py \

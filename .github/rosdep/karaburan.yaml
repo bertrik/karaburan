@@ -3,3 +3,8 @@ adafruit-circuitpython-vl53l0x:
     pip:
       packages:
         - adafruit-circuitpython-vl53l0x
+ament_python:
+  ubuntu:
+    apt:
+      packages:
+        - python3-setuptools
