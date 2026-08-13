@@ -21,6 +21,15 @@ Read fixes from GPS:
 Read temperature:
 `ros2 topic echo /temperature`
 
+The boat has three DS18B20 sensors. When temperature measurement is enabled,
+their readings are published as follows:
+
+| Sensor ID | Topic |
+| --- | --- |
+| `28.C23646D48524` | `/temperature` |
+| `28.5CD456B5013C` | `/temperature/sensor_2` |
+| `28.F95856B5013C` | `/temperature/sensor_3` |
+
 # Boat total setup launch file
 
 This currently works on My Machine TM (use the generic instructions at the top first):
@@ -196,6 +205,8 @@ the boat as needed:
 ros2 launch navigation boat.launch.py \
   with_temperature:=true \
   temperature_sensor_id:=28.C23646D48524 \
+  temperature_sensor_id_2:=28.5CD456B5013C \
+  temperature_sensor_id_3:=28.F95856B5013C \
   with_sonar:=true \
   sonar_device:=D3:01:01:02:2F:C6 \
   with_lidar:=true \

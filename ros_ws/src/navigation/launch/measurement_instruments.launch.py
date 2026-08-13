@@ -15,7 +15,9 @@ from launch_ros.parameter_descriptions import ParameterValue
 def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('temperature_enabled', default_value='false'),
-        DeclareLaunchArgument('temperature_sensor_id', default_value='28.7AAB46D42000'),
+        DeclareLaunchArgument('temperature_sensor_id', default_value='28.C23646D48524'),
+        DeclareLaunchArgument('temperature_sensor_id_2', default_value='28.5CD456B5013C'),
+        DeclareLaunchArgument('temperature_sensor_id_3', default_value='28.F95856B5013C'),
         DeclareLaunchArgument('sonar_enabled', default_value='false'),
         DeclareLaunchArgument('sonar_device', default_value='D3:01:01:02:2F:C6'),
         DeclareLaunchArgument('lidar_enabled', default_value='false'),
@@ -33,6 +35,28 @@ def generate_launch_description():
             parameters=[{
                 'sensorId': LaunchConfiguration('temperature_sensor_id'),
                 'topic': '/temperature',
+            }],
+        ),
+        Node(
+            package='tempreader',
+            executable='tempreaderNode',
+            name='tempreader_2',
+            output='screen',
+            condition=IfCondition(LaunchConfiguration('temperature_enabled')),
+            parameters=[{
+                'sensorId': LaunchConfiguration('temperature_sensor_id_2'),
+                'topic': '/temperature/sensor_2',
+            }],
+        ),
+        Node(
+            package='tempreader',
+            executable='tempreaderNode',
+            name='tempreader_3',
+            output='screen',
+            condition=IfCondition(LaunchConfiguration('temperature_enabled')),
+            parameters=[{
+                'sensorId': LaunchConfiguration('temperature_sensor_id_3'),
+                'topic': '/temperature/sensor_3',
             }],
         ),
         Node(

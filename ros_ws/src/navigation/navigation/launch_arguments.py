@@ -38,7 +38,9 @@ def instrument_argument_declarations(*, lidar_default='false'):
     """Declare optional physical-instrument arguments."""
     return [
         DeclareLaunchArgument('with_temperature', default_value='false'),
-        DeclareLaunchArgument('temperature_sensor_id', default_value='28.7AAB46D42000'),
+        DeclareLaunchArgument('temperature_sensor_id', default_value='28.C23646D48524'),
+        DeclareLaunchArgument('temperature_sensor_id_2', default_value='28.5CD456B5013C'),
+        DeclareLaunchArgument('temperature_sensor_id_3', default_value='28.F95856B5013C'),
         DeclareLaunchArgument('with_sonar', default_value='false'),
         DeclareLaunchArgument('sonar_device', default_value='D3:01:01:02:2F:C6'),
         DeclareLaunchArgument('with_lidar', default_value=lidar_default),
@@ -55,6 +57,8 @@ def instrument_launch_arguments():
     return {
         'temperature_enabled': LaunchConfiguration('with_temperature'),
         'temperature_sensor_id': LaunchConfiguration('temperature_sensor_id'),
+        'temperature_sensor_id_2': LaunchConfiguration('temperature_sensor_id_2'),
+        'temperature_sensor_id_3': LaunchConfiguration('temperature_sensor_id_3'),
         'sonar_enabled': LaunchConfiguration('with_sonar'),
         'sonar_device': LaunchConfiguration('sonar_device'),
         'lidar_enabled': LaunchConfiguration('with_lidar'),
