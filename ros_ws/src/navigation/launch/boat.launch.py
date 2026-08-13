@@ -4,8 +4,9 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from navigation.launch_arguments import (
     instrument_argument_declarations,
@@ -29,7 +30,23 @@ def generate_launch_description():
     )
     instrument_arguments = instrument_launch_arguments()
     declarations = recording_argument_declarations('/data/karaburan/bags')
-    declarations += instrument_argument_declarations()
+    declarations += instrument_argument_declarations(lidar_default='true')
+    declarations += [
+        DeclareLaunchArgument(
+            'fix_status_override_enabled',
+            default_value='true',
+            description=(
+                'Change invalid GPS status values to STATUS_FIX while relaying '
+                '/fix to /fix/valid'
+            ),
+        ),
+    ]
+
+    mpu9250_config = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'mpu9250.yaml',
+    )
 
     return LaunchDescription(declarations + [
         _include('gpsd_client', 'gpsd_client-launch.py'),
@@ -38,9 +55,21 @@ def generate_launch_description():
             executable='fix_status_override_node',
             name='fix_status_override_node',
             output='screen',
+            parameters=[{
+                'override_invalid_status': LaunchConfiguration(
+                    'fix_status_override_enabled'
+                ),
+            }],
         ),
         _include('boatcontrol', 'boatcontrol.launch.py'),
-        _include('mpu9250', 'mpu9250.launch.py'),
+        Node(
+            package='mpu9250',
+            executable='mpu9250',
+            name='mpu9250',
+            output='screen',
+            parameters=[mpu9250_config],
+            remappings=[('/imu', '/imu/data')],
+        ),
         _include('navigation', 'nav2_stack.launch.py', {'use_sim_time': 'false'}),
         _include('navigation', 'measurement_instruments.launch.py', instrument_arguments),
         _include('navigation', 'storage.launch.py', record_arguments),

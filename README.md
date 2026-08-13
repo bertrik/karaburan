@@ -21,10 +21,31 @@ Read fixes from GPS:
 Read temperature:
 `ros2 topic echo /temperature`
 
+The boat has three DS18B20 sensors. When temperature measurement is enabled,
+their readings are published as follows:
+
+| Sensor ID | Topic |
+| --- | --- |
+| `28.C23646D48524` | `/temperature` |
+| `28.5CD456B5013C` | `/temperature/sensor_2` |
+| `28.F95856B5013C` | `/temperature/sensor_3` |
+
 # Boat total setup launch file
 
 This currently works on My Machine TM (use the generic instructions at the top first):
 `colcon build && source install/setup.bash && ros2 launch navigation boat.launch.py`
+
+Clone the repository with its MPU9250 driver reference, or initialise it after
+an existing clone:
+
+```bash
+git submodule update --init --recursive
+```
+
+The physical boat enables LiDAR by default. Disable it explicitly with
+`with_lidar:=false` when the sensor is disconnected. The GPS status workaround
+also remains enabled by default; use `fix_status_override_enabled:=false` to
+relay `/fix` to `/fix/valid` without changing the receiver-provided status.
 
 Replace `boat.launch.py` with `sim.launch.py` for the simulated stuff (laptop only! Requires GUI!)
 
@@ -176,13 +197,16 @@ for segments awaiting upload and prevents the system disk from filling up.
 
 ### Optional measurement instruments
 
-The physical measurement drivers are disabled by default. Enable only the
-instruments connected to the boat:
+The physical LiDAR driver is enabled by default for `boat.launch.py`; the other
+measurement drivers remain disabled. Configure the instruments connected to
+the boat as needed:
 
 ```bash
 ros2 launch navigation boat.launch.py \
   with_temperature:=true \
   temperature_sensor_id:=28.C23646D48524 \
+  temperature_sensor_id_2:=28.5CD456B5013C \
+  temperature_sensor_id_3:=28.F95856B5013C \
   with_sonar:=true \
   sonar_device:=D3:01:01:02:2F:C6 \
   with_lidar:=true \

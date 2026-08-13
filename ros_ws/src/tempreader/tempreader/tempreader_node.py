@@ -27,7 +27,7 @@ class Tempreader(Node):
 
     def __init__(self):
         super().__init__('tempreader')
-        self.declare_parameter('sensorId', value='28.7AAB46D42000')
+        self.declare_parameter('sensorId', value='28.C23646D48524')
         self.declare_parameter('topic', value='temperature')
 
         topic_name = self.get_parameter('topic').get_parameter_value().string_value

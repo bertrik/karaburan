@@ -12,7 +12,13 @@ jobs:
     container:
       image: ubuntu:noble
     steps:
-      - uses: actions/checkout@v4
+      - name: Install Git and CA certificates for checkout
+        run: |
+          apt-get update
+          apt-get install --no-install-recommends --yes ca-certificates git
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
       - uses: ros-tooling/setup-ros@v0.7
         with:
           required-ros-distributions: jazzy
@@ -27,10 +33,17 @@ jobs:
           rosdep update
       - uses: ros-tooling/action-ros-ci@v0.3
         with:
+          colcon-defaults: |
+            {
+              "test": {
+                "packages-skip": ["mpu9250"]
+              }
+            }
           package-name: >-
             karaburan_msgs
             boatcontrol
             navigation
+            mpu9250
             tempreader
             lidar
             sonar

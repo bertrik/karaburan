@@ -7,16 +7,21 @@ class FixStatusOverrideNode(Node):
 
     def __init__(self):
         super().__init__('fix_status_override_node')
+        self.declare_parameter('override_invalid_status', True)
+        self.override_invalid_status = self.get_parameter(
+            'override_invalid_status').value
         self.sub = self.create_subscription(
             NavSatFix,
             '/fix',
             self.callback,
             10)
         self.pub = self.create_publisher(NavSatFix, '/fix/valid', 10)
-        self.get_logger().info('Fix status override node started')
+        state = 'enabled' if self.override_invalid_status else 'disabled'
+        self.get_logger().info(
+            f'Fix status override node started; status override is {state}')
 
     def callback(self, msg):
-        if msg.status.status < 0:
+        if self.override_invalid_status and msg.status.status < 0:
             msg.status.status = NavSatStatus.STATUS_FIX
         self.pub.publish(msg)
 

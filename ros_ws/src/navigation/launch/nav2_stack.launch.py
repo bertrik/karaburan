@@ -3,6 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import LifecycleNode, Node
@@ -52,6 +53,7 @@ def generate_launch_description():
         'bt_navigator.yaml'
     )
     use_sim_time = LaunchConfiguration('use_sim_time')
+    slam_enabled = LaunchConfiguration('slam_enabled')
     slam_file = os.path.join(
         get_package_share_directory('navigation'),
         'config',
@@ -81,6 +83,7 @@ def generate_launch_description():
             parameters=[
                 {'use_sim_time': use_sim_time}
             ],
+            condition=UnlessCondition(slam_enabled),
             output='screen'
         ),
         LifecycleNode(
@@ -191,6 +194,11 @@ def generate_launch_description():
             default_value='true',
             description='Use /clock (true) or the system clock (false)',
         ),
+        DeclareLaunchArgument(
+            'slam_enabled',
+            default_value='true',
+            description='Run SLAM Toolbox and let it publish map to odom',
+        ),
         LogInfo(msg=['slam_params_file = ', slam_file]),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -204,6 +212,7 @@ def generate_launch_description():
                 'use_sim_time': use_sim_time,
                 'slam_params_file': slam_file,
             }.items(),
+            condition=IfCondition(slam_enabled),
         ),
     ]
     return LaunchDescription(

@@ -20,10 +20,15 @@ class SimControlNode(Node):
         v = cmd_vel.linear.x     # (m/s)
         w = cmd_vel.angular.z    # (rad/s)
 
-        B = 0.3                  # (m)
+        # This is an effective yaw gain rather than the physical prop spacing:
+        # Gazebo's propeller thrust is quadratic in shaft speed, so using the
+        # differential-drive wheel formula with the 0.3 m spacing understeers.
+        yaw_gain = 0.4
         K = 1                    # To be determined!
-        left = (v - w * B / 2) / K
-        right = (v + w * B / 2) / K
+        left = (v - w * yaw_gain) / K
+        # The starboard propeller axis is reversed in the simulation model so
+        # equal forward thrust uses the opposite shaft rotation direction.
+        right = -(v + w * yaw_gain) / K
 
         self.left_pub.publish(Float64(data=left))
         self.right_pub.publish(Float64(data=right))

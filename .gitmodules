@@ -1,0 +1,3 @@
+[submodule "ros_ws/src/mpu9250"]
+	path = ros_ws/src/mpu9250
+	url = https://github.com/Schnilz/mpu9250.git

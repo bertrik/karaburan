@@ -13,12 +13,12 @@
 /global_costmap:
   global_costmap:
     ros__parameters:
-      global_frame: local_enu
+      global_frame: map
       robot_base_frame: base_link
       rolling_window: true
-      width: 1000
-      height: 1000
-      resolution: 1.0
+      width: 500
+      height: 500
+      resolution: 0.25
       transform_tolerance: 0.5
       robot_radius: 0.5
       static_layer:
