@@ -65,7 +65,10 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(nav_dir, 'launch', 'nav2_stack.launch.py')
         ),
-        launch_arguments={'use_sim_time': 'true'}.items()
+        launch_arguments={
+            'use_sim_time': 'true',
+            'slam_enabled': 'false',
+        }.items()
     )
     measurement_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -131,10 +134,16 @@ def generate_launch_description():
                               description='GZ/ROS topic for GPS/NavSat'),
         DeclareLaunchArgument('lidar_topic', default_value='/scan',
                               description='LiDAR LaserScan topic'),
-        DeclareLaunchArgument('left_topic', default_value='/left',
-                              description='Left propellor topic'),
-        DeclareLaunchArgument('right_topic', default_value='/right',
-                              description='Right propellor topic'),
+        DeclareLaunchArgument(
+            'left_topic',
+            default_value='/model/karaburan/joint/left_prop_joint/cmd_thrust',
+            description='Gazebo left propeller thrust topic'
+        ),
+        DeclareLaunchArgument(
+            'right_topic',
+            default_value='/model/karaburan/joint/right_prop_joint/cmd_thrust',
+            description='Gazebo right propeller thrust topic'
+        ),
         DeclareLaunchArgument('base_frame', default_value='base_link',
                               description='Base frame id'),
         DeclareLaunchArgument('imu_frame', default_value='imu_link',
@@ -181,11 +190,14 @@ def generate_launch_description():
                         PythonExpression(['"', lidar_topic,
                                          '" + \'@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan\'']),
                         PythonExpression(['"', left_topic,
-                                         '" + \'@std_msgs/msg/Float64[gz.msgs.Double\'']),
+                                         '" + \'@std_msgs/msg/Float64]gz.msgs.Double\'']),
                         PythonExpression(['"', right_topic,
-                                         '" + \'@std_msgs/msg/Float64[gz.msgs.Double\'']),
-                        '/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V',
+                                         '" + \'@std_msgs/msg/Float64]gz.msgs.Double\'']),
                         '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
+                    ],
+                    remappings=[
+                        (left_topic, '/left'),
+                        (right_topic, '/right'),
                     ],
                 )
             ]

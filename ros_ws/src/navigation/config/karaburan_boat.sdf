@@ -134,19 +134,18 @@
     <namespace>karaburan</namespace>
     <joint_name>left_prop_joint</joint_name>
     <fluid_density>1000</fluid_density>
-    <propeller_diameter>0.025</propeller_diameter>
-    <thrust_coefficient>0.0004</thrust_coefficient>
-    <topic>/left</topic>
-    <!-- standaard: cmd_thrust (N), joint wordt visueel gesponnen -->
+    <propeller_diameter>0.05</propeller_diameter>
+    <thrust_coefficient>0.004422</thrust_coefficient>
+    <velocity_control>true</velocity_control>
   </plugin>
 
   <plugin filename="gz-sim-thruster-system" name="gz::sim::systems::Thruster">
     <namespace>karaburan</namespace>
     <joint_name>right_prop_joint</joint_name>
     <fluid_density>1000</fluid_density>
-    <propeller_diameter>0.025</propeller_diameter>
-    <thrust_coefficient>0.0004</thrust_coefficient>
-    <topic>/right</topic>
+    <propeller_diameter>0.05</propeller_diameter>
+    <thrust_coefficient>0.004422</thrust_coefficient>
+    <velocity_control>true</velocity_control>
   </plugin>
 
 
@@ -169,4 +168,3 @@
     </plugin>
   </model>
 </sdf>
-
