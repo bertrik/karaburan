@@ -12,11 +12,11 @@ jobs:
     container:
       image: ubuntu:noble
     steps:
-      - name: Install Git for checkout with submodules
+      - name: Install Git and CA certificates for checkout
         run: |
           apt-get update
-          apt-get install --no-install-recommends --yes git
-      - uses: actions/checkout@v4
+          apt-get install --no-install-recommends --yes ca-certificates git
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: ros-tooling/setup-ros@v0.7
