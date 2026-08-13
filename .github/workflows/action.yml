@@ -12,6 +12,10 @@ jobs:
     container:
       image: ubuntu:noble
     steps:
+      - name: Install Git for checkout with submodules
+        run: |
+          apt-get update
+          apt-get install --no-install-recommends --yes git
       - uses: actions/checkout@v4
         with:
           submodules: recursive
