@@ -80,7 +80,7 @@ def generate_launch_description():
             parameters=[{
                 'device': LaunchConfiguration('lidar_device'),
                 'topic': '/scan',
-                'frame_id': 'laser',
+                'frame_id': 'lidar_link',
             }],
         ),
         # ToF (Time of Flight): the VL53L0X measures distance from a laser pulse's round-trip time.

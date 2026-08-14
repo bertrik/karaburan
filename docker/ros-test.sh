@@ -7,6 +7,7 @@ set -u
 
 python3 -m compileall -q /karaburan/ros_ws/src
 python3 -c 'from navigation.gps_shuttle import GpsRoute'
+python3 -c 'from lidar.lidar_node import FrameExtractor'
 # The pinned third-party MPU9250 repository builds as part of the workspace,
 # but its upstream lint suite does not conform to this project's lint policy.
 colcon test --packages-skip mpu9250 --event-handlers console_direct+
