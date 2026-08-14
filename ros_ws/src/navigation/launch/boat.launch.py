@@ -40,6 +40,16 @@ def generate_launch_description():
                 '/fix to /fix/valid'
             ),
         ),
+        DeclareLaunchArgument(
+            'motor_serial_port',
+            default_value='/dev/ttyS0',
+            description='Serial device connected to the motor controller',
+        ),
+        DeclareLaunchArgument(
+            'motor_baud_rate',
+            default_value='115200',
+            description='Motor controller serial baud rate',
+        ),
     ]
 
     mpu9250_config = os.path.join(
@@ -61,7 +71,10 @@ def generate_launch_description():
                 ),
             }],
         ),
-        _include('boatcontrol', 'boatcontrol.launch.py'),
+        _include('boatcontrol', 'boatcontrol.launch.py', {
+            'serial_port': LaunchConfiguration('motor_serial_port'),
+            'baud_rate': LaunchConfiguration('motor_baud_rate'),
+        }),
         Node(
             package='mpu9250',
             executable='mpu9250',

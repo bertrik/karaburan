@@ -47,6 +47,30 @@ The physical boat enables LiDAR by default. Disable it explicitly with
 also remains enabled by default; use `fix_status_override_enabled:=false` to
 relay `/fix` to `/fix/valid` without changing the receiver-provided status.
 
+The motor controller uses `/dev/ttyS0` at 115200 baud by default. Override the
+serial settings when needed:
+
+```bash
+ros2 launch navigation boat.launch.py \
+  motor_serial_port:=/dev/ttyS0 \
+  motor_baud_rate:=115200
+```
+
+GPSD must expose only the ZED-F9P on `/dev/ttyUSB1`; the older u-blox receiver
+must remain disabled for ROS navigation. Configure `/etc/default/gpsd` as:
+
+```ini
+DEVICES="/dev/ttyUSB1"
+GPSD_OPTIONS="-n"
+USBAUTO="false"
+```
+
+Apply the GPSD configuration with:
+
+```bash
+sudo systemctl restart gpsd.socket gpsd.service
+```
+
 Replace `boat.launch.py` with `sim.launch.py` for the simulated stuff (laptop only! Requires GUI!)
 
 ## GPS shuttle route
