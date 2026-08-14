@@ -7,12 +7,19 @@ set -u
 
 python3 -m compileall -q /karaburan/ros_ws/src
 python3 -c 'from navigation.gps_shuttle import GpsRoute'
+python3 -c 'from lidar.lidar_node import FrameExtractor'
 # The pinned third-party MPU9250 repository builds as part of the workspace,
 # but its upstream lint suite does not conform to this project's lint policy.
 colcon test --packages-skip mpu9250 --event-handlers console_direct+
 colcon test-result --verbose
 ros2 launch navigation storage.launch.py --show-args >/tmp/storage-args.txt
 ros2 launch navigation measurement_instruments.launch.py --show-args >/tmp/instrument-args.txt
+ros2 launch boatcontrol boatcontrol.launch.py --show-args >/tmp/boatcontrol-args.txt
+grep -q '/dev/ttyS0' /tmp/boatcontrol-args.txt
+grep -q 'motor_serial_port' \
+    /karaburan/ros_ws/install/navigation/share/navigation/launch/boat.launch.py
+grep -q "default_value='/dev/ttyS0'" \
+    /karaburan/ros_ws/install/navigation/share/navigation/launch/boat.launch.py
 
 for executable in \
     "tempreader tempreaderNode" \

@@ -6,11 +6,6 @@ import rclpy
 from rclpy.node import Node
 import serial
 
-# Initialize serial communication for actuator control
-serial_port = '/dev/ttyUSB0'  # Update with your port
-baud_rate = 115200  # Adjust baud rate as per your actuator settings
-ser = serial.Serial(serial_port, baud_rate, timeout=1)
-
 
 def clip(x, lo, hi):
     return max(lo, min(hi, x))
@@ -24,14 +19,22 @@ class BoatControlNode(Node):
 
     def __init__(self):
         super().__init__('boat_control_node')
+        self.declare_parameter('serial_port', '/dev/ttyS0')
+        self.declare_parameter('baud_rate', 115200)
+        serial_port = self.get_parameter('serial_port').value
+        baud_rate = self.get_parameter('baud_rate').value
+        self.ser = serial.Serial(serial_port, baud_rate, timeout=1)
         self.cmd_sub = self.create_subscription(Twist, '/cmd_vel', self.props_callback, 10)
         self.id = 0
+        self.get_logger().info(
+            f'Connected to motor controller on {serial_port} at {baud_rate} baud'
+        )
 
     def start(self):
         time.sleep(0.5)
-        response = ser.readline().decode().strip()  # Read response from the actuator
+        response = self.ser.readline().decode().strip()
         self.get_logger().info(f'Received: {response}')
-        response = ser.readline().decode().strip()  # Read response from the actuator
+        response = self.ser.readline().decode().strip()
         self.get_logger().info(f'Received: {response}')
 
     # Controls the propellors for the boat via duty cycle control.
@@ -51,15 +54,19 @@ class BoatControlNode(Node):
         self.send_pwm_command(to_int8(left), to_int8(right))
 
     def send_command(self, command):
-        if ser.is_open:
-            ser.write(command.encode())
+        if self.ser.is_open:
+            self.ser.write(command.encode())
             time.sleep(0.01)
             response = ''
             while 'OK' not in response:
-                response = ser.readline().decode().strip()  # Read response from the actuator
+                response = self.ser.readline().decode().strip()
                 time.sleep(0.01)
             self.get_logger().info(f'Sent: {command}, Received: {response}')
             return response
+
+    def close(self):
+        if self.ser.is_open:
+            self.ser.close()
 
     # Function to send command to the actuator
     def send_pwm_command(self, left, right):
@@ -69,10 +76,13 @@ class BoatControlNode(Node):
 def main():
     rclpy.init()
     node = BoatControlNode()
-    node.start()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        node.start()
+        rclpy.spin(node)
+    finally:
+        node.close()
+        node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
@@ -80,6 +90,3 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print('Control loop interrupted. Exiting...')
-    finally:
-        if ser.is_open:
-            ser.close()
