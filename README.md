@@ -49,6 +49,41 @@ relay `/fix` to `/fix/valid` without changing the receiver-provided status.
 
 Replace `boat.launch.py` with `sim.launch.py` for the simulated stuff (laptop only! Requires GUI!)
 
+## GPS shuttle route
+
+After the boat launch is running and `/fix/valid` has a valid GPS fix, start
+the predefined shuttle route in a second terminal:
+
+```bash
+source /opt/ros/jazzy/setup.bash
+cd ~/karaburan/ros_ws
+source install/setup.bash
+ros2 run navigation gps_shuttle
+```
+
+The boat continuously alternates between these WGS84 positions:
+
+1. `52.018599, 4.708720`
+2. `52.018962, 4.708961`
+
+Press `Ctrl+C` to cancel the active route. The command waits if Nav2 has not
+finished starting yet. It requires `navsat_transform_node` to have received a
+valid GPS fix before the waypoints can be converted to the local map frame.
+
+An additional four-point route is available with:
+
+```bash
+ros2 run navigation gps_four_point_route
+```
+
+It continuously visits these WGS84 positions in order and then returns to the
+first position:
+
+1. `52.042296, 4.747545`
+2. `52.042648, 4.748077`
+3. `52.042143, 4.748323`
+4. `52.041718, 4.747608`
+
 ## Manual control via partial setup
 
 The current setup does not provide `/cmd_vel` commands other than 'stop'.

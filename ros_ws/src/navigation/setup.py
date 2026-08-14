@@ -35,6 +35,8 @@ setup(
         'console_scripts': [
             'my_navigation_node = navigation.boatnavigator:main',
             'fix_status_override_node = navigation.fix_status_override_node:main',
+            'gps_shuttle = navigation.gps_shuttle:main',
+            'gps_four_point_route = navigation.gps_shuttle:main_four_point',
         ],
     },
 )

@@ -4,6 +4,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3-colcon-common-extensions \
+        ros-jazzy-geographic-msgs \
+        ros-jazzy-nav2-msgs \
         ros-jazzy-rosbag2-storage-mcap \
         ros-jazzy-rosidl-default-generators \
     && rm -rf /var/lib/apt/lists/*
