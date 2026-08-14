@@ -6,6 +6,7 @@ source /karaburan/ros_ws/install/setup.bash
 set -u
 
 python3 -m compileall -q /karaburan/ros_ws/src
+python3 -c 'from navigation.gps_shuttle import GpsRoute'
 # The pinned third-party MPU9250 repository builds as part of the workspace,
 # but its upstream lint suite does not conform to this project's lint policy.
 colcon test --packages-skip mpu9250 --event-handlers console_direct+
@@ -19,7 +20,9 @@ for executable in \
     "lidar lidar_node" \
     "mpu9250 mpu9250" \
     "vl53l0x vl53l0x_node" \
-    "bt785 bt785_node"; do
+    "bt785 bt785_node" \
+    "navigation gps_shuttle" \
+    "navigation gps_four_point_route"; do
     package="${executable%% *}"
     name="${executable##* }"
     ros2 pkg executables "$package" | grep -q "$name"
