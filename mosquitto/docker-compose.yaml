@@ -10,3 +10,20 @@ services:
       - ../mosquitto/data:/mosquitto/data
       - ../mosquitto/log:/mosquitto/log
     restart: unless-stopped
+
+  mqttlogger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mqttlogger
+    environment:
+      MQTT_HOST: mosquitto
+      MQTT_PORT: "1883"
+      MQTT_TOPIC: "karaburan/#"
+      LOG_DIR: /mqttlog
+    volumes:
+      - ./mqttlog:/mqttlog
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+
