@@ -4,9 +4,24 @@
 
 import argparse
 import time
+from pathlib import Path
 from typing import Optional
 
 from databus import DataBusClient
+
+OWFS_PATH = Path("/mnt/1wire/uncached")
+
+def discover_sensors() -> list[str]:
+    sensors = []
+    for sensor in OWFS_PATH.iterdir():
+        if not sensor.is_dir() or not sensor.name.startswith("28"):
+            continue
+        try:
+            float((sensor / "temperature").read_text().strip())
+            sensors.append(sensor.name)
+        except (FileNotFoundError, ValueError, OSError):
+            pass
+    return sensors
 
 
 def read_temperature(sensor_id: str) -> Optional[float]:
@@ -24,22 +39,27 @@ def main():
     """ The main entry point """
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     DataBusClient.add_arguments(parser)
-    parser.add_argument("-s", "--sensor", help="The temperature sensor id",
-                        default="28.7AAB46D42000")
-    parser.add_argument("-i", "--interval", help="The publish interval (seconds)", default=15)
+    parser.add_argument("-i", "--interval", help="The publish interval (seconds)", default=10)
     args = parser.parse_args()
 
+    # discover temperature sensors
+    sensor_ids = discover_sensors()
+    print(f"Discovered sensors: {sensor_ids}")
+
     # connect
-    client = DataBusClient(args.broker, "temperature", args.sensor)
-    client.start()
+    clients = {}
+    for id in sensor_ids:
+        clients[id] = DataBusClient(args.broker, "temperature", id)
+        clients[id].start()
 
     while True:
-        # get value
-        value = read_temperature(args.sensor)
+        for id, client in clients.items():
+            # get value
+            value = read_temperature(id)
 
-        # publish
-        print(f"Publising {value}")
-        client.publish(value)
+            # publish
+            print(f"Publising {value} for {id}")
+            client.publish(value)
 
         # wait
         time.sleep(args.interval)
