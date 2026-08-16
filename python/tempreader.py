@@ -5,11 +5,11 @@
 import argparse
 import time
 from pathlib import Path
-from typing import Optional
 
 from databus import DataBusClient
 
 OWFS_PATH = Path("/mnt/1wire/uncached")
+
 
 def discover_sensors() -> list[str]:
     sensors = []
@@ -24,7 +24,7 @@ def discover_sensors() -> list[str]:
     return sensors
 
 
-def read_temperature(sensor_id: str) -> Optional[float]:
+def read_temperature(sensor_id: str) -> float | None:
     sensor_file = f"/mnt/1wire/uncached/{sensor_id}/temperature"
     try:
         with open(sensor_file, 'r', encoding="UTF-8") as file:
