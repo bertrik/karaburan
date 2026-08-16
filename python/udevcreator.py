@@ -4,6 +4,12 @@
 
 import pyudev
 
+# Hotplug lines created by this tool can be added to /etc/udev/rules.d/60-gpsd.rules for example
+#
+# Then reload the rules by:
+# > sudo udevadm control --reload-rules
+# Then trigger the rule by:
+# > sudo udevadm trigger
 
 def main():
     # Create udev context and monitor
