@@ -178,13 +178,33 @@ def generate_launch_description():
                 'autostart': True,
                 'node_names': [
                     'controller_server',
+                    'behavior_server',
+                    'smoother_server',
+                    'bt_navigator',
+                    'waypoint_follower',
+                    'slam_toolbox',
+                    'planner_server',
+                ]
+            }],
+            condition=IfCondition(slam_enabled),
+        ),
+        Node(
+            package='nav2_lifecycle_manager',
+            executable='lifecycle_manager',
+            name='lifecycle_manager_navigation',
+            output='screen',
+            parameters=[{
+                'autostart': True,
+                'node_names': [
+                    'controller_server',
                     'planner_server',
                     'behavior_server',
                     'smoother_server',
                     'bt_navigator',
-                    'waypoint_follower'
+                    'waypoint_follower',
                 ]
-            }]
+            }],
+            condition=UnlessCondition(slam_enabled),
         ),
     ]
 
@@ -211,6 +231,7 @@ def generate_launch_description():
             launch_arguments={
                 'use_sim_time': use_sim_time,
                 'slam_params_file': slam_file,
+                'use_lifecycle_manager': 'true',
             }.items(),
             condition=IfCondition(slam_enabled),
         ),
