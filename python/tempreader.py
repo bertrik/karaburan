@@ -3,17 +3,28 @@
 # Copyright 2024 Bertrik Sikken <bertrik@sikken.nl>
 
 import argparse
-import json
 import time
-import datetime
-from typing import Optional
+from pathlib import Path
 
-import paho.mqtt.client as mqtt
+from databus import DataBusClient
 
-SENSOR_TYPE = 'temperature'
+OWFS_PATH = Path("/mnt/1wire/uncached")
 
 
-def read_temperature(sensor_id: str) -> Optional[float]:
+def discover_sensors() -> list[str]:
+    sensors = []
+    for sensor in OWFS_PATH.iterdir():
+        if not sensor.is_dir() or not sensor.name.startswith("28"):
+            continue
+        try:
+            float((sensor / "temperature").read_text().strip())
+            sensors.append(sensor.name)
+        except (FileNotFoundError, ValueError, OSError):
+            pass
+    return sensors
+
+
+def read_temperature(sensor_id: str) -> float | None:
     sensor_file = f"/mnt/1wire/uncached/{sensor_id}/temperature"
     try:
         with open(sensor_file, 'r', encoding="UTF-8") as file:
@@ -27,37 +38,28 @@ def read_temperature(sensor_id: str) -> Optional[float]:
 def main():
     """ The main entry point """
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-s", "--sensor", help="The temperature sensor id",
-                        default="28.7AAB46D42000")
-    parser.add_argument("-b", "--broker", help="The MQTT broker host name",
-                        default="localhost")
-    parser.add_argument("-i", "--interval", help="The publish interval (seconds)", default=15)
+    DataBusClient.add_arguments(parser)
+    parser.add_argument("-i", "--interval", help="The publish interval (seconds)", default=10)
     args = parser.parse_args()
 
-    # set up topic structure
-    base_topic = f"karaburan/sensors/{SENSOR_TYPE}/{args.sensor}"
-    config_topic = f"{base_topic}/config"
-    measurement_topic = f"{base_topic}/measurement"
-    config = {'type': SENSOR_TYPE, 'id': args.sensor, 'unit': 'degC', 'location': 'underwater'}
+    # discover temperature sensors
+    sensor_ids = discover_sensors()
+    print(f"Discovered sensors: {sensor_ids}")
 
     # connect
-    client = mqtt.Client()
-    client.will_set(config_topic, payload=None, retain=True)
-    client.connect(args.broker)
-    client.publish(config_topic, json.dumps(config), retain=True)
+    clients = {}
+    for id in sensor_ids:
+        clients[id] = DataBusClient(args.broker, "temperature", id)
+        clients[id].start()
 
     while True:
-        # get value
-        timestamp = datetime.datetime.now(datetime.UTC).isoformat()
-        value = read_temperature(args.sensor)
+        for id, client in clients.items():
+            # get value
+            value = read_temperature(id)
 
-        # build measurement structure
-        measurement = {'type': SENSOR_TYPE, 'id': args.sensor, 'time': timestamp, 'value': value}
-
-        # publish
-        payload = json.dumps(measurement)
-        print(f"Sending {payload} to {measurement_topic}")
-        client.publish(measurement_topic, payload)
+            # publish
+            print(f"Publising {value} for {id}")
+            client.publish(value)
 
         # wait
         time.sleep(args.interval)

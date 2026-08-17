@@ -251,7 +251,7 @@ def main():
                 data = {'depth': round(sd.get_depth(), 2),
                         'temperature': round(sd.get_temperature(), 1),
                         'battery': int(sd.get_battery())}
-                client.publish(json.dumps(data))
+                client.publish(data)
 
 
 if __name__ == "__main__":
