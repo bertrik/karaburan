@@ -108,6 +108,32 @@ first position:
 3. `52.042143, 4.748323`
 4. `52.041718, 4.747608`
 
+## OpenStreetMap simulation view
+
+The Leaflet map displays the simulated GPS position, sailed track, and current
+Nav2 plan over an OpenStreetMap base layer. Start it alongside an already
+running simulator:
+
+```bash
+source /opt/ros/jazzy/setup.bash
+cd ~/karaburan/ros_ws
+source install/setup.bash
+ros2 launch navigation leaflet_map.launch.py
+```
+
+Alternatively, let the simulator start the map after ten seconds:
+
+```bash
+ros2 launch navigation sim.launch.py with_map:=true
+```
+
+The map opens locally and is also available at `http://<sim-host>:8088`. Its
+configured WGS84 origin matches `config/world.sdf`. Map tiles are visual context
+only: navigation continues to use ROS topics and local `map`/`odom` frames if
+the internet connection or tile service is unavailable. The default
+OpenStreetMap tile service is intended only for normal interactive viewing; do
+not use it for bulk download or offline prefetching.
+
 ## Manual control via partial setup
 
 The current setup does not provide `/cmd_vel` commands other than 'stop'.

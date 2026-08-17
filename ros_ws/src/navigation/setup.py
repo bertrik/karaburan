@@ -22,6 +22,7 @@ setup(
         ('share/' + package_name + '/config', ['config/mpu9250.yaml']),
         ('share/' + package_name + '/config', ['config/slam_params.yaml']),
         ('share/' + package_name + '/config', ['config/world.sdf']),
+        ('share/' + package_name + '/web', ['web/leaflet_map.html']),
         ('share/' + package_name, ['package.xml']),
     ],
     install_requires=['setuptools'],
@@ -37,6 +38,7 @@ setup(
             'fix_status_override_node = navigation.fix_status_override_node:main',
             'gps_shuttle = navigation.gps_shuttle:main',
             'gps_four_point_route = navigation.gps_shuttle:main_four_point',
+            'leaflet_map = navigation.leaflet_map:main',
         ],
     },
 )

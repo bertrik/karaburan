@@ -17,6 +17,7 @@ from launch.actions import (
     IncludeLaunchDescription,
     TimerAction,
 )
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     LaunchConfiguration,
@@ -60,6 +61,7 @@ def generate_launch_description():
     lidar_topic = LaunchConfiguration('lidar_topic')
     left_topic = LaunchConfiguration('left_topic')
     right_topic = LaunchConfiguration('right_topic')
+    with_map = LaunchConfiguration('with_map')
     nav_dir = get_package_share_directory('navigation')
     nav_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -105,6 +107,18 @@ def generate_launch_description():
         period=10.0,
         actions=[rviz]
     )
+    delayed_map = TimerAction(
+        period=10.0,
+        actions=[
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(nav_dir, 'launch', 'leaflet_map.launch.py')
+                ),
+                launch_arguments={'use_sim_time': 'true'}.items(),
+            )
+        ],
+        condition=IfCondition(with_map),
+    )
 
     return LaunchDescription([
         # Paths / args
@@ -126,6 +140,11 @@ def generate_launch_description():
         DeclareLaunchArgument('R', default_value='0.0'),
         DeclareLaunchArgument('P', default_value='0.0'),
         DeclareLaunchArgument('Y', default_value='0.0'),
+        DeclareLaunchArgument(
+            'with_map',
+            default_value='false',
+            description='Start the Leaflet OpenStreetMap navigation view',
+        ),
         # Launch args for the GZ - ROS2 bridge
         DeclareLaunchArgument('ns', default_value='', description='ROS namespace for the bridge'),
         DeclareLaunchArgument('imu_topic', default_value='/imu/data',
@@ -176,6 +195,7 @@ def generate_launch_description():
                     }.items()
                 ),
                 delayed_rviz,
+                delayed_map,
                 Node(
                     package='ros_gz_bridge',
                     executable='parameter_bridge',
