@@ -20,6 +20,7 @@
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>nav2_map_server</exec_depend>
   <exec_depend>nav2_bt_navigator</exec_depend>
+  <exec_depend>nav2_navfn_planner</exec_depend>
   <exec_depend>gpsd_client</exec_depend>
   <exec_depend>gps_tools</exec_depend>
   <exec_depend>mpu9250</exec_depend>

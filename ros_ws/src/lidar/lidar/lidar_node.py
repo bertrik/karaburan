@@ -152,10 +152,8 @@ class LidarNode(Node):
                 angle -= 360.0
 
                 # publish current message
-                self.publisher.publish(self.msg)
-
-                # initialise next message
                 self.msg.header.stamp = now.to_msg()
+                self.publisher.publish(self.msg)
 
 
 def main(args=None):

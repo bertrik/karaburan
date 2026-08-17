@@ -6,7 +6,7 @@
 
     planner_plugins: ["GridBased"]
     GridBased:
-      plugin: "nav2_smac_planner::SmacPlanner2D"
+      plugin: "nav2_navfn_planner::NavfnPlanner"
 
     expected_planner_frequency: 20.0
 
@@ -16,9 +16,9 @@
       global_frame: map
       robot_base_frame: base_link
       rolling_window: true
-      width: 500
-      height: 500
-      resolution: 0.25
+      width: 100
+      height: 100
+      resolution: 0.5
       transform_tolerance: 0.5
       robot_radius: 0.5
       static_layer:
