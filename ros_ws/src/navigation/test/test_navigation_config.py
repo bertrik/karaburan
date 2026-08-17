@@ -24,3 +24,11 @@ def test_navigation_uses_external_slam_lifecycle_and_navfn():
     assert 'nav2_navfn_planner::NavfnPlanner' in planner
     assert "'use_lifecycle_manager': 'true'" in launch
     assert managed_nodes.index("'slam_toolbox',") < managed_nodes.index("'planner_server',")
+
+
+def test_global_costmap_fits_raspberry_pi_memory_budget():
+    planner = (CONFIG_DIR / 'planner_server.yaml').read_text()
+
+    assert 'width: 100' in planner
+    assert 'height: 100' in planner
+    assert 'resolution: 0.5' in planner
