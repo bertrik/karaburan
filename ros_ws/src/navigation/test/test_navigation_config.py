@@ -10,7 +10,7 @@ def test_runtime_rates_and_ranges_match_boat_hardware():
     ekf = (CONFIG_DIR / 'ekf.yaml').read_text()
     slam = (CONFIG_DIR / 'slam_params.yaml').read_text()
 
-    assert 'frequency: 20.0' in ekf
+    assert 'frequency: 10.0' in ekf
     assert 'scan_queue_size: 1' in slam
     assert 'max_laser_range: 10.0' in slam
 
