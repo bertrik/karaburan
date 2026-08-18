@@ -16,6 +16,7 @@ ros2 launch navigation storage.launch.py --show-args >/tmp/storage-args.txt
 ros2 launch navigation measurement_instruments.launch.py --show-args >/tmp/instrument-args.txt
 ros2 launch boatcontrol boatcontrol.launch.py --show-args >/tmp/boatcontrol-args.txt
 ros2 launch navigation nav2_stack.launch.py --show-args >/tmp/navigation-args.txt
+ros2 launch navigation leaflet_map.launch.py --show-args >/tmp/leaflet-map-args.txt
 grep -q '/dev/ttyS0' /tmp/boatcontrol-args.txt
 grep -q 'motor_serial_port' \
     /karaburan/ros_ws/install/navigation/share/navigation/launch/boat.launch.py

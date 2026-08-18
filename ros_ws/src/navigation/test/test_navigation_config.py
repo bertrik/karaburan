@@ -1,8 +1,9 @@
 from pathlib import Path
 
 
-CONFIG_DIR = Path(__file__).parents[1] / 'config'
-LAUNCH_DIR = Path(__file__).parents[1] / 'launch'
+PACKAGE_DIR = Path(__file__).parents[1]
+CONFIG_DIR = PACKAGE_DIR / 'config'
+LAUNCH_DIR = PACKAGE_DIR / 'launch'
 
 
 def test_runtime_rates_and_ranges_match_boat_hardware():
@@ -32,3 +33,21 @@ def test_global_costmap_fits_raspberry_pi_memory_budget():
     assert 'width: 100' in planner
     assert 'height: 100' in planner
     assert 'resolution: 0.5' in planner
+
+
+def test_leaflet_map_matches_simulation_origin_and_topics():
+    map_node = (PACKAGE_DIR / 'navigation' / 'leaflet_map.py').read_text()
+    map_launch = (LAUNCH_DIR / 'leaflet_map.launch.py').read_text()
+    map_html = (PACKAGE_DIR / 'web' / 'leaflet_map.html').read_text()
+    sim_launch = (LAUNCH_DIR / 'sim.launch.py').read_text()
+    world = (CONFIG_DIR / 'world.sdf').read_text()
+
+    assert 'ORIGIN_LATITUDE = 52.018599' in map_launch
+    assert 'ORIGIN_LONGITUDE = 4.708720' in map_launch
+    assert '<latitude_deg>52.018599</latitude_deg>' in world
+    assert '<longitude_deg>4.708720</longitude_deg>' in world
+    assert "NavSatFix, '/fix/valid'" in map_node
+    assert "NavPath, '/plan'" in map_node
+    assert 'tile.openstreetmap.org' in map_html
+    assert 'OpenStreetMap contributors' in map_html
+    assert "'with_map'" in sim_launch
