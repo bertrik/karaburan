@@ -35,6 +35,26 @@ def test_global_costmap_fits_raspberry_pi_memory_budget():
     assert 'resolution: 0.5' in planner
 
 
+def test_lidar_obstacles_feed_both_costmaps_and_controller():
+    controller = (CONFIG_DIR / 'controller_server.yaml').read_text()
+    planner = (CONFIG_DIR / 'planner_server.yaml').read_text()
+
+    assert 'plugins: ["obstacle_layer", "inflation_layer"]' in controller
+    assert 'observation_sources: scan' in controller
+    assert 'topic: /scan' in controller
+    assert 'marking: true' in controller
+    assert 'clearing: true' in controller
+    assert 'max_obstacle_height: 2.0' in controller
+    assert 'use_collision_detection: true' in controller
+    assert 'enable_collision_checking' not in controller
+    assert 'plugins: ["obstacle_layer", "inflation_layer"]' in planner
+    assert 'observation_sources: scan' in planner
+    assert 'topic: /scan' in planner
+    assert 'marking: true' in planner
+    assert 'clearing: true' in planner
+    assert 'max_obstacle_height: 2.0' in planner
+
+
 def test_leaflet_map_matches_simulation_origin_and_topics():
     map_node = (PACKAGE_DIR / 'navigation' / 'leaflet_map.py').read_text()
     map_launch = (LAUNCH_DIR / 'leaflet_map.launch.py').read_text()
