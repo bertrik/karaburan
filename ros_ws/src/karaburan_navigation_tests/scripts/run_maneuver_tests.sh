@@ -13,7 +13,7 @@ export ROS2CLI_NO_DAEMON=1
 export RCUTILS_COLORIZED_OUTPUT=0
 export GZ_LOG_COLOR=0
 
-report_root="${1:-./maneuver-test-results/$(date -u +%Y%m%dT%H%M%SZ)}"
+report_root="${1:-./maneuver-test-results/$(date +%Y%m%d%H%M%S)}"
 shift || true
 mkdir -p "$report_root"
 status=0

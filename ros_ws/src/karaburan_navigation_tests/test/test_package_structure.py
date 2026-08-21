@@ -14,6 +14,8 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
         / 'maneuver_test_runner.py'
     ).read_text()
     script = (PACKAGE_DIR / 'scripts' / 'run_maneuver_tests.sh').read_text()
+    simulation_script = (
+        PACKAGE_DIR / 'scripts' / 'run_simulation_tests.sh').read_text()
 
     assert '<depend>action_msgs</depend>' in package
     assert '<depend>ament_index_python</depend>' in package
@@ -34,3 +36,8 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     ) in script
     assert 'RCUTILS_COLORIZED_OUTPUT=0' in script
     assert 'maneuver_test_report' in script
+    assert 'timestamp="$(date +%Y%m%d%H%M%S)"' in simulation_script
+    assert 'actuator_straight' in simulation_script
+    assert 'actuator_turn_left' in simulation_script
+    assert 'actuator_turn_right' in simulation_script
+    assert 'follow_straight' not in simulation_script

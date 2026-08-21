@@ -62,6 +62,21 @@ directory contains:
 Open `report.html` in a browser on the workstation used to inspect the test.
 It has no external assets and does not need a running ROS graph or web server.
 
+## Run the simulation subsystem tests
+
+Use the focused simulation suite to verify straight thrust and both steering
+directions without running the Nav2 controller scenarios:
+
+```bash
+bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_simulation_tests.sh \
+  /home/michiel/karaburan/simulation-test-results
+```
+
+This creates a new leaf directory named `YYYYMMDDHHMMSS` for every run. The
+directory contains the same JUnit, graphical HTML, JSON, and plain-text log
+artifacts as the complete manoeuvre suite. A failed actuator test or missing
+result makes the command exit with status `1`.
+
 ## Scenarios and gates
 
 - `actuator_straight`: three metres of open-loop forward thrust.
