@@ -20,13 +20,23 @@ ros2 run karaburan_simulation generate_ravensberg_scenario \
 ```
 
 The command writes deterministic metadata and an SVG geometry map. Start the
-complete scenario with:
+committed Ravensberg baseline directly with:
+
+```bash
+ros2 launch karaburan_simulation sim.launch.py
+```
+
+This uses `generated/ravensberg_mvp.sdf`, the `ravensberg` world name, and the
+configured MVP ownship start as its defaults. Explicit `world_sdf`,
+`world_name`, and pose arguments can still select another world.
+
+Generate a fresh copy from the scenario configuration and start it with:
 
 ```bash
 ros2 launch karaburan_simulation ravensberg.launch.py
 ```
 
-The launch starts the Gazebo server with the selected world first and attaches
+Both launch paths start the Gazebo server with the selected world first and attach
 the optional GUI as a separate client. This avoids Gazebo's combined-process
 `/gazebo/starting_world` handshake and its misleading ten-second GUI wait
 warning. `headless:=true` uses the same server path and only omits the client.

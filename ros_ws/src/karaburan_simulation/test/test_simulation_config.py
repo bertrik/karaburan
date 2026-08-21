@@ -16,6 +16,9 @@ def test_simulation_owns_model_world_and_control_node():
     assert 'generate_ravensberg_scenario' in setup
     assert 'simcontrol_node = karaburan_simulation.simcontrolnode:main' in setup
     assert "get_package_share_directory('karaburan_simulation')" in launch
+    assert "'generated', 'ravensberg_mvp.sdf'" in launch
+    assert "DeclareLaunchArgument('world_name', default_value='ravensberg')" in launch
+    assert "DeclareLaunchArgument('x', default_value='-120.0')" in launch
     assert "'headless'" in launch
     assert "'with_rviz'" in launch
     assert "'with_map'" in launch

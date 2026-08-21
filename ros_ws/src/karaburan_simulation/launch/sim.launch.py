@@ -139,10 +139,11 @@ def generate_launch_description():
         # Paths / args
         DeclareLaunchArgument(
             'world_sdf',
-            default_value=os.path.join(simulation_dir, 'worlds', 'world.sdf'),
-            description="Path to world (SDF). 'empty.sdf' also works."
+            default_value=os.path.join(
+                simulation_dir, 'generated', 'ravensberg_mvp.sdf'),
+            description='Path to the world SDF (defaults to Ravensberg).'
         ),
-        DeclareLaunchArgument('world_name', default_value='ocean'),
+        DeclareLaunchArgument('world_name', default_value='ravensberg'),
         DeclareLaunchArgument(
             'model_sdf',
             default_value=os.path.join(
@@ -150,7 +151,7 @@ def generate_launch_description():
             description='Path to the SDF model with hydrodynamics plugin'
         ),
         DeclareLaunchArgument('entity_name', default_value='karaburan'),
-        DeclareLaunchArgument('x', default_value='0.0'),
+        DeclareLaunchArgument('x', default_value='-120.0'),
         DeclareLaunchArgument('y', default_value='0.0'),
         DeclareLaunchArgument('z', default_value='-0.015'),
         DeclareLaunchArgument('R', default_value='0.0'),

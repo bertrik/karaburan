@@ -27,6 +27,9 @@ Working baseline:
   unchanged `/cmd_vel`, buoyancy, hydrodynamics, and twin-thruster path.
 - Gazebo starts the world-bearing server before attaching the optional GUI as a
   separate client, avoiding the combined-process world-selection wait.
+- Direct `sim.launch.py` startup defaults to the committed Ravensberg baseline,
+  including its world name and ownship start; `ravensberg.launch.py` remains the
+  generation-first path.
 - Debug-only generation works without Gazebo and the same configuration drives
   SDF, metadata, and debug geometry.
 
@@ -87,7 +90,7 @@ Milestone 1 verification:
   to x = -116.60 m in the final refined world.
 - Performance: 50-sample mean real-time factor 0.932 versus 0.964 for an
   otherwise identical 12-island visual proxy (about 3.3% lower).
-- Focused validation: 7 targeted tests passed and `ament_flake8` was clean.
+- Focused validation: 8 targeted tests passed and `ament_flake8` was clean.
 - Required complete CI: clean `--pull --no-cache` image build succeeded; 48
   tests ran with 0 errors and 0 failures, and launch/generator/MCAP checks passed.
 - GUI startup refinement: the world-bearing server now starts independently and
