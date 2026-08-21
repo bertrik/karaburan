@@ -14,6 +14,8 @@ setup(
             'resource/' + package_name,
         ]),
         ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
+        ('share/' + package_name + '/config', glob('config/*.json')),
+        ('share/' + package_name + '/generated', glob('generated/*')),
         ('share/' + package_name + '/models', glob('models/*.sdf')),
         ('share/' + package_name + '/worlds', glob('worlds/*.sdf')),
         ('share/' + package_name, ['package.xml']),
@@ -27,6 +29,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'generate_ravensberg_scenario = '
+            'karaburan_simulation.ravensberg_scenario:main',
             'simcontrol_node = karaburan_simulation.simcontrolnode:main',
         ],
     },

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1200" viewBox="0 0 1000 1200">
+<rect width="100%" height="100%" fill="#d8d2a8"/>
+<polygon points="95.8,656.5 367.3,870.5 443.3,865.1 428.8,919.2 461.1,945.6 438.0,918.0 461.7,846.7 511.2,893.0 471.5,953.3 698.0,1130.0 904.2,384.0 867.8,380.3 795.8,284.0 775.3,297.2 777.2,275.0 683.9,224.8 667.5,167.8 636.8,182.8 604.4,146.5 357.4,99.6 335.9,73.2 254.0,289.0 314.3,70.0 166.3,527.5" fill="#70add8" stroke="#174b65" stroke-width="3"/>
+<polygon points="487.7,962.6 504.7,921.0 516.5,924.2 509.6,944.8 529.3,951.2 512.7,943.3 532.6,898.1 541.6,911.9 535.2,918.2 536.6,932.9 552.4,953.6 567.2,952.1 570.3,959.9 553.4,1011.4" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="532.1" y="941.8" class="island">island_01</text>
+<polygon points="202.4,733.6 212.6,718.7 247.9,743.0 270.0,730.3 295.7,737.5 299.6,748.6 282.8,748.2 297.0,752.3 305.8,781.4 287.2,803.5 276.0,787.5" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="270.6" y="753.1" class="island">island_02</text>
+<polygon points="575.6,1030.9 590.0,992.8 615.3,1002.4 605.5,1031.2 610.6,1025.0 622.8,1034.8 615.2,1061.5" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="605.0" y="1025.5" class="island">island_03</text>
+<polygon points="617.8,1063.3 625.8,1045.8 625.9,1010.2 639.0,994.8 651.8,999.7 648.8,1033.1 629.5,1073.4" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="634.1" y="1031.5" class="island">island_04</text>
+<polygon points="562.2,607.2 578.2,561.0 591.6,566.3 590.6,573.9 603.7,586.6 596.3,603.0 583.3,617.8" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="586.6" y="588.0" class="island">island_05</text>
+<polygon points="345.0,849.9 370.8,797.1 383.1,797.3 386.5,803.0 364.3,861.2" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="369.9" y="821.7" class="island">island_06</text>
+<polygon points="163.7,703.0 171.4,689.7 211.8,694.5 197.8,730.9" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="186.2" y="704.5" class="island">island_07</text>
+<polygon points="650.8,1087.6 664.6,1069.2 661.5,1086.8 671.8,1065.5 695.6,1064.5 680.2,1112.9" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="670.8" y="1081.1" class="island">island_08</text>
+<polygon points="395.9,857.1 411.7,813.2 418.8,824.6 436.8,822.4 421.1,860.7" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="416.9" y="835.6" class="island">island_09</text>
+<polygon points="140.7,686.1 163.6,640.7 168.0,645.3 159.2,668.4 164.8,661.0 172.8,662.7 176.6,685.0 161.5,702.1" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="163.4" y="668.9" class="island">island_10</text>
+<polygon points="331.3,253.3 341.0,239.3 388.5,251.2 407.3,238.3 414.6,241.9 397.3,260.1 383.4,257.5 375.1,267.8 358.2,248.0" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="377.4" y="250.8" class="island">island_11</text>
+<polygon points="327.9,836.3 347.2,790.1 362.8,806.2 341.7,846.4" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<text x="344.9" y="819.8" class="island">island_12</text>
+<style>text{font-family:Arial,sans-serif;fill:#12222b}.label{font-size:18px;font-weight:bold}.island{font-size:11px;text-anchor:middle}</style>
+<circle cx="366.4" cy="600.3" r="9" fill="#20a65a" stroke="white" stroke-width="3"/>
+<text x="380.4" y="606.3" class="label">START</text>
+<circle cx="584.2" cy="394.3" r="9" fill="#d63b32" stroke="white" stroke-width="3"/>
+<text x="598.2" y="400.3" class="label">GOAL</text>
+<path d="M 427.0 600.3 H 447.0 M 437.0 590.3 V 610.3" stroke="#111" stroke-width="2"/>
+<text x="449.0" y="588.3">WORLD ORIGIN (0, 0)</text>
+<path d="M 80 1100 H 197.7" stroke="#111" stroke-width="6"/>
+<text x="80" y="1085" class="label">200 m</text>
+<path d="M 900 110 V 55 M 900 55 L 888 78 M 900 55 L 912 78" stroke="#111" stroke-width="4" fill="none"/>
+<text x="893" y="45" class="label">N</text>
+<text x="45" y="38" class="label">Ravensberg MVP - geometry view</text>
+<text x="45" y="62">Blue: navigable water | Green/tan: land | Scale: 1 unit = 1 metre</text>
+<text x="45" y="1180">Seed 1 | Source: <a href="https://www.openstreetmap.org/relation/14671863">OpenStreetMap relation 14671863</a></text>
+</svg>

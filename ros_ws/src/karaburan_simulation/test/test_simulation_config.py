@@ -12,6 +12,8 @@ def test_simulation_owns_model_world_and_control_node():
 
     assert "glob('models/*.sdf')" in setup
     assert "glob('worlds/*.sdf')" in setup
+    assert "glob('config/*.json')" in setup
+    assert 'generate_ravensberg_scenario' in setup
     assert 'simcontrol_node = karaburan_simulation.simcontrolnode:main' in setup
     assert "get_package_share_directory('karaburan_simulation')" in launch
     assert "'headless'" in launch
@@ -21,3 +23,15 @@ def test_simulation_owns_model_world_and_control_node():
     assert '<gz_frame_id>lidar_link</gz_frame_id>' in model
     assert '<latitude_deg>52.018599</latitude_deg>' in world
     assert '<longitude_deg>4.708720</longitude_deg>' in world
+
+
+def test_ravensberg_launch_uses_generated_world_and_configured_start():
+    launch = (
+        PACKAGE_DIR / 'launch' / 'ravensberg.launch.py'
+    ).read_text()
+
+    assert "'scenario_config'" in launch
+    assert "'output_dir'" in launch
+    assert 'generate_scenario(config_path, output_dir)' in launch
+    assert "'world_sdf': str(result.world_path)" in launch
+    assert "'x': str(start['x'])" in launch

@@ -77,6 +77,22 @@ Start the laptop simulation from its dedicated package:
 ros2 launch karaburan_simulation sim.launch.py
 ```
 
+The deterministic Ravensberg navigation-test world has its own launch file:
+
+```bash
+ros2 launch karaburan_simulation ravensberg.launch.py
+```
+
+Generate its metadata and debug map without Gazebo with:
+
+```bash
+ros2 run karaburan_simulation generate_ravensberg_scenario \
+  --debug-only --output-dir /tmp/ravensberg-mvp
+```
+
+See [`docs/ravensberg_world.md`](docs/ravensberg_world.md) for the geometry
+source, coordinate system, generated artifacts, and known limitations.
+
 Use `headless:=true with_rviz:=false` when no GUI is required.
 
 ## GPS shuttle route
