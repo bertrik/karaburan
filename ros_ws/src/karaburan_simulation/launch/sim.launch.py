@@ -7,6 +7,12 @@
 import os
 
 from ament_index_python.packages import get_package_share_directory
+from karaburan_bringup.launch_arguments import (
+    instrument_argument_declarations,
+    instrument_launch_arguments,
+    recording_argument_declarations,
+    recording_launch_arguments,
+)
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
@@ -22,12 +28,6 @@ from launch.substitutions import (
 )
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from navigation.launch_arguments import (
-    instrument_argument_declarations,
-    instrument_launch_arguments,
-    recording_argument_declarations,
-    recording_launch_arguments,
-)
 
 
 def generate_launch_description():
@@ -60,7 +60,9 @@ def generate_launch_description():
     with_map = LaunchConfiguration('with_map')
     headless = LaunchConfiguration('headless')
     with_rviz = LaunchConfiguration('with_rviz')
+    bringup_dir = get_package_share_directory('karaburan_bringup')
     nav_dir = get_package_share_directory('navigation')
+    ui_dir = get_package_share_directory('karaburan_ui')
     nav_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(nav_dir, 'launch', 'nav2_stack.launch.py')
@@ -72,13 +74,14 @@ def generate_launch_description():
     )
     measurement_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(nav_dir, 'launch', 'measurement_instruments.launch.py')
+            os.path.join(
+                bringup_dir, 'launch', 'measurement_instruments.launch.py')
         ),
         launch_arguments=instrument_launch_arguments().items()
     )
     storage_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(nav_dir, 'launch', 'storage.launch.py')
+            os.path.join(bringup_dir, 'launch', 'storage.launch.py')
         ),
         launch_arguments=recording_launch_arguments(
             bag_prefix='karaburan-sim', use_sim_time='true'
@@ -121,7 +124,7 @@ def generate_launch_description():
         actions=[
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
-                    os.path.join(nav_dir, 'launch', 'leaflet_map.launch.py')
+                    os.path.join(ui_dir, 'launch', 'leaflet_map.launch.py')
                 ),
                 launch_arguments={'use_sim_time': 'true'}.items(),
             )

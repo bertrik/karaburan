@@ -33,7 +33,7 @@ their readings are published as follows:
 # Boat total setup launch file
 
 This currently works on My Machine TM (use the generic instructions at the top first):
-`colcon build && source install/setup.bash && ros2 launch navigation boat.launch.py`
+`colcon build && source install/setup.bash && ros2 launch karaburan_bringup boat.launch.py`
 
 Clone the repository with its MPU9250 driver reference, or initialise it after
 an existing clone:
@@ -51,7 +51,7 @@ The motor controller uses `/dev/ttyS0` at 115200 baud by default. Override the
 serial settings when needed:
 
 ```bash
-ros2 launch navigation boat.launch.py \
+ros2 launch karaburan_bringup boat.launch.py \
   motor_serial_port:=/dev/ttyS0 \
   motor_baud_rate:=115200
 ```
@@ -124,7 +124,7 @@ running simulator:
 source /opt/ros/jazzy/setup.bash
 cd ~/karaburan/ros_ws
 source install/setup.bash
-ros2 launch navigation leaflet_map.launch.py
+ros2 launch karaburan_ui leaflet_map.launch.py
 ```
 
 Alternatively, let the simulator start the map after ten seconds:
@@ -196,7 +196,7 @@ Recording is disabled by default. Start the physical boat with the standard
 `navigation` profile without LiDAR:
 
 ```bash
-ros2 launch navigation boat.launch.py \
+ros2 launch karaburan_bringup boat.launch.py \
   record_enabled:=true \
   record_profile:=navigation \
   record_include_scan:=false \
@@ -225,7 +225,7 @@ Available profiles:
 Use `record_extra_topics` to add comma-separated topics:
 
 ```bash
-ros2 launch navigation boat.launch.py \
+ros2 launch karaburan_bringup boat.launch.py \
   record_enabled:=true \
   record_profile:=navigation \
   record_extra_topics:="/diagnostics,/battery_state"
@@ -294,7 +294,7 @@ measurement drivers remain disabled. Configure the instruments connected to
 the boat as needed:
 
 ```bash
-ros2 launch navigation boat.launch.py \
+ros2 launch karaburan_bringup boat.launch.py \
   with_temperature:=true \
   temperature_sensor_id:=28.C23646D48524 \
   temperature_sensor_id_2:=28.5CD456B5013C \

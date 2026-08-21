@@ -3,17 +3,17 @@
 import os
 
 from ament_index_python.packages import get_package_share_directory
-from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
-from navigation.launch_arguments import (
+from karaburan_bringup.launch_arguments import (
     instrument_argument_declarations,
     instrument_launch_arguments,
     recording_argument_declarations,
     recording_launch_arguments,
 )
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 
 
 def _include(package_name, launch_file, launch_arguments=None):
@@ -53,7 +53,7 @@ def generate_launch_description():
     ]
 
     mpu9250_config = os.path.join(
-        get_package_share_directory('navigation'),
+        get_package_share_directory('karaburan_bringup'),
         'config',
         'mpu9250.yaml',
     )
@@ -84,6 +84,10 @@ def generate_launch_description():
             remappings=[('/imu', '/imu/data')],
         ),
         _include('navigation', 'nav2_stack.launch.py', {'use_sim_time': 'false'}),
-        _include('navigation', 'measurement_instruments.launch.py', instrument_arguments),
-        _include('navigation', 'storage.launch.py', record_arguments),
+        _include(
+            'karaburan_bringup',
+            'measurement_instruments.launch.py',
+            instrument_arguments,
+        ),
+        _include('karaburan_bringup', 'storage.launch.py', record_arguments),
     ])

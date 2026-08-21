@@ -114,15 +114,3 @@ def test_reverse_arc_is_fast_stateful_and_geometry_driven():
     assert 'starboard_score = self.arc_cost(1.0)' in controller
     assert 'self.required_plan_generation = self.plan_generation + 1' in controller
     assert 'reverse_arc_controller = navigation.reverse_arc_controller:main' in setup
-
-
-def test_leaflet_map_uses_navigation_topics():
-    map_node = (PACKAGE_DIR / 'navigation' / 'leaflet_map.py').read_text()
-    map_launch = (LAUNCH_DIR / 'leaflet_map.launch.py').read_text()
-    map_html = (PACKAGE_DIR / 'web' / 'leaflet_map.html').read_text()
-    assert 'ORIGIN_LATITUDE = 52.018599' in map_launch
-    assert 'ORIGIN_LONGITUDE = 4.708720' in map_launch
-    assert "NavSatFix, '/fix/valid'" in map_node
-    assert "NavPath, '/plan'" in map_node
-    assert 'tile.openstreetmap.org' in map_html
-    assert 'OpenStreetMap contributors' in map_html

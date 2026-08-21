@@ -12,16 +12,16 @@ python3 -c 'from lidar.lidar_node import FrameExtractor'
 # but its upstream lint suite does not conform to this project's lint policy.
 colcon test --packages-skip mpu9250 --event-handlers console_direct+
 colcon test-result --verbose
-ros2 launch navigation storage.launch.py --show-args >/tmp/storage-args.txt
-ros2 launch navigation measurement_instruments.launch.py --show-args >/tmp/instrument-args.txt
+ros2 launch karaburan_bringup storage.launch.py --show-args >/tmp/storage-args.txt
+ros2 launch karaburan_bringup measurement_instruments.launch.py --show-args >/tmp/instrument-args.txt
 ros2 launch boatcontrol boatcontrol.launch.py --show-args >/tmp/boatcontrol-args.txt
 ros2 launch navigation nav2_stack.launch.py --show-args >/tmp/navigation-args.txt
-ros2 launch navigation leaflet_map.launch.py --show-args >/tmp/leaflet-map-args.txt
+ros2 launch karaburan_ui leaflet_map.launch.py --show-args >/tmp/leaflet-map-args.txt
 grep -q '/dev/ttyS0' /tmp/boatcontrol-args.txt
 grep -q 'motor_serial_port' \
-    /karaburan/ros_ws/install/navigation/share/navigation/launch/boat.launch.py
+    /karaburan/ros_ws/install/karaburan_bringup/share/karaburan_bringup/launch/boat.launch.py
 grep -q "default_value='/dev/ttyS0'" \
-    /karaburan/ros_ws/install/navigation/share/navigation/launch/boat.launch.py
+    /karaburan/ros_ws/install/karaburan_bringup/share/karaburan_bringup/launch/boat.launch.py
 
 for executable in \
     "tempreader tempreaderNode" \
@@ -48,7 +48,7 @@ publisher_pid=$!
 
 set +e
 timeout --signal=INT --kill-after=5s 9s \
-    ros2 launch navigation storage.launch.py \
+    ros2 launch karaburan_bringup storage.launch.py \
         enabled:=true \
         profile:=minimal \
         output_dir:="$bag_root" \

@@ -108,7 +108,7 @@ class LeafletMap(Node):
         origin_longitude = self.get_parameter('origin_longitude').value
 
         state = MapState(origin_latitude, origin_longitude)
-        html_path = Path(get_package_share_directory('navigation')) / (
+        html_path = Path(get_package_share_directory('karaburan_ui')) / (
             'web/leaflet_map.html'
         )
         html = html_path.read_bytes()

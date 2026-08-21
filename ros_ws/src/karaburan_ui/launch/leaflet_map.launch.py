@@ -25,7 +25,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument('port', default_value='8088'),
         Node(
-            package='navigation',
+            package='karaburan_ui',
             executable='leaflet_map',
             name='leaflet_map',
             parameters=[{
