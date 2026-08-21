@@ -49,6 +49,7 @@ def generate_launch_description():
     R = LaunchConfiguration('R')
     P = LaunchConfiguration('P')
     Y = LaunchConfiguration('Y')
+    physics_engine = LaunchConfiguration('physics_engine')
 
     # Build parameter_bridge arguments (GZ -> ROS for sensors)
     ns = LaunchConfiguration('ns')
@@ -93,7 +94,9 @@ def generate_launch_description():
             FindPackageShare('ros_gz_sim'), 'launch', 'gz_sim.launch.py'
         ])),
         launch_arguments={
-            'gz_args': [world_sdf, ' -r -s']
+            'gz_args': [
+                '--physics-engine ', physics_engine, ' ', world_sdf, ' -r -s'
+            ]
         }.items(),
     )
     gazebo_gui = IncludeLaunchDescription(
@@ -192,6 +195,11 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument('base_frame', default_value='base_link',
                               description='Base frame id'),
+        DeclareLaunchArgument(
+            'physics_engine',
+            default_value='gz-physics-dartsim-plugin',
+            description='Gazebo physics engine plugin',
+        ),
         DeclareLaunchArgument('imu_frame', default_value='imu_link',
                               description='IMU frame id (must match gz_frame_id in SDF)'),
         DeclareLaunchArgument('gps_frame', default_value='gps_link',

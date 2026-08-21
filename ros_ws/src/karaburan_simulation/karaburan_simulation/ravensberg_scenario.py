@@ -439,6 +439,8 @@ def _world_tree(config):
     })
     _subelement(physics, 'max_step_size', '0.001')
     _subelement(physics, 'real_time_update_rate', '1000')
+    dart = _subelement(physics, 'dart')
+    _subelement(dart, 'collision_detector', 'bullet')
     _add_plugin(world, 'gz-sim-physics-system', 'gz::sim::systems::Physics')
     _add_plugin(
         world,

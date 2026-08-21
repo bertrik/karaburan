@@ -39,12 +39,14 @@ else
     follow_arc_left
     follow_arc_right
     planner_direct
+    planner_island
+    island_navigation
     obstacle_port
     obstacle_starboard
   )
 fi
 
-valid_scenarios=' actuator_straight actuator_turn_left actuator_turn_right follow_straight follow_arc_left follow_arc_right planner_direct obstacle_port obstacle_starboard '
+valid_scenarios=' actuator_straight actuator_turn_left actuator_turn_right follow_straight follow_arc_left follow_arc_right planner_direct planner_island island_navigation obstacle_port obstacle_starboard '
 for scenario in "${scenarios[@]}"; do
   if [[ "$valid_scenarios" != *" $scenario "* ]]; then
     echo "Unknown scenario: $scenario" >&2

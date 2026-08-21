@@ -2,7 +2,9 @@ import math
 
 from karaburan_navigation_tests.maneuver_metrics import (
     obstacle_report,
+    path_tracking_report,
     planner_direct_report,
+    planner_island_report,
     straight_report,
     turn_report,
 )
@@ -45,6 +47,26 @@ def test_turn_sign_is_checked_in_both_directions():
     assert not turn_report(left, -1.0)['passed']
 
 
+def test_path_tracking_rejects_reverse_escape_from_a_normal_arc():
+    reference = [
+        {'x': index * 0.1, 'y': index * index * 0.002}
+        for index in range(31)
+    ]
+    passing = [
+        sample(index, point['x'], point['y'], index * 0.01, 0.25)
+        for index, point in enumerate(reference)
+    ]
+    escaped = passing + [
+        sample(31, 1.0, 2.0, -0.5, -1.0, -0.5),
+    ]
+
+    assert path_tracking_report(passing, reference, 1.0)['passed']
+    failed = path_tracking_report(escaped, reference, 1.0)
+    assert not failed['passed']
+    assert not failed['checks']['controller_forward_only']
+    assert not failed['checks']['controller_cross_track']
+
+
 def test_direct_planner_path_passes_and_v_path_fails():
     direct = [{'x': index * 0.25, 'y': 0.0} for index in range(33)]
     v_path = [
@@ -59,6 +81,23 @@ def test_direct_planner_path_passes_and_v_path_fails():
     assert not failed['checks']['planner_path_length']
     assert not failed['checks']['planner_cross_track']
     assert not failed['checks']['planner_monotonic']
+
+
+def test_island_plan_requires_one_smooth_side_without_a_cusp():
+    route = [
+        {'x': index * 0.5, 'y': 3.0 * math.sin(math.pi * index / 40.0)}
+        for index in range(41)
+    ]
+    report = planner_island_report(
+        route, (0.0, 0.0), (20.0, 0.0), (8.0, 0.0), 2.5)
+
+    assert report['passed']
+    loop = route[:20] + list(reversed(route[10:20])) + route[20:]
+    failed = planner_island_report(
+        loop, (0.0, 0.0), (20.0, 0.0), (8.0, 0.0), 2.5)
+    assert not failed['passed']
+    assert not failed['checks']['planner_monotonic']
+    assert not failed['checks']['planner_no_cusps']
 
 
 def test_obstacle_trace_requires_one_switch_and_rejects_a_loop():

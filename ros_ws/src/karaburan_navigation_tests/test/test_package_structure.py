@@ -51,3 +51,6 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     )
     assert 'colcon test' in simulation_script
     assert 'junit_html_report' in simulation_script
+    test_world = (PACKAGE_DIR / 'scenarios' / 'maneuver_test_world.sdf').read_text()
+    assert '<real_time_update_rate>1000</real_time_update_rate>' in test_world
+    assert '<collision_detector>bullet</collision_detector>' in test_world

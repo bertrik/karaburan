@@ -7,10 +7,10 @@ from std_msgs.msg import Float64
 
 
 def mix_thruster_forces(linear, angular, yaw_force_gain):
-    """Return force commands for normal and reversed propeller axes."""
+    """Return symmetric port and starboard force commands."""
     left_force = linear - angular * yaw_force_gain
     right_force = linear + angular * yaw_force_gain
-    return left_force, -right_force
+    return left_force, right_force
 
 
 class SimControlNode(Node):
@@ -51,8 +51,8 @@ class SimControlNode(Node):
         self.last_command_time = self.get_clock().now()
         self.command_active = True
 
-        # cmd_thrust already accepts force in newtons. The right joint axis and
-        # thrust coefficient are reversed, so its command sign is reversed too.
+        # Both thrusters use the same +X axis and positive coefficient. Only
+        # this differential mix determines translation and yaw.
         left, right = mix_thruster_forces(v, w, self.yaw_force_gain)
 
         self.publish_props(left, right)

@@ -4,6 +4,7 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import OccupancyGrid, Odometry, Path
 import rclpy
 from rclpy.node import Node
+from sensor_msgs.msg import LaserScan
 
 
 def normalize_angle(angle):
@@ -45,6 +46,8 @@ class ReverseArcController(Node):
         self.declare_parameter('arc_sample_step', 0.20)
         self.declare_parameter('footprint_half_length', 0.30)
         self.declare_parameter('footprint_half_width', 0.17)
+        self.declare_parameter('front_obstacle_distance', 1.5)
+        self.declare_parameter('front_obstacle_half_width', 0.4)
 
         self.radius = self._parameter('radius')
         self.heading_change = self._parameter('heading_change')
@@ -66,6 +69,10 @@ class ReverseArcController(Node):
         self.footprint_half_length = self._parameter(
             'footprint_half_length')
         self.footprint_half_width = self._parameter('footprint_half_width')
+        self.front_obstacle_distance = self._parameter(
+            'front_obstacle_distance')
+        self.front_obstacle_half_width = self._parameter(
+            'front_obstacle_half_width')
 
         self.command_pub = self.create_publisher(Twist, '/cmd_vel_nav', 10)
         self.command_sub = self.create_subscription(
@@ -78,6 +85,8 @@ class ReverseArcController(Node):
             self.costmap_callback,
             10,
         )
+        self.scan_sub = self.create_subscription(
+            LaserScan, '/scan', self.scan_callback, 10)
         self.plan_sub = self.create_subscription(
             Path, '/plan', self.plan_callback, 10)
         self.timer = self.create_timer(0.1, self.timer_callback)
@@ -95,8 +104,10 @@ class ReverseArcController(Node):
         self.start_time = None
         self.idle_since = None
         self.costmap = None
+        self.scan = None
         self.plan_generation = 0
         self.required_plan_generation = 0
+        self.arc_start_plan_generation = 0
 
     def _parameter(self, name):
         return self.get_parameter(name).get_parameter_value().double_value
@@ -125,6 +136,9 @@ class ReverseArcController(Node):
 
     def costmap_callback(self, costmap):
         self.costmap = costmap
+
+    def scan_callback(self, scan):
+        self.scan = scan
 
     def plan_callback(self, _plan):
         self.plan_generation += 1
@@ -159,9 +173,9 @@ class ReverseArcController(Node):
 
         if (
             self.state == 'armed'
-            and command.linear.x < -0.01
-            and abs(command.angular.z) >= self.minimum_trigger_angular
+            and abs(command.linear.x) > 0.01
             and self.have_odometry
+            and self.front_blocked()
         ):
             self.start_arc(command.angular.z)
 
@@ -169,8 +183,11 @@ class ReverseArcController(Node):
             self.command_pub.publish(command)
 
     def start_arc(self, requested_angular_velocity):
-        requested_sign = (
-            1.0 if requested_angular_velocity >= 0.0 else -1.0)
+        if abs(requested_angular_velocity) >= self.minimum_trigger_angular:
+            requested_sign = (
+                1.0 if requested_angular_velocity >= 0.0 else -1.0)
+        else:
+            requested_sign = self.obstacle_avoidance_sign()
         port_score = self.arc_cost(-1.0)
         starboard_score = self.arc_cost(1.0)
         if port_score < starboard_score:
@@ -184,6 +201,7 @@ class ReverseArcController(Node):
         self.previous_position = self.position
         self.previous_yaw = self.yaw
         self.start_time = self.get_clock().now()
+        self.arc_start_plan_generation = self.plan_generation
         self.state = 'arc'
         self.get_logger().info(
             'Starting reverse arc: radius %.2f m, heading %.1f deg, direction %s'
@@ -197,6 +215,30 @@ class ReverseArcController(Node):
             'Reverse arc clearance scores: port=%s, starboard=%s'
             % (port_score, starboard_score)
         )
+
+    def obstacle_avoidance_sign(self):
+        """Choose the reverse arc away from the lidar obstacle centroid."""
+        if self.scan is None:
+            return 1.0
+        lateral_sum = 0.0
+        obstacle_count = 0
+        angle = self.scan.angle_min
+        for distance in self.scan.ranges:
+            if math.isfinite(distance) and self.scan.range_min <= distance:
+                forward = distance * math.cos(angle)
+                lateral = distance * math.sin(angle)
+                if (
+                    0.0 < forward <= self.front_obstacle_distance
+                    and abs(lateral) <= self.front_obstacle_half_width
+                ):
+                    lateral_sum += lateral
+                    obstacle_count += 1
+            angle += self.scan.angle_increment
+        if obstacle_count == 0:
+            return 1.0
+        # A positive (port) obstacle requires the stern to arc starboard, and
+        # vice versa. turn_sign describes that stern displacement convention.
+        return 1.0 if lateral_sum >= 0.0 else -1.0
 
     def arc_cost(self, turn_sign):
         """Return the sampled costmap cost of one complete reverse arc."""
@@ -251,6 +293,46 @@ class ReverseArcController(Node):
 
         return (lethal_samples, maximum_cost, total_cost)
 
+    def front_blocked(self):
+        """Return whether lethal cost occupies the recovery corridor ahead."""
+        if self.scan_front_blocked():
+            return True
+        if self.costmap is None or self.position is None:
+            return False
+        step = max(self.costmap.info.resolution, 0.05)
+        forward = step
+        while forward <= self.front_obstacle_distance:
+            lateral = -self.front_obstacle_half_width
+            while lateral <= self.front_obstacle_half_width:
+                world_x = self.position[0] + (
+                    math.cos(self.yaw) * forward
+                    - math.sin(self.yaw) * lateral)
+                world_y = self.position[1] + (
+                    math.sin(self.yaw) * forward
+                    + math.cos(self.yaw) * lateral)
+                if self.cost_at(world_x, world_y) >= 90:
+                    return True
+                lateral += step
+            forward += step
+        return False
+
+    def scan_front_blocked(self):
+        """Detect an obstacle in the forward corridor directly from lidar."""
+        if self.scan is None:
+            return False
+        angle = self.scan.angle_min
+        for distance in self.scan.ranges:
+            if math.isfinite(distance) and self.scan.range_min <= distance:
+                forward = distance * math.cos(angle)
+                lateral = distance * math.sin(angle)
+                if (
+                    0.0 < forward <= self.front_obstacle_distance
+                    and abs(lateral) <= self.front_obstacle_half_width
+                ):
+                    return True
+            angle += self.scan.angle_increment
+        return False
+
     def cost_at(self, world_x, world_y):
         """Read one world-coordinate cell from the rolling occupancy grid."""
         info = self.costmap.info
@@ -276,9 +358,9 @@ class ReverseArcController(Node):
                 self.command_pub.publish(Twist())
                 self.state = 'completed'
                 return
-            command = Twist()
-            command.linear.x = self.forward_speed
-            self.command_pub.publish(command)
+            # Wait for a freshly computed path. Moving blindly during planner
+            # recovery can undo the clearance just created by the arc.
+            self.command_pub.publish(Twist())
             return
 
         if self.state != 'arc':
@@ -304,10 +386,11 @@ class ReverseArcController(Node):
             # A plan generated during the forced arc starts from an obsolete
             # pose. Wait for the BT's next plan so Pure Pursuit resets its
             # pruning state and cannot latch onto an old Reeds-Shepp loop.
-            self.required_plan_generation = self.plan_generation + 1
-            command = Twist()
-            command.linear.x = self.forward_speed
-            self.command_pub.publish(command)
+            # BackUp may complete just before the physical arc settles, so its
+            # retry can publish the new path during these final tenths. That
+            # path is already based on the recovered pose and is valid.
+            self.required_plan_generation = self.arc_start_plan_generation + 1
+            self.command_pub.publish(Twist())
             return
 
         desired_heading = min(self.distance / self.radius, self.heading_change)

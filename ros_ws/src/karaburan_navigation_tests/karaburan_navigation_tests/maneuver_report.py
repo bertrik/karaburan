@@ -18,14 +18,21 @@ SCENARIOS = (
     'actuator_straight', 'actuator_turn_left', 'actuator_turn_right',
     'follow_straight', 'follow_arc_left', 'follow_arc_right',
     'planner_direct',
+    'planner_island',
+    'island_navigation',
     'obstacle_port', 'obstacle_starboard',
 )
 CHECK_REQUIREMENTS = {
     'action_succeeded': 'the ROS action must finish successfully',
+    'action_path_endpoint': 'the boat must finish within 0.30 metres of the path endpoint',
+    'controller_cross_track': 'cross-track error must stay within 0.35 metres',
+    'controller_forward_only': 'ordinary path tracking must not reverse',
+    'controller_path_efficiency': 'travel must be at most 125% of path length',
     'forward_progress': 'forward progress must reach the scenario target',
     'goal_reached': 'the controller must report a reached goal',
     'heading_change': 'absolute heading change must be at least 45 degrees',
     'heading_error': 'absolute heading error must be at most 5 degrees',
+    'heel_angle': 'absolute simulated roll must stay within 8 degrees',
     'lateral_error': 'absolute lateral error must be at most 0.25 metres',
     'goal_distance_decreases': (
         'goal distance must decrease in at least 70% of comparisons'),
@@ -36,10 +43,14 @@ CHECK_REQUIREMENTS = {
     'plan_available': 'the planner must return at least two path poses',
     'planner_cross_track': 'the plan must stay within 0.50 metres of the line',
     'planner_goal_reached': 'the plan endpoint must be within 0.10 metres',
+    'island_avoided': 'the planned hull centre must clear the island by 0.25 metres',
     'planner_monotonic': 'the plan must not move away from the goal',
     'planner_no_cusps': 'the plan must not contain a direction cusp',
+    'planner_one_side': 'the route must pass the island on one consistent side',
     'planner_path_length': (
         'the plan may be at most 0.05 metres longer than the direct line'),
+    'planner_reasonable_length': 'the island route must be at most 135% of direct distance',
+    'planner_smooth': 'successive path headings must change by at most 15 degrees',
     'reverse_heading': 'reverse turn must be 90 +/- 3 degrees',
     'reverse_radius': 'reverse turn radius must be 2.0 +/- 0.2 metres',
     'scenario_result_readable': 'the scenario JSON must be valid',
@@ -211,12 +222,34 @@ def _write_trajectory_svg(report_root, report):
     samples = report.get('samples', [])
     reference = report.get('reference_path', [])
     markers = report.get('markers', [])
-    bounds = _bounds(samples + reference + markers)
+    marker_extents = []
+    for marker in markers:
+        radius = float(marker.get('radius', 0.0))
+        marker_extents.extend([
+            {'x': marker['x'] - radius, 'y': marker['y'] - radius},
+            {'x': marker['x'] + radius, 'y': marker['y'] + radius},
+        ])
+    bounds = _bounds(samples + reference + markers + marker_extents)
     actual_points = _svg_points(samples, bounds)
     reference_points = _svg_points(reference, bounds)
     status = 'PASS' if report['passed'] else 'FAIL'
     status_colour = '#16834b' if report['passed'] else '#c43d35'
     failed = ', '.join(_failed_checks(report)) or '-'
+    marker_elements = []
+    min_x, max_x, min_y, max_y = bounds
+    scale_x = 630.0 / (max_x - min_x)
+    scale_y = 310.0 / (max_y - min_y)
+    for marker in markers:
+        x = 45.0 + (marker['x'] - min_x) * scale_x
+        y = 355.0 - (marker['y'] - min_y) * scale_y
+        radius = float(marker.get('radius', 0.10)) * min(scale_x, scale_y)
+        marker_elements.extend([
+            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{max(radius, 4.0):.1f}" '
+            'fill="#ef444455" stroke="#dc2626" stroke-width="2"/>',
+            f'<text x="{x + 6:.1f}" y="{y - 6:.1f}" '
+            'font-family="sans-serif" font-size="12" fill="#991b1b">'
+            f'{marker.get("label", "marker")}</text>',
+        ])
     svg = '\n'.join([
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 440">',
         '<rect width="720" height="440" fill="white"/>',
@@ -228,6 +261,7 @@ def _write_trajectory_svg(report_root, report):
         'stroke="#8b5cf6" stroke-width="2" stroke-dasharray="8 5"/>',
         f'<polyline points="{actual_points}" fill="none" '
         'stroke="#1677b8" stroke-width="3"/>',
+        *marker_elements,
         '<text x="45" y="385" font-family="sans-serif" font-size="14" '
         'fill="#1677b8">actual trajectory</text>',
         '<text x="220" y="385" font-family="sans-serif" font-size="14" '

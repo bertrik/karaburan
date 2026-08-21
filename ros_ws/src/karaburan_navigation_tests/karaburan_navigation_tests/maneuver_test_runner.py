@@ -13,7 +13,9 @@ from geometry_msgs.msg import PoseStamped, Twist
 from karaburan_navigation_tests.maneuver_metrics import (
     obstacle_report,
     path_length,
+    path_tracking_report,
     planner_direct_report,
+    planner_island_report,
     straight_report,
     turn_report,
 )
@@ -22,6 +24,7 @@ from nav_msgs.msg import Odometry, Path
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
+from sensor_msgs.msg import Imu
 
 
 SCENARIOS = (
@@ -32,6 +35,8 @@ SCENARIOS = (
     'follow_arc_left',
     'follow_arc_right',
     'planner_direct',
+    'planner_island',
+    'island_navigation',
     'obstacle_port',
     'obstacle_starboard',
 )
@@ -50,6 +55,20 @@ def quaternion_from_yaw(yaw):
     return math.sin(yaw / 2.0), math.cos(yaw / 2.0)
 
 
+def roll_pitch_from_quaternion(orientation):
+    """Return roll and pitch from a quaternion."""
+    roll = math.atan2(
+        2.0 * (orientation.w * orientation.x
+               + orientation.y * orientation.z),
+        1.0 - 2.0 * (orientation.x ** 2 + orientation.y ** 2),
+    )
+    pitch_sine = 2.0 * (
+        orientation.w * orientation.y
+        - orientation.z * orientation.x)
+    pitch = math.asin(max(-1.0, min(1.0, pitch_sine)))
+    return roll, pitch
+
+
 class ManeuverTestNode(Node):
     """Collect trace data and execute one isolated manoeuvre."""
 
@@ -60,13 +79,18 @@ class ManeuverTestNode(Node):
         self.samples = []
         self.latest_plan = None
         self.reference_path = []
+        self.initial_reference_path = []
         self.markers = []
+        self.roll = 0.0
+        self.pitch = 0.0
         self.initial_plan_length = None
+        self.maximum_plan_length = None
         self.command_pub = self.create_publisher(Twist, '/cmd_vel_nav', 10)
         self.create_subscription(
             Odometry, '/odometry/filtered', self.odometry_callback, 10)
         self.create_subscription(Twist, '/cmd_vel', self.command_callback, 10)
         self.create_subscription(Path, '/plan', self.plan_callback, 10)
+        self.create_subscription(Imu, '/imu/data', self.imu_callback, 10)
         self.follow_client = ActionClient(self, FollowPath, '/follow_path')
         self.navigate_client = ActionClient(
             self, NavigateToPose, '/navigate_to_pose')
@@ -84,7 +108,13 @@ class ManeuverTestNode(Node):
             'yaw': yaw_from_quaternion(pose.orientation),
             'linear': self.command.linear.x,
             'angular': self.command.angular.z,
+            'roll': self.roll,
+            'pitch': self.pitch,
         })
+
+    def imu_callback(self, message):
+        self.roll, self.pitch = roll_pitch_from_quaternion(
+            message.orientation)
 
     def command_callback(self, message):
         self.command = message
@@ -97,7 +127,15 @@ class ManeuverTestNode(Node):
                 for pose in message.poses
             ]
         if self.initial_plan_length is None and len(message.poses) > 1:
+            self.initial_reference_path = list(self.reference_path)
             self.initial_plan_length = path_length(self.reference_path)
+        if len(message.poses) > 1:
+            plan_distance = path_length(self.reference_path)
+            if (
+                self.maximum_plan_length is None
+                or plan_distance > self.maximum_plan_length
+            ):
+                self.maximum_plan_length = plan_distance
 
     def wait_for_odometry(self, timeout=20.0):
         deadline = time.monotonic() + timeout
@@ -117,6 +155,11 @@ class ManeuverTestNode(Node):
         self.command_pub.publish(Twist())
         for _ in range(5):
             rclpy.spin_once(self, timeout_sec=0.05)
+
+    def spin_for(self, duration):
+        deadline = time.monotonic() + duration
+        while time.monotonic() < deadline:
+            rclpy.spin_once(self, timeout_sec=0.1)
 
     def send_action(self, client, goal, timeout=45.0):
         if not client.wait_for_server(timeout_sec=15.0):
@@ -209,7 +252,8 @@ def follow_path(node, arc_sign=0.0):
     if arc_sign == 0.0:
         report = straight_report(node.samples, target_distance=3.0)
     else:
-        report = turn_report(node.samples, arc_sign)
+        report = path_tracking_report(
+            node.samples, node.reference_path, arc_sign)
     report['checks']['action_succeeded'] = succeeded
     report['passed'] = all(report['checks'].values())
     return report
@@ -322,19 +366,93 @@ def planner_direct(node):
     }
 
 
+def planner_island(node):
+    """Plan a forward, smooth route around a large island."""
+    island = (8.0, 0.0)
+    radius = 2.5
+    _spawn_model('maneuver_test_island.sdf', island[0], island[1])
+    node.spin_for(2.0)
+    current = node.current_pose()
+    yaw = yaw_from_quaternion(current.orientation)
+    start = PoseStamped()
+    start.header.frame_id = 'map'
+    start.pose.position.x = current.position.x
+    start.pose.position.y = current.position.y
+    start.pose.orientation.z, start.pose.orientation.w = quaternion_from_yaw(
+        yaw)
+    goal_pose = PoseStamped()
+    goal_pose.header.frame_id = 'map'
+    goal_pose.pose.position.x = 20.0
+    goal_pose.pose.position.y = 0.0
+    goal_pose.pose.orientation.w = 1.0
+    request = ComputePathToPose.Goal()
+    request.start = start
+    request.goal = goal_pose
+    request.planner_id = 'GridBased'
+    request.use_start = True
+    path = node.compute_path(request)
+    node.reference_path = [
+        {'x': pose.pose.position.x, 'y': pose.pose.position.y}
+        for pose in path.poses
+    ]
+    node.markers = [
+        {'x': island[0], 'y': island[1], 'radius': radius,
+         'label': 'island'},
+        {'x': goal_pose.pose.position.x, 'y': goal_pose.pose.position.y,
+         'label': 'goal'},
+    ]
+    return planner_island_report(
+        node.reference_path,
+        (start.pose.position.x, start.pose.position.y),
+        (goal_pose.pose.position.x, goal_pose.pose.position.y),
+        island,
+        radius,
+    )
+
+
+def island_navigation(node):
+    """Navigate the same smooth island route and verify path tracking."""
+    island = (8.0, 0.0)
+    radius = 2.5
+    _spawn_model('maneuver_test_island.sdf', island[0], island[1])
+    node.spin_for(2.0)
+    goal = NavigateToPose.Goal()
+    goal.pose.header.frame_id = 'map'
+    goal.pose.pose.position.x = 20.0
+    goal.pose.pose.orientation.w = 1.0
+    node.markers = [
+        {'x': island[0], 'y': island[1], 'radius': radius,
+         'label': 'island'},
+        {'x': 20.0, 'y': 0.0, 'label': 'goal'},
+    ]
+    succeeded = node.send_action(node.navigate_client, goal, timeout=150.0)
+    # Continuous replanning replaces /plan with the untravelled remainder.  A
+    # complete trace must be assessed against the first route, not that tail.
+    if node.initial_reference_path:
+        node.reference_path = node.initial_reference_path
+    report = path_tracking_report(node.samples, node.reference_path)
+    report['checks']['action_succeeded'] = succeeded
+    report['passed'] = all(report['checks'].values())
+    return report
+
+
 def obstacle(node, side):
     block_y = 0.45 if side == 'port' else -0.45
     _spawn_block(block_y)
+    # Let both costmaps observe the obstacle before accepting a goal.  This
+    # makes the recovery test deterministic and prevents an avoidable initial
+    # lunge towards an obstacle that was already present.
+    node.spin_for(2.0)
     goal = NavigateToPose.Goal()
     goal.pose.header.frame_id = 'map'
     goal.pose.pose.position.x = 8.0
     goal.pose.pose.orientation.w = 1.0
-    succeeded = node.send_action(node.navigate_client, goal, timeout=45.0)
+    succeeded = node.send_action(node.navigate_client, goal, timeout=150.0)
     report = obstacle_report(
         node.samples,
         goal=(8.0, 0.0),
         obstacle=(1.5, block_y),
-        planned_length=node.initial_plan_length,
+        planned_length=node.maximum_plan_length,
     )
     report['checks']['action_succeeded'] = succeeded
     report['passed'] = all(report['checks'].values())
@@ -342,11 +460,16 @@ def obstacle(node, side):
 
 
 def _spawn_block(y_position):
+    _spawn_model('maneuver_test_block.sdf', 1.5, y_position)
+
+
+def _spawn_model(filename, x_position, y_position):
     share = get_package_share_directory('karaburan_navigation_tests')
-    model = FilePath(share) / 'scenarios' / 'maneuver_test_block.sdf'
+    model = FilePath(share) / 'scenarios' / filename
     request = (
         'sdf_filename: "' + str(model) + '", '
-        'pose: {position: {x: 1.5, y: ' + str(y_position) + '}}'
+        'pose: {position: {x: ' + str(x_position)
+        + ', y: ' + str(y_position) + '}}'
     )
     completed = subprocess.run(
         [
@@ -381,6 +504,10 @@ def execute(node, scenario):
         return follow_path(node, -1.0)
     if scenario == 'planner_direct':
         return planner_direct(node)
+    if scenario == 'planner_island':
+        return planner_island(node)
+    if scenario == 'island_navigation':
+        return island_navigation(node)
     if scenario == 'obstacle_port':
         return obstacle(node, 'port')
     if scenario == 'obstacle_starboard':

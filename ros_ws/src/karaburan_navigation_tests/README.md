@@ -102,6 +102,10 @@ for a route-planning defect:
   requested directly from `ComputePathToPose` without moving the boat. Every
   plan must be monotonic, cusp-free, within 0.5 metres of the straight line,
   and no more than 0.05 metres longer than that line.
+- `planner_island`: plans a smooth, forward-only route around a 2.5-metre
+  island and rejects loops, cusps, side changes, and excessive detours.
+- `island_navigation`: sails that island route and checks endpoint,
+  cross-track error, forward-only motion, efficiency, and heel angle.
 - `obstacle_port` and `obstacle_starboard`: mirrored blocks at 1.5 metres and
   an eight-metre navigation goal.
 

@@ -14,9 +14,10 @@
         <pose>0 0 0.065 0 0 0</pose>
       </visual>
 
-      <!-- Massa/inertie van de romp; COM iets lager dan midden -->
+      <!-- Ballasted displacement hull: the centre of mass is below the
+           centre of buoyancy so a gentle yaw turn produces little heel. -->
       <inertial>
-        <pose>0 0 -0.02 0 0 0</pose>
+        <pose>0 0 -0.05 0 0 0</pose>
         <mass>2.0</mass>
         <inertia>
           <ixx>0.0666667</ixx>
@@ -87,8 +88,8 @@
     </inertial>
     <visual name="left_prop_vis">
       <geometry><cylinder><radius>0.025</radius><length>0.02</length></cylinder></geometry>
-      <!-- achter de romp (x<0), bakboord (y>0), op halve hoogte z=0.10 -->
-      <pose>-0.25 0.11 0.065 0 0 0</pose>
+      <!-- Behind the hull and below the waterline, near the vertical COM. -->
+      <pose>-0.25 0.11 -0.04 0 0 0</pose>
     </visual>
     <!-- GEEN collision -> geen extra drijfkracht -->
   </link>
@@ -97,7 +98,7 @@
     <parent>hull</parent>
     <child>left_prop</child>
     <!-- as = +X in child-frame: “vooruit” is +thrust -->
-    <pose>-0.25 0.11 0.065 0 0 0</pose>
+    <pose>-0.25 0.11 -0.04 0 0 0</pose>
     <axis>
       <xyz>1 0 0</xyz>
       <limit><lower>-1e16</lower><upper>1e16</upper></limit>
@@ -116,17 +117,16 @@
     </inertial>
     <visual name="right_prop_vis">
       <geometry><cylinder><radius>0.025</radius><length>0.02</length></cylinder></geometry>
-      <pose>-0.25 -0.11 0.065 0 0 0</pose>
+      <pose>-0.25 -0.11 -0.04 0 0 0</pose>
     </visual>
   </link>
 
   <joint name="right_prop_joint" type="revolute">
     <parent>hull</parent>
     <child>right_prop</child>
-    <pose>-0.25 -0.11 0.065 0 0 0</pose>
+    <pose>-0.25 -0.11 -0.04 0 0 0</pose>
     <axis>
-      <!-- Reversed shaft axis makes the starboard propeller counter-rotate. -->
-      <xyz>-1 0 0</xyz>
+      <xyz>1 0 0</xyz>
       <limit><lower>-1e16</lower><upper>1e16</upper></limit>
     </axis>
   </joint>
@@ -146,8 +146,7 @@
     <joint_name>right_prop_joint</joint_name>
     <fluid_density>1000</fluid_density>
     <propeller_diameter>0.05</propeller_diameter>
-    <!-- Negative coefficient preserves +X thrust around the reversed axis. -->
-    <thrust_coefficient>-0.004422</thrust_coefficient>
+    <thrust_coefficient>0.004422</thrust_coefficient>
     <velocity_control>true</velocity_control>
   </plugin>
 
@@ -165,7 +164,7 @@
 
       <xUabsU>-0.6</xUabsU>  <yVabsV>-1.0</yVabsV>  <zWabsW>-9.0</zWabsW>
 
-      <kP>-4.0</kP>      <kPabsP>-10.0</kPabsP>   <!-- roll -->
+      <kP>-12.0</kP>     <kPabsP>-30.0</kPabsP>   <!-- roll -->
       <mQ>-4.0</mQ>      <mQabsQ>-10.0</mQabsQ>   <!-- pitch -->
       <nR>-2.0</nR>      <nRabsR>-3.0</nRabsR>   <!-- yaw -->
     </plugin>

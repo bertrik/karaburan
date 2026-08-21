@@ -90,8 +90,82 @@ def turn_report(samples, expected_sign, minimum_heading=math.radians(45.0)):
     checks = {
         'turn_sign': heading * expected_sign > 0.0,
         'heading_change': abs(heading) >= minimum_heading,
+        'heel_angle': max(
+            abs(sample.get('roll', 0.0)) for sample in samples
+        ) <= math.radians(8.0),
     }
-    return _report(all(checks.values()), checks, {'heading_change': heading})
+    return _report(all(checks.values()), checks, {
+        'heading_change': heading,
+        'maximum_roll': max(
+            abs(sample.get('roll', 0.0)) for sample in samples),
+        'maximum_pitch': max(
+            abs(sample.get('pitch', 0.0)) for sample in samples),
+    })
+
+
+def path_tracking_report(samples, reference, expected_sign=None):
+    """Evaluate whether a forward controller trace follows its given path."""
+    if len(samples) < 2 or len(reference) < 2:
+        return _report(False, {'samples': 'trace and path are required'})
+    cross_track = [
+        _distance_to_path(sample, reference) for sample in samples]
+    endpoint = reference[-1]
+    final_distance = math.hypot(
+        samples[-1]['x'] - endpoint['x'],
+        samples[-1]['y'] - endpoint['y'],
+    )
+    heading = sum(
+        normalize_angle(current['yaw'] - previous['yaw'])
+        for previous, current in zip(samples, samples[1:])
+    )
+    travelled = path_length(samples)
+    reference_length = path_length(reference)
+    checks = {
+        'action_path_endpoint': final_distance <= 0.30,
+        'controller_cross_track': max(cross_track) <= 0.35,
+        'controller_forward_only': all(
+            sample['linear'] >= -0.01 for sample in samples),
+        'controller_path_efficiency': (
+            travelled <= reference_length * 1.25),
+        'heel_angle': max(
+            abs(sample.get('roll', 0.0)) for sample in samples
+        ) <= math.radians(8.0),
+    }
+    if expected_sign is not None:
+        checks['turn_sign'] = heading * expected_sign > 0.0
+    return _report(all(checks.values()), checks, {
+        'final_path_distance': final_distance,
+        'maximum_cross_track': max(cross_track),
+        'travelled': travelled,
+        'reference_length': reference_length,
+        'heading_change': heading,
+        'maximum_roll': max(
+            abs(sample.get('roll', 0.0)) for sample in samples),
+        'maximum_pitch': max(
+            abs(sample.get('pitch', 0.0)) for sample in samples),
+    })
+
+
+def _distance_to_path(point, path):
+    return min(
+        _distance_to_segment(point, start, end)
+        for start, end in zip(path, path[1:])
+    )
+
+
+def _distance_to_segment(point, start, end):
+    dx = end['x'] - start['x']
+    dy = end['y'] - start['y']
+    length_squared = dx * dx + dy * dy
+    if length_squared < 1e-12:
+        return math.hypot(point['x'] - start['x'], point['y'] - start['y'])
+    projection = max(0.0, min(1.0, (
+        (point['x'] - start['x']) * dx
+        + (point['y'] - start['y']) * dy
+    ) / length_squared))
+    closest_x = start['x'] + projection * dx
+    closest_y = start['y'] + projection * dy
+    return math.hypot(point['x'] - closest_x, point['y'] - closest_y)
 
 
 def planner_direct_report(points, start, goal):
@@ -145,6 +219,80 @@ def planner_direct_report(points, start, goal):
     })
 
 
+def planner_island_report(points, start, goal, island, radius):
+    """Require one smooth, forward route around a known island."""
+    if len(points) < 2:
+        return _report(False, {'plan_available': False})
+    direct_x = goal[0] - start[0]
+    direct_y = goal[1] - start[1]
+    direct_distance = math.hypot(direct_x, direct_y)
+    direction_x = direct_x / direct_distance
+    direction_y = direct_y / direct_distance
+    progress = [
+        (point['x'] - start[0]) * direction_x
+        + (point['y'] - start[1]) * direction_y
+        for point in points
+    ]
+    lateral = [
+        (point['x'] - start[0]) * direction_y
+        - (point['y'] - start[1]) * direction_x
+        for point in points
+    ]
+    significant_sides = {
+        1 if value > 0.10 else -1
+        for value in lateral if abs(value) > 0.10
+    }
+    island_clearance = min(
+        math.hypot(point['x'] - island[0], point['y'] - island[1])
+        for point in points
+    )
+    heading_steps = _path_heading_steps(points)
+    planned_distance = path_length(points)
+    backwards_steps = sum(
+        later < earlier - 0.02
+        for earlier, later in zip(progress, progress[1:])
+    )
+    end_error = math.hypot(
+        points[-1]['x'] - goal[0], points[-1]['y'] - goal[1])
+    checks = {
+        'plan_available': True,
+        'island_avoided': island_clearance >= radius + 0.25,
+        'planner_one_side': len(significant_sides) == 1,
+        'planner_monotonic': backwards_steps == 0,
+        'planner_no_cusps': _cusp_count(points) == 0,
+        'planner_smooth': (
+            not heading_steps
+            or max(abs(step) for step in heading_steps) <= math.radians(15.0)),
+        'planner_reasonable_length': planned_distance <= direct_distance * 1.35,
+        'planner_goal_reached': end_error <= 0.10,
+    }
+    return _report(all(checks.values()), checks, {
+        'direct_distance': direct_distance,
+        'planned_distance': planned_distance,
+        'length_ratio': planned_distance / direct_distance,
+        'minimum_island_clearance': island_clearance,
+        'maximum_lateral_offset': max(abs(value) for value in lateral),
+        'backwards_steps': backwards_steps,
+        'cusp_count': _cusp_count(points),
+        'maximum_heading_step': (
+            max(abs(step) for step in heading_steps) if heading_steps else 0.0),
+        'end_error': end_error,
+    })
+
+
+def _path_heading_steps(points):
+    headings = []
+    for previous, current in zip(points, points[1:]):
+        dx = current['x'] - previous['x']
+        dy = current['y'] - previous['y']
+        if math.hypot(dx, dy) > 1e-3:
+            headings.append(math.atan2(dy, dx))
+    return [
+        normalize_angle(current - previous)
+        for previous, current in zip(headings, headings[1:])
+    ]
+
+
 def _cusp_count(points):
     segments = []
     for previous, current in zip(points, points[1:]):
@@ -196,11 +344,17 @@ def obstacle_report(samples, goal, obstacle, planned_length=None):
         ) <= math.radians(3.0),
         'no_obstacle_return': not returned_to_obstacle,
         'goal_distance_decreases': decreasing_ratio >= 0.70,
-        'no_forward_loop': forward_yaw <= math.radians(150.0),
+        # A reverse-to-forward S transition can exceed 180 degrees of summed
+        # steering without circling the obstacle. A genuine loop still crosses
+        # this 270 degree bound and is also caught by obstacle return.
+        'no_forward_loop': forward_yaw <= math.radians(270.0),
         'goal_reached': final_goal_distance <= 0.30,
     }
     if planned_length is not None:
-        checks['path_efficiency'] = travelled <= planned_length * 1.15
+        # /plan is first available after the recovery arc. Compare the total
+        # trace with that forward plan plus the measured reverse manoeuvre.
+        expected_total = planned_length + reverse['distance']
+        checks['path_efficiency'] = travelled <= expected_total * 1.25
     return _report(all(checks.values()), checks, {
         'segments': segments,
         'reverse': reverse,

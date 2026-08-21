@@ -23,22 +23,23 @@ def test_navigation_uses_external_slam_lifecycle_and_hybrid_planner():
     managed_nodes_end = launch.index(']', managed_nodes_start)
     managed_nodes = launch[managed_nodes_start:managed_nodes_end]
 
-    assert 'nav2_smac_planner::SmacPlannerHybrid' in planner
-    assert 'motion_model_for_search: "REEDS_SHEPP"' in planner
-    assert 'minimum_turning_radius: 5.0' in planner
-    assert 'reverse_penalty: 1.05' in planner
-    assert 'change_penalty: 0.5' in planner
-    assert 'retrospective_penalty: 0.0' in planner
-    assert 'non_straight_penalty: 1.05' in planner
-    assert 'cost_penalty: 4.0' in planner
-    assert 'analytic_expansion_max_length: 50.0' in planner
+    assert 'nav2_theta_star_planner::ThetaStarPlanner' in planner
+    assert 'nav2_smac_planner::SmacPlannerHybrid' not in planner
+    assert 'motion_model_for_search' not in planner
+    assert 'how_many_corners: 8' in planner
+    assert 'w_euc_cost: 1.0' in planner
+    assert 'w_traversal_cost: 1.0' in planner
+    assert 'use_final_approach_orientation: false' in planner
     assert "'use_lifecycle_manager': 'true'" in launch
     assert managed_nodes.index("'slam_toolbox',") < managed_nodes.index("'planner_server',")
     assert "'default_nav_to_pose_bt_xml': navigate_to_pose_bt" in launch
     assert boat_bt.index('<BackUp ') < boat_bt.index('<Spin ')
-    assert 'backup_dist="1.5"' in boat_bt
+    assert 'backup_dist="2.80"' in boat_bt
     assert 'backup_speed="0.20"' in boat_bt
-    assert '<RateController hz="0.5">' in boat_bt
+    assert 'time_allowance="25.0"' in boat_bt
+    assert '<Sequence name="NavigatePlannedRoute">' in boat_bt
+    assert '<PipelineSequence' not in boat_bt
+    assert '<RateController' not in boat_bt
 
 
 def test_global_costmap_fits_raspberry_pi_memory_budget():
@@ -63,11 +64,14 @@ def test_lidar_obstacles_feed_both_costmaps_and_controller():
     assert 'max_obstacle_height: 2.0' in controller
     assert 'RegulatedPurePursuitController' in controller
     assert 'nav2_controller::SimpleProgressChecker' in controller
+    assert 'movement_time_allowance: 5.0' in controller
+    assert 'yaw_goal_tolerance: 0.7' in controller
     assert 'use_rotate_to_heading: false' in controller
-    assert 'allow_reversing: true' in controller
-    assert 'lookahead_dist: 2.0' in controller
-    assert 'min_lookahead_dist: 1.0' in controller
-    assert 'max_lookahead_dist: 3.0' in controller
+    assert 'allow_reversing: false' in controller
+    assert 'lookahead_dist: 1.0' in controller
+    assert 'max_robot_pose_search_dist: 2.0' in controller
+    assert 'min_lookahead_dist: 0.75' in controller
+    assert 'max_lookahead_dist: 2.0' in controller
     assert 'use_collision_detection: false' in controller
     assert controller.count('footprint: "[[0.28, 0.15]') == 1
     assert 'inflation_radius: 1.5' in controller
@@ -97,21 +101,29 @@ def test_reverse_arc_is_fast_stateful_and_geometry_driven():
 
     assert 'radius: 2.0' in config
     assert 'heading_change: 1.5707963267948966' in config
-    assert 'reverse_speed: 1.0' in config
+    assert 'reverse_speed: 0.5' in config
+    assert 'angular_feedforward_gain: 1.65' in config
     assert 'forward_speed: 0.25' in config
     assert 'minimum_trigger_angular: 0.05' in config
-    assert 'heading_tolerance: 0.01' in config
+    assert 'heading_tolerance: 0.03' in config
     assert 'maneuver_timeout: 25.0' in config
     assert 'arc_sample_step: 0.20' in config
     assert 'footprint_half_length: 0.30' in config
     assert 'footprint_half_width: 0.17' in config
+    assert 'front_obstacle_distance: 1.5' in config
+    assert 'front_obstacle_half_width: 0.4' in config
     controller = (
         PACKAGE_DIR / 'navigation' / 'reverse_arc_controller.py'
     ).read_text()
     assert 'OccupancyGrid, Odometry, Path' in controller
     assert "'/local_costmap/costmap_raw'" in controller
+    assert "LaserScan, '/scan'" in controller
     assert "Path, '/plan'" in controller
     assert 'port_score = self.arc_cost(-1.0)' in controller
     assert 'starboard_score = self.arc_cost(1.0)' in controller
-    assert 'self.required_plan_generation = self.plan_generation + 1' in controller
+    assert 'requested_sign = self.obstacle_avoidance_sign()' in controller
+    assert 'and abs(command.linear.x) > 0.01' in controller
+    assert 'and self.front_blocked()' in controller
+    assert 'if self.scan_front_blocked()' in controller
+    assert 'self.arc_start_plan_generation + 1' in controller
     assert 'reverse_arc_controller = navigation.reverse_arc_controller:main' in setup
