@@ -1,7 +1,7 @@
 import math
 
 from geometry_msgs.msg import Twist
-from nav_msgs.msg import Odometry
+from nav_msgs.msg import OccupancyGrid, Odometry, Path
 import rclpy
 from rclpy.node import Node
 
@@ -42,6 +42,9 @@ class ReverseArcController(Node):
         self.declare_parameter('distance_tolerance', 0.05)
         self.declare_parameter('idle_reset_time', 1.0)
         self.declare_parameter('maneuver_timeout', 25.0)
+        self.declare_parameter('arc_sample_step', 0.20)
+        self.declare_parameter('footprint_half_length', 0.30)
+        self.declare_parameter('footprint_half_width', 0.17)
 
         self.radius = self._parameter('radius')
         self.heading_change = self._parameter('heading_change')
@@ -59,12 +62,24 @@ class ReverseArcController(Node):
         self.distance_tolerance = self._parameter('distance_tolerance')
         self.idle_reset_time = self._parameter('idle_reset_time')
         self.maneuver_timeout = self._parameter('maneuver_timeout')
+        self.arc_sample_step = self._parameter('arc_sample_step')
+        self.footprint_half_length = self._parameter(
+            'footprint_half_length')
+        self.footprint_half_width = self._parameter('footprint_half_width')
 
         self.command_pub = self.create_publisher(Twist, '/cmd_vel_nav', 10)
         self.command_sub = self.create_subscription(
             Twist, '/cmd_vel_planner', self.command_callback, 10)
         self.odom_sub = self.create_subscription(
             Odometry, '/odometry/filtered', self.odom_callback, 10)
+        self.costmap_sub = self.create_subscription(
+            OccupancyGrid,
+            '/local_costmap/costmap_raw',
+            self.costmap_callback,
+            10,
+        )
+        self.plan_sub = self.create_subscription(
+            Path, '/plan', self.plan_callback, 10)
         self.timer = self.create_timer(0.1, self.timer_callback)
 
         self.latest_planner_command = Twist()
@@ -79,6 +94,9 @@ class ReverseArcController(Node):
         self.previous_yaw = None
         self.start_time = None
         self.idle_since = None
+        self.costmap = None
+        self.plan_generation = 0
+        self.required_plan_generation = 0
 
     def _parameter(self, name):
         return self.get_parameter(name).get_parameter_value().double_value
@@ -105,6 +123,12 @@ class ReverseArcController(Node):
         self.previous_position = new_position
         self.previous_yaw = new_yaw
 
+    def costmap_callback(self, costmap):
+        self.costmap = costmap
+
+    def plan_callback(self, _plan):
+        self.plan_generation += 1
+
     def command_callback(self, command):
         self.latest_planner_command = command
         moving = abs(command.linear.x) > 0.01 or abs(command.angular.z) > 0.01
@@ -125,13 +149,12 @@ class ReverseArcController(Node):
                 return
 
         if self.state == 'forward':
-            if command.linear.x > 0.01:
+            fresh_plan = self.plan_generation >= self.required_plan_generation
+            if fresh_plan and command.linear.x > 0.01:
                 self.state = 'completed'
-                self.get_logger().info('Forward path accepted from Nav2')
+                self.get_logger().info(
+                    'Fresh forward path accepted from Nav2')
                 self.command_pub.publish(command)
-            elif not moving:
-                self.command_pub.publish(Twist())
-                self.state = 'completed'
             return
 
         if (
@@ -146,7 +169,16 @@ class ReverseArcController(Node):
             self.command_pub.publish(command)
 
     def start_arc(self, requested_angular_velocity):
-        self.turn_sign = 1.0 if requested_angular_velocity >= 0.0 else -1.0
+        requested_sign = (
+            1.0 if requested_angular_velocity >= 0.0 else -1.0)
+        port_score = self.arc_cost(-1.0)
+        starboard_score = self.arc_cost(1.0)
+        if port_score < starboard_score:
+            self.turn_sign = -1.0
+        elif starboard_score < port_score:
+            self.turn_sign = 1.0
+        else:
+            self.turn_sign = requested_sign
         self.distance = 0.0
         self.heading = 0.0
         self.previous_position = self.position
@@ -158,9 +190,82 @@ class ReverseArcController(Node):
             % (
                 self.radius,
                 math.degrees(self.heading_change),
-                'left' if self.turn_sign > 0.0 else 'right',
+                'starboard' if self.turn_sign > 0.0 else 'port',
             )
         )
+        self.get_logger().info(
+            'Reverse arc clearance scores: port=%s, starboard=%s'
+            % (port_score, starboard_score)
+        )
+
+    def arc_cost(self, turn_sign):
+        """Return the sampled costmap cost of one complete reverse arc."""
+        if self.costmap is None or self.position is None:
+            return (0, 0, 0)
+
+        target_distance = self.radius * self.heading_change
+        sample_count = max(
+            1, math.ceil(target_distance / self.arc_sample_step))
+        lethal_samples = 0
+        maximum_cost = 0
+        total_cost = 0
+        footprint_points = (
+            (0.0, 0.0),
+            (self.footprint_half_length, self.footprint_half_width),
+            (self.footprint_half_length, -self.footprint_half_width),
+            (-self.footprint_half_length, self.footprint_half_width),
+            (-self.footprint_half_length, -self.footprint_half_width),
+        )
+
+        for sample in range(1, sample_count + 1):
+            angle = self.heading_change * sample / sample_count
+            arc_x = -self.radius * math.sin(angle)
+            arc_y = -turn_sign * self.radius * (1.0 - math.cos(angle))
+            arc_yaw = turn_sign * angle
+            for body_x, body_y in footprint_points:
+                local_x = (
+                    arc_x
+                    + math.cos(arc_yaw) * body_x
+                    - math.sin(arc_yaw) * body_y
+                )
+                local_y = (
+                    arc_y
+                    + math.sin(arc_yaw) * body_x
+                    + math.cos(arc_yaw) * body_y
+                )
+                world_x = (
+                    self.position[0]
+                    + math.cos(self.yaw) * local_x
+                    - math.sin(self.yaw) * local_y
+                )
+                world_y = (
+                    self.position[1]
+                    + math.sin(self.yaw) * local_x
+                    + math.cos(self.yaw) * local_y
+                )
+                cost = self.cost_at(world_x, world_y)
+                maximum_cost = max(maximum_cost, cost)
+                total_cost += cost
+                if cost >= 90:
+                    lethal_samples += 1
+
+        return (lethal_samples, maximum_cost, total_cost)
+
+    def cost_at(self, world_x, world_y):
+        """Read one world-coordinate cell from the rolling occupancy grid."""
+        info = self.costmap.info
+        origin = info.origin
+        origin_yaw = yaw_from_quaternion(origin.orientation)
+        dx = world_x - origin.position.x
+        dy = world_y - origin.position.y
+        grid_x = math.cos(origin_yaw) * dx + math.sin(origin_yaw) * dy
+        grid_y = -math.sin(origin_yaw) * dx + math.cos(origin_yaw) * dy
+        column = math.floor(grid_x / info.resolution)
+        row = math.floor(grid_y / info.resolution)
+        if column < 0 or row < 0 or column >= info.width or row >= info.height:
+            return 100
+        value = self.costmap.data[row * info.width + column]
+        return 20 if value < 0 else value
 
     def timer_callback(self):
         if self.state == 'forward':
@@ -196,6 +301,10 @@ class ReverseArcController(Node):
             )
             self.state = 'forward'
             self.start_time = self.get_clock().now()
+            # A plan generated during the forced arc starts from an obsolete
+            # pose. Wait for the BT's next plan so Pure Pursuit resets its
+            # pruning state and cannot latch onto an old Reeds-Shepp loop.
+            self.required_plan_generation = self.plan_generation + 1
             command = Twist()
             command.linear.x = self.forward_speed
             self.command_pub.publish(command)

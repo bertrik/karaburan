@@ -5,10 +5,10 @@
       <PipelineSequence name="NavigateWithReplanning">
         <ControllerSelector selected_controller="{selected_controller}" default_controller="FollowPath" topic_name="controller_selector"/>
         <PlannerSelector selected_planner="{selected_planner}" default_planner="GridBased" topic_name="planner_selector"/>
-        <!-- Replan after making actual progress, not merely because a timer
-             expired. This lets one reverse-and-turn manoeuvre finish instead
-             of alternating near-equal path directions while almost static. -->
-        <DistanceController distance="2.0">
+        <!-- Publish a fresh path after a forced reverse arc. The arc controller
+             ignores direction changes while manoeuvring, so periodic planning
+             cannot reintroduce the former back-and-forth behaviour. -->
+        <RateController hz="0.5">
           <RecoveryNode number_of_retries="1" name="ComputePathToPose">
             <ComputePathToPose goal="{goal}" path="{path}" planner_id="{selected_planner}" error_code_id="{compute_path_error_code}"/>
             <Sequence>
@@ -16,7 +16,7 @@
               <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
             </Sequence>
           </RecoveryNode>
-        </DistanceController>
+        </RateController>
         <RecoveryNode number_of_retries="1" name="FollowPath">
           <FollowPath path="{path}" controller_id="{selected_controller}" error_code_id="{follow_path_error_code}"/>
           <Sequence>

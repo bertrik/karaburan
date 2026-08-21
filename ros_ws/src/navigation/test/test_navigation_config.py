@@ -25,7 +25,7 @@ def test_navigation_uses_external_slam_lifecycle_and_hybrid_planner():
 
     assert 'nav2_smac_planner::SmacPlannerHybrid' in planner
     assert 'motion_model_for_search: "REEDS_SHEPP"' in planner
-    assert 'minimum_turning_radius: 3.0' in planner
+    assert 'minimum_turning_radius: 5.0' in planner
     assert 'reverse_penalty: 1.05' in planner
     assert 'change_penalty: 0.5' in planner
     assert 'non_straight_penalty: 1.05' in planner
@@ -37,7 +37,7 @@ def test_navigation_uses_external_slam_lifecycle_and_hybrid_planner():
     assert boat_bt.index('<BackUp ') < boat_bt.index('<Spin ')
     assert 'backup_dist="1.5"' in boat_bt
     assert 'backup_speed="0.20"' in boat_bt
-    assert '<DistanceController distance="2.0">' in boat_bt
+    assert '<RateController hz="0.5">' in boat_bt
 
 
 def test_global_costmap_fits_raspberry_pi_memory_budget():
@@ -104,6 +104,18 @@ def test_reverse_arc_is_fast_stateful_and_geometry_driven():
     assert 'minimum_trigger_angular: 0.05' in config
     assert 'heading_tolerance: 0.01' in config
     assert 'maneuver_timeout: 25.0' in config
+    assert 'arc_sample_step: 0.20' in config
+    assert 'footprint_half_length: 0.30' in config
+    assert 'footprint_half_width: 0.17' in config
+    controller = (
+        PACKAGE_DIR / 'navigation' / 'reverse_arc_controller.py'
+    ).read_text()
+    assert 'OccupancyGrid, Odometry, Path' in controller
+    assert "'/local_costmap/costmap_raw'" in controller
+    assert "Path, '/plan'" in controller
+    assert 'port_score = self.arc_cost(-1.0)' in controller
+    assert 'starboard_score = self.arc_cost(1.0)' in controller
+    assert 'self.required_plan_generation = self.plan_generation + 1' in controller
     assert 'reverse_arc_controller = navigation.reverse_arc_controller:main' in setup
 
 

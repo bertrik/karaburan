@@ -8,9 +8,10 @@
     GridBased:
       plugin: "nav2_smac_planner::SmacPlannerHybrid"
       motion_model_for_search: "REEDS_SHEPP"
-      # Match the turn that the simulated propeller dynamics can sustain.
-      # A smaller value produced a late path that the boat could not follow.
-      minimum_turning_radius: 3.0
+      # Normal forward thrust sustains a radius of about five metres at
+      # 0.25 m/s. The dedicated high-differential reverse escape remains a
+      # separate two-metre manoeuvre.
+      minimum_turning_radius: 5.0
       # Sailing is always preferable to station keeping. Reverse is only
       # slightly dearer than forward, while changing between the two is
       # deliberately expensive so a chosen manoeuvre is completed.
