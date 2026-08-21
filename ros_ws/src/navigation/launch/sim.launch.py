@@ -17,7 +17,7 @@ from launch.actions import (
     IncludeLaunchDescription,
     TimerAction,
 )
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     LaunchConfiguration,
@@ -62,6 +62,8 @@ def generate_launch_description():
     left_topic = LaunchConfiguration('left_topic')
     right_topic = LaunchConfiguration('right_topic')
     with_map = LaunchConfiguration('with_map')
+    headless = LaunchConfiguration('headless')
+    with_rviz = LaunchConfiguration('with_rviz')
     nav_dir = get_package_share_directory('navigation')
     nav_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -93,7 +95,17 @@ def generate_launch_description():
         ])),
         launch_arguments={
             'gz_args': [world_sdf, ' -r']
-        }.items()
+        }.items(),
+        condition=UnlessCondition(headless),
+    )
+    gazebo_headless = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([
+            FindPackageShare('ros_gz_sim'), 'launch', 'gz_sim.launch.py'
+        ])),
+        launch_arguments={
+            'gz_args': [world_sdf, ' -r -s']
+        }.items(),
+        condition=IfCondition(headless),
     )
     rviz = Node(
         package='rviz2',
@@ -105,7 +117,8 @@ def generate_launch_description():
 
     delayed_rviz = TimerAction(
         period=10.0,
-        actions=[rviz]
+        actions=[rviz],
+        condition=IfCondition(with_rviz),
     )
     delayed_map = TimerAction(
         period=10.0,
@@ -145,6 +158,16 @@ def generate_launch_description():
             default_value='false',
             description='Start the Leaflet OpenStreetMap navigation view',
         ),
+        DeclareLaunchArgument(
+            'headless',
+            default_value='false',
+            description='Run only the Gazebo server without its GUI',
+        ),
+        DeclareLaunchArgument(
+            'with_rviz',
+            default_value='true',
+            description='Start RViz after the simulator is ready',
+        ),
         # Launch args for the GZ - ROS2 bridge
         DeclareLaunchArgument('ns', default_value='', description='ROS namespace for the bridge'),
         DeclareLaunchArgument('imu_topic', default_value='/imu/data',
@@ -174,6 +197,7 @@ def generate_launch_description():
         *instrument_argument_declarations(),
 
         gazebo,
+        gazebo_headless,
         nav_launch,
         boatcontrol,
         measurement_launch,

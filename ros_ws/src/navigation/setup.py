@@ -25,6 +25,9 @@ setup(
         ('share/' + package_name + '/config', ['config/mpu9250.yaml']),
         ('share/' + package_name + '/config', ['config/slam_params.yaml']),
         ('share/' + package_name + '/config', ['config/world.sdf']),
+        ('share/' + package_name + '/config', ['config/maneuver_test_world.sdf']),
+        ('share/' + package_name + '/config', ['config/maneuver_test_block.sdf']),
+        ('share/' + package_name + '/scripts', ['scripts/run_maneuver_tests.sh']),
         ('share/' + package_name + '/web', ['web/leaflet_map.html']),
         ('share/' + package_name, ['package.xml']),
     ],
@@ -43,6 +46,7 @@ setup(
             'gps_four_point_route = navigation.gps_shuttle:main_four_point',
             'leaflet_map = navigation.leaflet_map:main',
             'reverse_arc_controller = navigation.reverse_arc_controller:main',
+            'maneuver_test_runner = navigation.maneuver_test_runner:main',
         ],
     },
 )

@@ -135,3 +135,28 @@ def test_leaflet_map_matches_simulation_origin_and_topics():
     assert 'tile.openstreetmap.org' in map_html
     assert 'OpenStreetMap contributors' in map_html
     assert "'with_map'" in sim_launch
+
+
+def test_repeatable_maneuver_suite_is_installed_and_headless():
+    setup = (PACKAGE_DIR / 'setup.py').read_text()
+    package = (PACKAGE_DIR / 'package.xml').read_text()
+    sim_launch = (LAUNCH_DIR / 'sim.launch.py').read_text()
+    test_launch = (LAUNCH_DIR / 'maneuver_test.launch.py').read_text()
+    runner = (PACKAGE_DIR / 'navigation' / 'maneuver_test_runner.py').read_text()
+    script = (PACKAGE_DIR / 'scripts' / 'run_maneuver_tests.sh').read_text()
+
+    assert '<depend>action_msgs</depend>' in package
+    assert '<depend>ament_index_python</depend>' in package
+    assert "'headless'" in sim_launch
+    assert "'with_rviz'" in sim_launch
+    assert "'headless': 'true'" in test_launch
+    assert "'with_rviz': 'false'" in test_launch
+    assert "'record_enabled': 'false'" in test_launch
+    assert 'maneuver_test_world.sdf' in setup
+    assert 'maneuver_test_block.sdf' in setup
+    assert 'scripts/run_maneuver_tests.sh' in setup
+    assert 'maneuver_test_runner = navigation.maneuver_test_runner:main' in setup
+    assert "'follow_straight'" in runner
+    assert "'obstacle_port'" in runner
+    assert "'obstacle_starboard'" in runner
+    assert 'setsid ros2 launch navigation maneuver_test.launch.py' in script
