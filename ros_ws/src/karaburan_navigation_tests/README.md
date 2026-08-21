@@ -1,8 +1,9 @@
 # Navigation maneuver tests
 
-This test set isolates propulsion, local path following, and complete obstacle
-avoidance. It is intentionally shorter than a GPS shuttle run. Every execution
-produces per-scenario JSON plus suite-level JUnit, JSON, and HTML reports.
+This test set isolates propulsion, global path planning, local path following,
+and complete obstacle avoidance. It is intentionally shorter than a GPS
+shuttle run. Every execution produces per-scenario JSON plus suite-level
+JUnit, JSON, and HTML reports.
 
 ## Run the complete set
 
@@ -89,12 +90,16 @@ for a route-planning defect:
 - `actuator`: open-loop commands bypass Nav2 and validate simulation thrust.
 - `controller`: a supplied local path validates tracking without global
   planning.
-- `planner`: obstacle scenarios include global planning and execution.
+- `planner`: direct global-planning checks and complete obstacle execution.
 
 - `actuator_straight`: three metres of open-loop forward thrust.
 - `actuator_turn_left` and `actuator_turn_right`: symmetric steering signs.
 - `follow_straight`: a three-metre path sent directly to `FollowPath`.
 - `follow_arc_left` and `follow_arc_right`: five-metre-radius controller paths.
+- `planner_direct`: six aligned 30-metre plans at representative headings,
+  requested directly from `ComputePathToPose` without moving the boat. Every
+  plan must be monotonic, cusp-free, within 0.5 metres of the straight line,
+  and no more than 0.05 metres longer than that line.
 - `obstacle_port` and `obstacle_starboard`: mirrored blocks at 1.5 metres and
   an eight-metre navigation goal.
 

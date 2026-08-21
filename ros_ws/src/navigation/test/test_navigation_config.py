@@ -28,9 +28,10 @@ def test_navigation_uses_external_slam_lifecycle_and_hybrid_planner():
     assert 'minimum_turning_radius: 5.0' in planner
     assert 'reverse_penalty: 1.05' in planner
     assert 'change_penalty: 0.5' in planner
+    assert 'retrospective_penalty: 0.0' in planner
     assert 'non_straight_penalty: 1.05' in planner
     assert 'cost_penalty: 4.0' in planner
-    assert 'analytic_expansion_max_length: 15.0' in planner
+    assert 'analytic_expansion_max_length: 50.0' in planner
     assert "'use_lifecycle_manager': 'true'" in launch
     assert managed_nodes.index("'slam_toolbox',") < managed_nodes.index("'planner_server',")
     assert "'default_nav_to_pose_bt_xml': navigate_to_pose_bt" in launch

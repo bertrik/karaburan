@@ -13,10 +13,11 @@ from geometry_msgs.msg import PoseStamped, Twist
 from karaburan_navigation_tests.maneuver_metrics import (
     obstacle_report,
     path_length,
+    planner_direct_report,
     straight_report,
     turn_report,
 )
-from nav2_msgs.action import FollowPath, NavigateToPose
+from nav2_msgs.action import ComputePathToPose, FollowPath, NavigateToPose
 from nav_msgs.msg import Odometry, Path
 import rclpy
 from rclpy.action import ActionClient
@@ -30,6 +31,7 @@ SCENARIOS = (
     'follow_straight',
     'follow_arc_left',
     'follow_arc_right',
+    'planner_direct',
     'obstacle_port',
     'obstacle_starboard',
 )
@@ -58,6 +60,7 @@ class ManeuverTestNode(Node):
         self.samples = []
         self.latest_plan = None
         self.reference_path = []
+        self.markers = []
         self.initial_plan_length = None
         self.command_pub = self.create_publisher(Twist, '/cmd_vel_nav', 10)
         self.create_subscription(
@@ -67,6 +70,8 @@ class ManeuverTestNode(Node):
         self.follow_client = ActionClient(self, FollowPath, '/follow_path')
         self.navigate_client = ActionClient(
             self, NavigateToPose, '/navigate_to_pose')
+        self.planner_client = ActionClient(
+            self, ComputePathToPose, '/compute_path_to_pose')
 
     def odometry_callback(self, message):
         self.odometry = message
@@ -127,6 +132,25 @@ class ManeuverTestNode(Node):
             goal_handle.cancel_goal_async()
             return False
         return result_future.result().status == GoalStatus.STATUS_SUCCEEDED
+
+    def compute_path(self, goal, timeout=15.0):
+        if not self.planner_client.wait_for_server(timeout_sec=15.0):
+            raise RuntimeError('Planner action server is unavailable')
+        goal_future = self.planner_client.send_goal_async(goal)
+        self._spin_until(goal_future, 10.0)
+        goal_handle = goal_future.result()
+        if goal_handle is None or not goal_handle.accepted:
+            raise RuntimeError('Planner goal was rejected')
+        result_future = goal_handle.get_result_async()
+        self._spin_until(result_future, timeout)
+        if not result_future.done():
+            goal_handle.cancel_goal_async()
+            raise RuntimeError('Planner action timed out')
+        result = result_future.result()
+        if result.status != GoalStatus.STATUS_SUCCEEDED:
+            raise RuntimeError(
+                f'Planner action failed with status {result.status}')
+        return result.result.path
 
     def _spin_until(self, future, timeout):
         deadline = time.monotonic() + timeout
@@ -229,6 +253,75 @@ def _make_path(start, arc_sign):
     return result
 
 
+def planner_direct(node):
+    """Request aligned global plans at representative lattice headings."""
+    distance = 30.0
+    current = node.current_pose()
+    base_yaw = yaw_from_quaternion(current.orientation)
+    cases = []
+    for offset_degrees in (0.0, 3.0, 13.0, 37.0, 91.0, 143.0):
+        yaw = base_yaw + math.radians(offset_degrees)
+        start = PoseStamped()
+        start.header.frame_id = 'map'
+        start.pose.position.x = current.position.x
+        start.pose.position.y = current.position.y
+        start.pose.orientation.z, start.pose.orientation.w = (
+            quaternion_from_yaw(yaw))
+        goal_pose = PoseStamped()
+        goal_pose.header.frame_id = 'map'
+        goal_pose.pose.position.x = (
+            start.pose.position.x + distance * math.cos(yaw))
+        goal_pose.pose.position.y = (
+            start.pose.position.y + distance * math.sin(yaw))
+        goal_pose.pose.orientation.z, goal_pose.pose.orientation.w = (
+            quaternion_from_yaw(yaw))
+
+        request = ComputePathToPose.Goal()
+        request.start = start
+        request.goal = goal_pose
+        request.planner_id = 'GridBased'
+        request.use_start = True
+        path = node.compute_path(request)
+        points = [
+            {'x': pose.pose.position.x, 'y': pose.pose.position.y}
+            for pose in path.poses
+        ]
+        case = planner_direct_report(
+            points,
+            (start.pose.position.x, start.pose.position.y),
+            (goal_pose.pose.position.x, goal_pose.pose.position.y),
+        )
+        case['offset_degrees'] = offset_degrees
+        case['points'] = points
+        case['goal'] = (
+            goal_pose.pose.position.x, goal_pose.pose.position.y)
+        cases.append(case)
+
+    worst = max(cases, key=lambda case: case['metrics'].get(
+        'length_ratio', math.inf))
+    node.reference_path = worst.pop('points')
+    goal_x, goal_y = worst.pop('goal')
+    node.markers = [
+        {'x': current.position.x, 'y': current.position.y, 'label': 'start'},
+        {'x': goal_x, 'y': goal_y, 'label': 'goal'},
+    ]
+    checks = {
+        name: all(case['checks'].get(name, False) for case in cases)
+        for name in worst['checks']
+    }
+    return {
+        'passed': all(checks.values()),
+        'checks': checks,
+        'metrics': {
+            'worst_offset_degrees': worst['offset_degrees'],
+            'cases': {
+                str(case['offset_degrees']): case['metrics']
+                for case in cases
+            },
+        },
+    }
+
+
 def obstacle(node, side):
     block_y = 0.45 if side == 'port' else -0.45
     _spawn_block(block_y)
@@ -286,6 +379,8 @@ def execute(node, scenario):
         return follow_path(node, 1.0)
     if scenario == 'follow_arc_right':
         return follow_path(node, -1.0)
+    if scenario == 'planner_direct':
+        return planner_direct(node)
     if scenario == 'obstacle_port':
         return obstacle(node, 'port')
     if scenario == 'obstacle_starboard':
@@ -335,7 +430,7 @@ def main(args=None):
         report['scenario'] = options.scenario
         report['samples'] = node.samples
         report['reference_path'] = node.reference_path
-        report['markers'] = scenario_markers(options.scenario)
+        report['markers'] = node.markers or scenario_markers(options.scenario)
         report['duration_seconds'] = time.monotonic() - started
         options.output.parent.mkdir(parents=True, exist_ok=True)
         options.output.write_text(json.dumps(report, indent=2) + '\n')

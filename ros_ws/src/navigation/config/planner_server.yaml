@@ -13,16 +13,19 @@
       # separate two-metre manoeuvre.
       minimum_turning_radius: 5.0
       # Sailing is always preferable to station keeping. Reverse is only
-      # slightly dearer than forward, while changing between the two is
-      # deliberately expensive so a chosen manoeuvre is completed.
+      # slightly dearer than forward. A direction change stays expensive so
+      # the planner does not introduce unnecessary Reeds-Shepp cusps.
       reverse_penalty: 1.05
       change_penalty: 0.5
+      retrospective_penalty: 0.0
       # Curves remain cheap: the boat should steer while making way instead
       # of relying on differential-thrust spins.
       non_straight_penalty: 1.05
       # Give open water enough weight to produce a comfortably wide bypass.
       cost_penalty: 4.0
-      analytic_expansion_max_length: 15.0
+      # Cover ordinary open-water legs with a collision-checked analytic
+      # connection instead of introducing a lattice-search detour.
+      analytic_expansion_max_length: 50.0
       angle_quantization_bins: 72
       tolerance: 0.25
       max_planning_time: 2.0

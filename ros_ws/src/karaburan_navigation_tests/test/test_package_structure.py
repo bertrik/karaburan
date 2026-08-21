@@ -32,6 +32,7 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert 'karaburan_navigation_tests.junit_html_report:main' in setup
     assert '<exec_depend>python3-junit2html</exec_depend>' in package
     assert "'follow_straight'" in runner
+    assert "'planner_direct'" in runner
     assert "'obstacle_port'" in runner
     assert "'obstacle_starboard'" in runner
     assert (

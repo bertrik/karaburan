@@ -17,6 +17,7 @@ DIAGNOSTIC_LINE = re.compile(
 SCENARIOS = (
     'actuator_straight', 'actuator_turn_left', 'actuator_turn_right',
     'follow_straight', 'follow_arc_left', 'follow_arc_right',
+    'planner_direct',
     'obstacle_port', 'obstacle_starboard',
 )
 CHECK_REQUIREMENTS = {
@@ -32,6 +33,13 @@ CHECK_REQUIREMENTS = {
     'no_obstacle_return': 'the boat must not return after clearing the obstacle',
     'one_reverse_then_forward': 'drive direction must change exactly once',
     'path_efficiency': 'travel must be at most 115% of the reference path',
+    'plan_available': 'the planner must return at least two path poses',
+    'planner_cross_track': 'the plan must stay within 0.50 metres of the line',
+    'planner_goal_reached': 'the plan endpoint must be within 0.10 metres',
+    'planner_monotonic': 'the plan must not move away from the goal',
+    'planner_no_cusps': 'the plan must not contain a direction cusp',
+    'planner_path_length': (
+        'the plan may be at most 0.05 metres longer than the direct line'),
     'reverse_heading': 'reverse turn must be 90 +/- 3 degrees',
     'reverse_radius': 'reverse turn radius must be 2.0 +/- 0.2 metres',
     'scenario_result_readable': 'the scenario JSON must be valid',

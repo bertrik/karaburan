@@ -2,6 +2,7 @@ import math
 
 from karaburan_navigation_tests.maneuver_metrics import (
     obstacle_report,
+    planner_direct_report,
     straight_report,
     turn_report,
 )
@@ -42,6 +43,22 @@ def test_turn_sign_is_checked_in_both_directions():
     assert turn_report(left, 1.0)['passed']
     assert turn_report(right, -1.0)['passed']
     assert not turn_report(left, -1.0)['passed']
+
+
+def test_direct_planner_path_passes_and_v_path_fails():
+    direct = [{'x': index * 0.25, 'y': 0.0} for index in range(33)]
+    v_path = [
+        {'x': 0.0, 'y': 0.0},
+        {'x': -2.0, 'y': 2.0},
+        {'x': 8.0, 'y': 0.0},
+    ]
+
+    assert planner_direct_report(direct, (0.0, 0.0), (8.0, 0.0))['passed']
+    failed = planner_direct_report(v_path, (0.0, 0.0), (8.0, 0.0))
+    assert not failed['passed']
+    assert not failed['checks']['planner_path_length']
+    assert not failed['checks']['planner_cross_track']
+    assert not failed['checks']['planner_monotonic']
 
 
 def test_obstacle_trace_requires_one_switch_and_rejects_a_loop():

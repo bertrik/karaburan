@@ -94,6 +94,71 @@ def turn_report(samples, expected_sign, minimum_heading=math.radians(45.0)):
     return _report(all(checks.values()), checks, {'heading_change': heading})
 
 
+def planner_direct_report(points, start, goal):
+    """Require a direct, monotonic plan for an aligned start and goal."""
+    if len(points) < 2:
+        return _report(False, {'plan_available': False})
+    direct_x = goal[0] - start[0]
+    direct_y = goal[1] - start[1]
+    direct_distance = math.hypot(direct_x, direct_y)
+    if direct_distance < 1e-6:
+        return _report(False, {'direct_distance': False})
+
+    direction_x = direct_x / direct_distance
+    direction_y = direct_y / direct_distance
+    progress = [
+        (point['x'] - start[0]) * direction_x
+        + (point['y'] - start[1]) * direction_y
+        for point in points
+    ]
+    cross_track = [
+        abs((point['x'] - start[0]) * direction_y
+            - (point['y'] - start[1]) * direction_x)
+        for point in points
+    ]
+    backwards_steps = sum(
+        later < earlier - 0.02
+        for earlier, later in zip(progress, progress[1:])
+    )
+    cusp_count = _cusp_count(points)
+    planned_distance = path_length(points)
+    length_excess = planned_distance - direct_distance
+    end_error = math.hypot(
+        points[-1]['x'] - goal[0], points[-1]['y'] - goal[1])
+    checks = {
+        'plan_available': True,
+        'planner_path_length': length_excess <= 0.05,
+        'planner_cross_track': max(cross_track) <= 0.50,
+        'planner_monotonic': backwards_steps == 0,
+        'planner_no_cusps': cusp_count == 0,
+        'planner_goal_reached': end_error <= 0.10,
+    }
+    return _report(all(checks.values()), checks, {
+        'direct_distance': direct_distance,
+        'planned_distance': planned_distance,
+        'length_excess': length_excess,
+        'length_ratio': planned_distance / direct_distance,
+        'max_cross_track': max(cross_track),
+        'backwards_steps': backwards_steps,
+        'cusp_count': cusp_count,
+        'end_error': end_error,
+    })
+
+
+def _cusp_count(points):
+    segments = []
+    for previous, current in zip(points, points[1:]):
+        dx = current['x'] - previous['x']
+        dy = current['y'] - previous['y']
+        length = math.hypot(dx, dy)
+        if length > 1e-3:
+            segments.append((dx / length, dy / length))
+    return sum(
+        previous[0] * current[0] + previous[1] * current[1] < 0.0
+        for previous, current in zip(segments, segments[1:])
+    )
+
+
 def obstacle_report(samples, goal, obstacle, planned_length=None):
     """Evaluate the complete one-reverse obstacle manoeuvre."""
     if len(samples) < 2:
