@@ -27,6 +27,16 @@ def generate_launch_description():
         'config',
         'controller_server.yaml'
     )
+    collision_monitor_yaml = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'collision_monitor.yaml'
+    )
+    reverse_arc_yaml = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'reverse_arc_controller.yaml'
+    )
     planner_server_yaml = os.path.join(
         get_package_share_directory('navigation'),
         'config',
@@ -51,6 +61,11 @@ def generate_launch_description():
         get_package_share_directory('navigation'),
         'config',
         'bt_navigator.yaml'
+    )
+    navigate_to_pose_bt = os.path.join(
+        get_package_share_directory('navigation'),
+        'config',
+        'navigate_to_pose_boat.xml'
     )
     use_sim_time = LaunchConfiguration('use_sim_time')
     slam_enabled = LaunchConfiguration('slam_enabled')
@@ -91,7 +106,10 @@ def generate_launch_description():
             executable='bt_navigator',
             name='bt_navigator',
             namespace='',
-            parameters=[bt_navigator_yaml, {'use_sim_time': use_sim_time}],
+            parameters=[bt_navigator_yaml, {
+                'use_sim_time': use_sim_time,
+                'default_nav_to_pose_bt_xml': navigate_to_pose_bt,
+            }],
             output='screen'
         ),
         LifecycleNode(
@@ -102,9 +120,26 @@ def generate_launch_description():
             parameters=[
                 controller_yaml, {'use_sim_time': use_sim_time}
             ],
-            arguments=['--ros-args', '--log-level', 'controller_server:=debug',
-                       '--log-level', 'regulated_pure_pursuit_controller:=debug'],
+            remappings=[('/cmd_vel', '/cmd_vel_planner')],
+            arguments=['--ros-args', '--log-level', 'controller_server:=debug'],
             output='log'
+        ),
+        LifecycleNode(
+            package='nav2_collision_monitor',
+            executable='collision_monitor',
+            name='collision_monitor',
+            namespace='',
+            parameters=[
+                collision_monitor_yaml, {'use_sim_time': use_sim_time}
+            ],
+            output='screen',
+        ),
+        Node(
+            package='navigation',
+            executable='reverse_arc_controller',
+            name='reverse_arc_controller',
+            parameters=[reverse_arc_yaml, {'use_sim_time': use_sim_time}],
+            output='screen',
         ),
         LifecycleNode(
             package='nav2_planner',
@@ -123,6 +158,7 @@ def generate_launch_description():
             namespace='',
             output='screen',
             parameters=[behavior_yaml, {'use_sim_time': use_sim_time}],
+            remappings=[('/cmd_vel', '/cmd_vel_planner')],
         ),
         LifecycleNode(
             package='nav2_waypoint_follower',
@@ -178,6 +214,7 @@ def generate_launch_description():
                 'autostart': True,
                 'node_names': [
                     'controller_server',
+                    'collision_monitor',
                     'behavior_server',
                     'smoother_server',
                     'bt_navigator',
@@ -197,6 +234,7 @@ def generate_launch_description():
                 'autostart': True,
                 'node_names': [
                     'controller_server',
+                    'collision_monitor',
                     'planner_server',
                     'behavior_server',
                     'smoother_server',

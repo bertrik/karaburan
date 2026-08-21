@@ -1,0 +1,18 @@
+/reverse_arc_controller:
+  ros__parameters:
+    radius: 2.0
+    heading_change: 1.5707963267948966
+    reverse_speed: 1.0
+    angular_feedforward_gain: 1.0
+    heading_gain: 0.5
+    max_angular_command: 1.0
+    forward_speed: 0.25
+    forward_handoff_timeout: 15.0
+    minimum_trigger_angular: 0.05
+    heading_tolerance: 0.01
+    distance_tolerance: 0.05
+    idle_reset_time: 1.0
+    maneuver_timeout: 25.0
+    arc_sample_step: 0.20
+    footprint_half_length: 0.30
+    footprint_half_width: 0.17

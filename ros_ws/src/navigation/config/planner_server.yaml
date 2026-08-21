@@ -6,9 +6,28 @@
 
     planner_plugins: ["GridBased"]
     GridBased:
-      plugin: "nav2_navfn_planner::NavfnPlanner"
-
-    expected_planner_frequency: 20.0
+      plugin: "nav2_smac_planner::SmacPlannerHybrid"
+      motion_model_for_search: "REEDS_SHEPP"
+      # Normal forward thrust sustains a radius of about five metres at
+      # 0.25 m/s. The dedicated high-differential reverse escape remains a
+      # separate two-metre manoeuvre.
+      minimum_turning_radius: 5.0
+      # Sailing is always preferable to station keeping. Reverse is only
+      # slightly dearer than forward, while changing between the two is
+      # deliberately expensive so a chosen manoeuvre is completed.
+      reverse_penalty: 1.05
+      change_penalty: 0.5
+      # Curves remain cheap: the boat should steer while making way instead
+      # of relying on differential-thrust spins.
+      non_straight_penalty: 1.05
+      # Give open water enough weight to produce a comfortably wide bypass.
+      cost_penalty: 4.0
+      analytic_expansion_max_length: 15.0
+      angle_quantization_bins: 72
+      tolerance: 0.25
+      max_planning_time: 2.0
+      allow_unknown: true
+      smooth_path: true
 
 /global_costmap:
   global_costmap:
@@ -18,9 +37,13 @@
       rolling_window: true
       width: 100
       height: 100
-      resolution: 0.5
+      # A 0.5 m cell is as long as the boat and can represent a one-metre
+      # obstacle with only a handful of lethal cells. 0.2 m keeps the global
+      # map small enough for a Pi 3 while preserving a collision-free lane.
+      resolution: 0.2
       transform_tolerance: 0.5
-      robot_radius: 0.5
+      footprint: "[[0.28, 0.15], [0.28, -0.15], [-0.28, -0.15], [-0.28, 0.15]]"
+      footprint_padding: 0.02
       static_layer:
         enabled: false
 
@@ -28,8 +51,24 @@
 
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          marking: true
+          clearing: true
+          inf_is_valid: true
+          min_obstacle_height: 0.0
+          max_obstacle_height: 2.0
+          obstacle_min_range: 0.1
+          obstacle_max_range: 8.0
+          raytrace_min_range: 0.1
+          raytrace_max_range: 10.0
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        inflation_radius: 2.0
-        cost_scaling_factor: 8.0
+        # Keep all water traversable, but extend the graded preference far
+        # enough that a reversing path creates useful manoeuvring room.
+        inflation_radius: 3.0
+        cost_scaling_factor: 1.0

@@ -1,0 +1,44 @@
+/collision_monitor:
+  ros__parameters:
+    use_sim_time: false
+    base_frame_id: base_link
+    odom_frame_id: odom
+    cmd_vel_in_topic: /cmd_vel_nav
+    cmd_vel_out_topic: /cmd_vel
+    state_topic: /collision_monitor_state
+    transform_tolerance: 0.5
+    source_timeout: 1.0
+    base_shift_correction: true
+    stop_pub_timeout: 2.0
+
+    # Planning and the costmap own avoidance. Keep only an inner emergency
+    # zone: making way is preferable to stopping at imperfect scan geometry.
+    polygons: ["PolygonStop"]
+    FootprintApproach:
+      type: polygon
+      action_type: approach
+      footprint_topic: /local_costmap/published_footprint
+      # At 0.25 m/s this looks 0.75 m ahead. The former 8 s horizon slowed a
+      # safe bypass to zero because it projected through a much later bend.
+      time_before_collision: 3.0
+      simulation_time_step: 0.1
+      min_points: 4
+      visualize: true
+      polygon_pub_topic: /collision_monitor/approach
+      enabled: false
+    PolygonStop:
+      type: polygon
+      # This lies inside the physical hull. It permits a soft contact in a bad
+      # situation, but still stops propulsion if scan returns penetrate deeply.
+      points: "[[0.20, 0.10], [0.20, -0.10], [-0.20, -0.10], [-0.20, 0.10]]"
+      action_type: stop
+      min_points: 4
+      visualize: true
+      polygon_pub_topic: /collision_monitor/stop
+      enabled: true
+
+    observation_sources: ["scan"]
+    scan:
+      type: scan
+      topic: /scan
+      enabled: true

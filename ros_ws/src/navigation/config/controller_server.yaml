@@ -13,9 +13,8 @@
 
     current_progress_checker: "progress_checker"
     progress_checker:
-      plugin: "nav2_controller::PoseProgressChecker"
+      plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.1
-      required_movement_angle: 0.1
       movement_time_allowance: 20.0
 
     current_goal_checker: "goal_checker"
@@ -27,19 +26,26 @@
 
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      lookahead_dist: 1.5
       desired_linear_vel: 0.25
-      transform_tolerance: 0.5
-      min_lookahead_dist: 0.3
+      # A displacement boat reacts more slowly than a wheeled robot. Looking
+      # two metres ahead avoids chasing every nearby path sample and weaving.
+      lookahead_dist: 2.0
+      min_lookahead_dist: 1.0
       max_lookahead_dist: 3.0
-      use_velocity_scaled_lookahead_dist: true
+      use_velocity_scaled_lookahead_dist: false
       max_robot_pose_search_dist: 10.0
-      use_rotate_to_heading: true
-      rotate_to_heading_angular_vel: 1.0
-      max_angular_accel: 10.0
-      enable_collision_checking: false
+      transform_tolerance: 0.5
+      use_rotate_to_heading: false
+      allow_reversing: true
+      # The collision monitor is the single safety authority. A second,
+      # longer arc projection here used to veto otherwise safe moving turns.
+      use_collision_detection: false
+      use_cost_regulated_linear_velocity_scaling: true
+      regulated_linear_scaling_min_radius: 1.0
+      regulated_linear_scaling_min_speed: 0.1
       min_x_velocity_threshold: 0.001
       min_theta_velocity_threshold: 0.001
+      stateful: true
 
 /local_costmap:
   local_costmap:
@@ -53,16 +59,37 @@
       height: 20
       resolution: 0.1
       transform_tolerance: 0.5
-      robot_radius: 0.6
-      cost_scaling_factor: 10.0
+      # Rectangular hull (0.50 x 0.25 m) plus a small physical margin. A
+      # circular 0.60 m footprint prevented safe close-quarters manoeuvres.
+      footprint: "[[0.28, 0.15], [0.28, -0.15], [-0.28, -0.15], [-0.28, 0.15]]"
+      footprint_padding: 0.02
 
       always_send_full_costmap: true
       static_layer:
         enabled: false
 
-      plugins: ["inflation_layer"]
+      plugins: ["obstacle_layer", "inflation_layer"]
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /scan
+          data_type: "LaserScan"
+          marking: true
+          clearing: true
+          inf_is_valid: true
+          min_obstacle_height: 0.0
+          max_obstacle_height: 2.0
+          obstacle_min_range: 0.1
+          obstacle_max_range: 8.0
+          raytrace_min_range: 0.1
+          raytrace_max_range: 10.0
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        inflation_radius: 0.6
-        cost_scaling_factor: 10.0
+        # Only measured obstacle cells are lethal. Surrounding water receives
+        # a graded preference cost, so it remains usable for manoeuvring.
+        inflation_radius: 1.5
+        cost_scaling_factor: 1.5
