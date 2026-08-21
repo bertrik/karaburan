@@ -104,6 +104,15 @@ def test_static_scenario_objects_have_required_semantics_and_geometry(tmp_path):
     assert all(item['collision']['shape'] != 'none'
                for item in objects
                if item['semantic_type'] != 'LILY_PAD_FIELD')
+    peat = [item for item in objects if item['semantic_type'] == 'PEAT_CHUNK']
+    assert all(item['visual']['shape'] == 'polygon' for item in peat)
+    assert all(item['collision']['shape'] == 'polygon' for item in peat)
+    assert all(item['navigation']['shape'] == 'polygon' for item in peat)
+    assert all(item['collision']['z_offset_m'] < 0.0 for item in peat)
+    assert all(
+        item['collision']['height_m'] > item['visual']['height_m']
+        for item in peat
+    )
 
 
 def test_debug_only_does_not_write_a_gazebo_world(tmp_path):
@@ -122,6 +131,11 @@ def test_debug_only_does_not_write_a_gazebo_world(tmp_path):
     assert 'peat_03' in scenario_debug
     assert 'buoy_03' in scenario_debug
     assert scenario_debug.count('class="navigation-zone"') == 11
+    assert scenario_debug.count('data-layer="submerged-peat"') == 3
+    assert scenario_debug.count('data-layer="exposed-peat"') == 3
+    assert 'Brown dashed: submerged peat' in scenario_debug
+    assert 'PEAT DETAIL (10 px = 1 m)' in scenario_debug
+    assert 'WATERLINE' in scenario_debug
     assert not list(tmp_path.glob('*.sdf'))
 
 

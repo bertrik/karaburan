@@ -194,14 +194,39 @@ def _circle_points(pose, radius, margin=0.0, count=24):
     ] for index in range(count)]
 
 
+def _polygon_points(pose, points, margin=0.0):
+    """Rotate local polygon points and optionally expand them from the centre."""
+    centre_x = sum(point[0] for point in points) / len(points)
+    centre_y = sum(point[1] for point in points) / len(points)
+    cosine = math.cos(pose['yaw'])
+    sine = math.sin(pose['yaw'])
+    transformed = []
+    for point in points:
+        local_x = point[0] - centre_x
+        local_y = point[1] - centre_y
+        length = math.hypot(local_x, local_y)
+        factor = (length + margin) / length if length else 1.0
+        expanded_x = centre_x + local_x * factor
+        expanded_y = centre_y + local_y * factor
+        transformed.append([
+            pose['x'] + expanded_x * cosine - expanded_y * sine,
+            pose['y'] + expanded_x * sine + expanded_y * cosine,
+        ])
+    return transformed
+
+
+def _shape_extent_points(item, shape, margin=0.0):
+    if shape['shape'] == 'box':
+        return _rotated_box_points(item['pose'], shape['size_m'], margin)
+    if shape['shape'] == 'polygon':
+        return _polygon_points(item['pose'], shape['points_m'], margin)
+    return _circle_points(item['pose'], shape['radius_m'], margin)
+
+
 def _navigation_extent_points(item):
     navigation = item['navigation']
-    margin = navigation.get('margin_m', 0.0)
-    if navigation['shape'] == 'box':
-        return _rotated_box_points(
-            item['pose'], navigation['size_m'], margin)
-    return _circle_points(
-        item['pose'], navigation['radius_m'], margin)
+    return _shape_extent_points(
+        item, navigation, navigation.get('margin_m', 0.0))
 
 
 def _point_in_navigation(point, item):
@@ -224,6 +249,11 @@ def _validate_shape(name, shape, allow_none=False):
             raise ValueError(f'{name} cylinder radius_m is invalid')
         if not _is_number(shape.get('height_m')) or shape['height_m'] <= 0.0:
             raise ValueError(f'{name} cylinder height_m is invalid')
+        return
+    if shape_type == 'polygon':
+        _validate_polygon(f'{name} polygon', shape.get('points_m', []))
+        if not _is_number(shape.get('height_m')) or shape['height_m'] <= 0.0:
+            raise ValueError(f'{name} polygon height_m is invalid')
         return
     raise ValueError(f'{name} shape is invalid')
 
@@ -253,6 +283,12 @@ def _validate_scenario_objects(config):
         _validate_shape(
             f'{identifier} collision', item.get('collision', {}),
             allow_none=True)
+        for shape_name in ('visual', 'collision'):
+            shape = item[shape_name]
+            offset = shape.get('z_offset_m', 0.0)
+            if not _is_number(offset):
+                raise ValueError(
+                    f'{identifier} {shape_name} z_offset_m is invalid')
         navigation = item.get('navigation', {})
         margin = navigation.get('margin_m')
         if not _is_number(margin) or margin < 0.0:
@@ -267,6 +303,11 @@ def _validate_scenario_objects(config):
             radius = navigation.get('radius_m')
             if not _is_number(radius) or radius <= 0.0:
                 raise ValueError(f'{identifier} navigation circle is invalid')
+        elif navigation.get('shape') == 'polygon':
+            _validate_polygon(
+                f'{identifier} navigation polygon',
+                navigation.get('points_m', []),
+            )
         else:
             raise ValueError(f'{identifier} navigation shape is invalid')
         extent = _navigation_extent_points(item)
@@ -362,10 +403,17 @@ def _add_shape(parent, shape):
         box = _subelement(geometry, 'box')
         _subelement(box, 'size', ' '.join(
             _number(value) for value in shape['size_m']))
-    else:
+    elif shape['shape'] == 'cylinder':
         cylinder = _subelement(geometry, 'cylinder')
         _subelement(cylinder, 'radius', _number(shape['radius_m']))
         _subelement(cylinder, 'length', _number(shape['height_m']))
+    else:
+        polyline = _subelement(geometry, 'polyline')
+        _subelement(polyline, 'height', _number(shape['height_m']))
+        for point in shape['points_m']:
+            _subelement(
+                polyline, 'point',
+                f'{_number(point[0])} {_number(point[1])}')
 
 
 def _scenario_material(semantic_type):
@@ -580,10 +628,9 @@ def _add_scenario_objects(world, config):
     link = _subelement(model, 'link', attributes={'name': 'objects'})
     for item in items:
         pose = item['pose']
-        pose_text = '{} {} {} 0 0 {}'.format(
+        pose_template = '{} {} {{}} 0 0 {}'.format(
             _number(pose['x']),
             _number(pose['y']),
-            _number(pose['z']),
             _number(pose['yaw']),
         )
         collision_shape = item['collision']
@@ -593,15 +640,19 @@ def _add_scenario_objects(world, config):
                 'collision',
                 attributes={'name': f"{item['id']}_collision"},
             )
-            _subelement(collision, 'pose', pose_text)
+            collision_z = pose['z'] + collision_shape.get('z_offset_m', 0.0)
+            _subelement(collision, 'pose', pose_template.format(
+                _number(collision_z)))
             _add_shape(collision, collision_shape)
         visual = _subelement(
             link,
             'visual',
             attributes={'name': f"{item['id']}_visual"},
         )
-        _subelement(visual, 'pose', pose_text)
-        _add_shape(visual, item['visual'])
+        visual_shape = item['visual']
+        visual_z = pose['z'] + visual_shape.get('z_offset_m', 0.0)
+        _subelement(visual, 'pose', pose_template.format(_number(visual_z)))
+        _add_shape(visual, visual_shape)
         _add_material(visual, *_scenario_material(item['semantic_type']))
 
 
@@ -703,18 +754,27 @@ def _scenario_svg_lines(config, transform, scale):
     lines = []
     for item in items:
         navigation = item['navigation']
-        if navigation['shape'] == 'box':
+        if navigation['shape'] != 'circle':
             points = _navigation_extent_points(item)
             lines.append(
                 f'<polygon points="{_svg_points(points, transform)}" '
-                'class="navigation-zone"/>')
+                'class="navigation-zone" data-layer="navigation"/>')
         else:
             centre = transform([item['pose']['x'], item['pose']['y']])
             radius = (
                 navigation['radius_m'] + navigation['margin_m']) * scale
             lines.append(
                 f'<circle cx="{centre[0]:.1f}" cy="{centre[1]:.1f}" '
-                f'r="{radius:.1f}" class="navigation-zone"/>')
+                f'r="{radius:.1f}" class="navigation-zone" '
+                'data-layer="navigation"/>')
+    for item in items:
+        collision = item['collision']
+        if (item['semantic_type'] == SEMANTIC_PEAT_CHUNK
+                and collision['shape'] == 'polygon'):
+            submerged = _shape_extent_points(item, collision)
+            lines.append(
+                f'<polygon points="{_svg_points(submerged, transform)}" '
+                'class="peat-submerged" data-layer="submerged-peat"/>')
     colours = {
         SEMANTIC_REED_ZONE: '#789b28',
         SEMANTIC_LILY_PAD_FIELD: '#23a047',
@@ -730,6 +790,12 @@ def _scenario_svg_lines(config, transform, scale):
             lines.append(
                 f'<polygon points="{_svg_points(points, transform)}" '
                 f'fill="{colour}" stroke="#17231b" stroke-width="1.5"/>')
+        elif visual['shape'] == 'polygon':
+            points = _shape_extent_points(item, visual)
+            lines.append(
+                f'<polygon points="{_svg_points(points, transform)}" '
+                f'fill="{colour}" stroke="#f0dfc0" stroke-width="1.5" '
+                'data-layer="exposed-peat"/>')
         else:
             centre = transform([pose['x'], pose['y']])
             radius = max(3.0, visual['radius_m'] * scale)
@@ -742,6 +808,79 @@ def _scenario_svg_lines(config, transform, scale):
             f'<text x="{label[0] + 7:.1f}" y="{label[1] - 7:.1f}" '
             f'class="object-label">{escape(item["id"])}</text>')
     return lines
+
+
+def _peat_detail_svg_lines(config):
+    """Draw a magnified top and side view of the first peat chunk."""
+    item = next(
+        item for item in config['scenario_objects']
+        if item['semantic_type'] == SEMANTIC_PEAT_CHUNK)
+    visual = item['visual']
+    collision = item['collision']
+    centre_x = 98.0
+    centre_y = 154.0
+    plan_scale = 10.0
+
+    def detail_points(points):
+        return ' '.join(
+            f'{centre_x + point[0] * plan_scale:.1f},'
+            f'{centre_y - point[1] * plan_scale:.1f}'
+            for point in points)
+
+    pose_z = item['pose']['z']
+    visual_bottom = (
+        pose_z + visual.get('z_offset_m', 0.0)
+        - visual['height_m'] / 2.0)
+    visual_top = visual_bottom + visual['height_m']
+    collision_bottom = (
+        pose_z + collision.get('z_offset_m', 0.0)
+        - collision['height_m'] / 2.0)
+    collision_top = collision_bottom + collision['height_m']
+    side_scale = 35.0
+    water_y = 154.0
+    side_centre_x = 217.0
+    collision_width = min(
+        74.0,
+        (max(point[0] for point in collision['points_m'])
+         - min(point[0] for point in collision['points_m'])) * plan_scale,
+    )
+    visual_width = min(
+        54.0,
+        (max(point[0] for point in visual['points_m'])
+         - min(point[0] for point in visual['points_m'])) * plan_scale,
+    )
+    collision_y = water_y - collision_top * side_scale
+    collision_height = (
+        collision_top - collision_bottom) * side_scale
+    visual_y = water_y - visual_top * side_scale
+    visual_height = (visual_top - visual_bottom) * side_scale
+    return [
+        '<g class="peat-detail">',
+        '<rect x="35" y="76" width="250" height="178" rx="5"/>',
+        '<text x="48" y="98" class="detail-title">PEAT DETAIL '
+        '(10 px = 1 m)</text>',
+        '<text x="62" y="118" class="detail-label">TOP VIEW</text>',
+        '<text x="185" y="118" class="detail-label">SIDE VIEW</text>',
+        f'<polygon points="{detail_points(collision["points_m"])}" '
+        'class="peat-submerged"/>',
+        f'<polygon points="{detail_points(visual["points_m"])}" '
+        'class="peat-exposed"/>',
+        f'<rect x="{side_centre_x - collision_width / 2.0:.1f}" '
+        f'y="{collision_y:.1f}" width="{collision_width:.1f}" '
+        f'height="{collision_height:.1f}" class="peat-submerged"/>',
+        f'<rect x="{side_centre_x - visual_width / 2.0:.1f}" '
+        f'y="{visual_y:.1f}" width="{visual_width:.1f}" '
+        f'height="{visual_height:.1f}" class="peat-exposed"/>',
+        f'<path d="M 174 {water_y:.1f} H 268" class="waterline"/>',
+        '<text x="176" y="148" class="detail-label">WATERLINE</text>',
+        '<path d="M 50 215 H 70" class="peat-exposed-key"/>',
+        '<text x="76" y="219" class="detail-label">above water</text>',
+        '<path d="M 166 215 H 186" class="peat-submerged-key"/>',
+        '<text x="192" y="219" class="detail-label">underwater</text>',
+        '<text x="48" y="240" class="detail-label">Yellow dashed on map: '
+        'navigation margin</text>',
+        '</g>',
+    ]
 
 
 def _debug_svg(config, include_scenario=False):
@@ -810,10 +949,12 @@ def _debug_svg(config, include_scenario=False):
                 'class="island">{}</text>'.format(identifier))
     if include_scenario:
         lines.extend(_scenario_svg_lines(config, transform, scale))
+        lines.extend(_peat_detail_svg_lines(config))
     title = ('Ravensberg static scenario - scenario view'
              if include_scenario else 'Ravensberg MVP - geometry view')
-    legend = ('Blue: water | Olive: reeds | Green: lilies | Brown: peat | '
-              'Orange: buoys | Dashed: navigation extent'
+    legend = ('Blue: water | Olive: reeds | Green: lilies | '
+              'Brown solid: exposed peat | Brown dashed: submerged peat | '
+              'Yellow dashed: navigation extent'
               if include_scenario else
               'Blue: navigable water | Green/tan: land | Scale: 1 unit = 1 metre')
     lines.extend([
@@ -821,6 +962,17 @@ def _debug_svg(config, include_scenario=False):
         '.label{font-size:18px;font-weight:bold}'
         '.island{font-size:11px;text-anchor:middle}'
         '.object-label{font-size:11px;font-weight:bold}'
+        '.detail-title{font-size:12px;font-weight:bold}'
+        '.detail-label{font-size:10px}'
+        '.peat-detail>rect:first-child{fill:#f3efd9;fill-opacity:0.96;'
+        'stroke:#594a36;stroke-width:1.5}'
+        '.peat-exposed{fill:#56351f;stroke:#f0dfc0;stroke-width:1.5}'
+        '.peat-submerged{fill:#8a674e;fill-opacity:0.45;stroke:#3a2517;'
+        'stroke-width:2;stroke-dasharray:2 2}'
+        '.waterline{fill:none;stroke:#176a99;stroke-width:2}'
+        '.peat-exposed-key{stroke:#56351f;stroke-width:8}'
+        '.peat-submerged-key{stroke:#3a2517;stroke-width:4;'
+        'stroke-dasharray:2 2}'
         '.navigation-zone{fill:#f4df5b;fill-opacity:0.25;stroke:#5f5200;'
         'stroke-width:1.5;stroke-dasharray:5 3}</style>',
         f'<circle cx="{start_xy[0]:.1f}" cy="{start_xy[1]:.1f}" r="9" '

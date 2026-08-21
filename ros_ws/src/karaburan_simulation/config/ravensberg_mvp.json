@@ -92,28 +92,70 @@
       "id": "peat_01",
       "semantic_type": "PEAT_CHUNK",
       "navigation_class": "STATIC_HARD_OBSTACLE",
-      "pose": {"x": 100.0, "y": 200.0, "z": 0.0, "yaw": 0.0},
-      "visual": {"shape": "cylinder", "radius_m": 1.4, "height_m": 0.4},
-      "collision": {"shape": "cylinder", "radius_m": 1.4, "height_m": 0.4},
-      "navigation": {"shape": "circle", "radius_m": 1.4, "margin_m": 1.6}
+      "pose": {"x": 100.0, "y": 200.0, "z": 0.0, "yaw": 0.25},
+      "visual": {
+        "shape": "polygon",
+        "points_m": [[-1.3, -0.3], [-0.7, -0.9], [0.4, -1.0], [1.3, -0.4], [1.1, 0.5], [0.2, 0.9], [-0.9, 0.7]],
+        "height_m": 0.35,
+        "z_offset_m": 0.075
+      },
+      "collision": {
+        "shape": "polygon",
+        "points_m": [[-2.4, -0.5], [-1.5, -1.8], [0.0, -2.1], [1.8, -1.4], [2.5, 0.1], [1.6, 1.7], [-0.2, 2.0], [-2.0, 1.2]],
+        "height_m": 1.4,
+        "z_offset_m": -0.6
+      },
+      "navigation": {
+        "shape": "polygon",
+        "points_m": [[-2.4, -0.5], [-1.5, -1.8], [0.0, -2.1], [1.8, -1.4], [2.5, 0.1], [1.6, 1.7], [-0.2, 2.0], [-2.0, 1.2]],
+        "margin_m": 1.6
+      }
     },
     {
       "id": "peat_02",
       "semantic_type": "PEAT_CHUNK",
       "navigation_class": "STATIC_HARD_OBSTACLE",
-      "pose": {"x": -300.0, "y": 300.0, "z": -0.02, "yaw": 0.0},
-      "visual": {"shape": "cylinder", "radius_m": 0.9, "height_m": 0.3},
-      "collision": {"shape": "cylinder", "radius_m": 0.9, "height_m": 0.3},
-      "navigation": {"shape": "circle", "radius_m": 0.9, "margin_m": 1.6}
+      "pose": {"x": -300.0, "y": 300.0, "z": -0.02, "yaw": -0.4},
+      "visual": {
+        "shape": "polygon",
+        "points_m": [[-0.9, -0.2], [-0.4, -0.7], [0.5, -0.6], [0.9, 0.1], [0.3, 0.7], [-0.6, 0.6]],
+        "height_m": 0.25,
+        "z_offset_m": 0.055
+      },
+      "collision": {
+        "shape": "polygon",
+        "points_m": [[-1.8, -0.4], [-1.0, -1.4], [0.5, -1.5], [1.7, -0.6], [1.8, 0.6], [0.6, 1.4], [-1.1, 1.2]],
+        "height_m": 1.0,
+        "z_offset_m": -0.45
+      },
+      "navigation": {
+        "shape": "polygon",
+        "points_m": [[-1.8, -0.4], [-1.0, -1.4], [0.5, -1.5], [1.7, -0.6], [1.8, 0.6], [0.6, 1.4], [-1.1, 1.2]],
+        "margin_m": 1.6
+      }
     },
     {
       "id": "peat_03",
       "semantic_type": "PEAT_CHUNK",
       "navigation_class": "STATIC_HARD_OBSTACLE",
-      "pose": {"x": 400.0, "y": -100.0, "z": 0.02, "yaw": 0.0},
-      "visual": {"shape": "cylinder", "radius_m": 1.8, "height_m": 0.45},
-      "collision": {"shape": "cylinder", "radius_m": 1.8, "height_m": 0.45},
-      "navigation": {"shape": "circle", "radius_m": 1.8, "margin_m": 1.7}
+      "pose": {"x": 400.0, "y": -100.0, "z": 0.02, "yaw": 0.6},
+      "visual": {
+        "shape": "polygon",
+        "points_m": [[-1.8, -0.5], [-0.8, -1.3], [0.7, -1.1], [1.8, -0.2], [1.2, 1.0], [-0.3, 1.3], [-1.5, 0.7]],
+        "height_m": 0.45,
+        "z_offset_m": 0.105
+      },
+      "collision": {
+        "shape": "polygon",
+        "points_m": [[-3.2, -0.8], [-1.9, -2.1], [0.1, -2.5], [2.2, -1.7], [3.1, 0.1], [2.0, 2.0], [0.0, 2.5], [-2.4, 1.5]],
+        "height_m": 1.8,
+        "z_offset_m": -0.8
+      },
+      "navigation": {
+        "shape": "polygon",
+        "points_m": [[-3.2, -0.8], [-1.9, -2.1], [0.1, -2.5], [2.2, -1.7], [3.1, 0.1], [2.0, 2.0], [0.0, 2.5], [-2.4, 1.5]],
+        "margin_m": 1.7
+      }
     },
     {
       "id": "buoy_01",

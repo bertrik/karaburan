@@ -51,7 +51,7 @@
 <polygon points="763.1,886.2 748.4,944.2 751.8,939.7 764.7,891.8" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
 <polygon points="691.6,1021.0 680.6,1016.7 674.4,1024.8 675.8,1031.5 688.1,1033.1" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
 <polygon points="315.7,585.3 310.1,588.0 304.9,596.9 299.6,610.8 301.6,616.3 309.8,605.2 316.7,588.7" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
-<style>text{font-family:Arial,sans-serif;fill:#12222b}.label{font-size:18px;font-weight:bold}.island{font-size:11px;text-anchor:middle}.object-label{font-size:11px;font-weight:bold}.navigation-zone{fill:#f4df5b;fill-opacity:0.25;stroke:#5f5200;stroke-width:1.5;stroke-dasharray:5 3}</style>
+<style>text{font-family:Arial,sans-serif;fill:#12222b}.label{font-size:18px;font-weight:bold}.island{font-size:11px;text-anchor:middle}.object-label{font-size:11px;font-weight:bold}.detail-title{font-size:12px;font-weight:bold}.detail-label{font-size:10px}.peat-detail>rect:first-child{fill:#f3efd9;fill-opacity:0.96;stroke:#594a36;stroke-width:1.5}.peat-exposed{fill:#56351f;stroke:#f0dfc0;stroke-width:1.5}.peat-submerged{fill:#8a674e;fill-opacity:0.45;stroke:#3a2517;stroke-width:2;stroke-dasharray:2 2}.waterline{fill:none;stroke:#176a99;stroke-width:2}.peat-exposed-key{stroke:#56351f;stroke-width:8}.peat-submerged-key{stroke:#3a2517;stroke-width:4;stroke-dasharray:2 2}.navigation-zone{fill:#f4df5b;fill-opacity:0.25;stroke:#5f5200;stroke-width:1.5;stroke-dasharray:5 3}</style>
 <circle cx="366.3" cy="600.3" r="9" fill="#20a65a" stroke="white" stroke-width="3"/>
 <text x="380.3" y="606.3" class="label">START</text>
 <circle cx="584.4" cy="394.0" r="9" fill="#d63b32" stroke="white" stroke-width="3"/>
