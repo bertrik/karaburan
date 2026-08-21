@@ -1,11 +1,7 @@
-# Start Gazebo world, load xacro -> /robot_description & spawn in sim.
+# Start the Karaburan Gazebo world, navigation stack, and simulated boat.
 #
 # Usage:
-#   ros2 launch navigation sim.launch.py \
-#       xacro_file:=/path/karaburan.xacro \
-#       world_sdf:=/path/world.sdf \
-#       entity_name:=karaburan x:=0 y:=0 z:=0.15 with_gazebo:=true \
-#       xacro_args:="arg1:=value1 arg2:=value2"
+#   ros2 launch karaburan_simulation sim.launch.py
 #
 
 import os
@@ -35,10 +31,10 @@ from navigation.launch_arguments import (
 
 
 def generate_launch_description():
-    boatcontrol_dir = get_package_share_directory('boatcontrol')
-    boatcontrol = IncludeLaunchDescription(
+    simulation_dir = get_package_share_directory('karaburan_simulation')
+    simcontrol = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(boatcontrol_dir, 'launch', 'simcontrol.launch.py')
+            os.path.join(simulation_dir, 'launch', 'simcontrol.launch.py')
         )
     )
 
@@ -137,14 +133,15 @@ def generate_launch_description():
         # Paths / args
         DeclareLaunchArgument(
             'world_sdf',
-            default_value='navigation/config/world.sdf',
+            default_value=os.path.join(simulation_dir, 'worlds', 'world.sdf'),
             description="Path to world (SDF). 'empty.sdf' also works."
         ),
         DeclareLaunchArgument('world_name', default_value='ocean'),
         DeclareLaunchArgument(
             'model_sdf',
-            default_value='navigation/config/karaburan_boat.sdf',
-            description='Pad naar SDF-model met hydrodynamics plugin'
+            default_value=os.path.join(
+                simulation_dir, 'models', 'karaburan_boat.sdf'),
+            description='Path to the SDF model with hydrodynamics plugin'
         ),
         DeclareLaunchArgument('entity_name', default_value='karaburan'),
         DeclareLaunchArgument('x', default_value='0.0'),
@@ -199,7 +196,7 @@ def generate_launch_description():
         gazebo,
         gazebo_headless,
         nav_launch,
-        boatcontrol,
+        simcontrol,
         measurement_launch,
         storage_launch,
 

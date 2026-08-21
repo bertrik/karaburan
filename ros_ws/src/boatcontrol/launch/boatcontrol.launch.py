@@ -3,7 +3,6 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
-import launch_testing.actions
 
 
 def generate_launch_description():
@@ -33,6 +32,4 @@ def generate_launch_description():
             default_value='115200',
             description='Motor controller serial baud rate',
         ),
-    ] + nodes + [
-        launch_testing.actions.ReadyToTest()
-    ])
+    ] + nodes)

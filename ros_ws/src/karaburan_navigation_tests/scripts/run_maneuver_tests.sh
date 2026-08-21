@@ -64,7 +64,7 @@ for scenario in "${scenarios[@]}"; do
   scenario_index=$((scenario_index + 1))
 
   echo "Running $scenario"
-  setsid ros2 launch navigation maneuver_test.launch.py \
+  setsid ros2 launch karaburan_navigation_tests maneuver_test.launch.py \
     >"$report_root/$scenario.launch.log" 2>&1 &
   launch_pid=$!
 
@@ -85,7 +85,7 @@ for scenario in "${scenarios[@]}"; do
   if [[ "$ready" != true ]]; then
     echo "Simulator did not become ready for $scenario" >&2
     status=1
-  elif ! ros2 run navigation maneuver_test_runner \
+  elif ! ros2 run karaburan_navigation_tests maneuver_test_runner \
       --scenario "$scenario" \
       --output "$report_root/$scenario.json"; then
     status=1

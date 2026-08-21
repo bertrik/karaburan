@@ -8,7 +8,6 @@
   <license>TODO: License declaration</license>
 
   <depend>rclpy</depend>
-  <depend>action_msgs</depend>
   <depend>ament_index_python</depend>
   <depend>geometry_msgs</depend>
   <depend>geographic_msgs</depend>
@@ -19,7 +18,6 @@
   <depend>nav2_simple_commander</depend>
 
   <exec_depend>launch</exec_depend>
-  <exec_depend>launch_testing</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>nav2_map_server</exec_depend>
   <exec_depend>nav2_bt_navigator</exec_depend>

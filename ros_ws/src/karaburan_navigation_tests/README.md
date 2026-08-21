@@ -6,20 +6,20 @@ machine-readable JSON report for every scenario.
 
 ## Run the complete set
 
-Build and source the workspace, stop any other Karaburan simulation, and run:
+Build and source the workspace, then run:
 
 ```bash
 cd /home/michiel/karaburan/ros_ws/src
 source /opt/ros/jazzy/setup.bash
-colcon build --packages-select navigation boatcontrol
+colcon build --packages-up-to karaburan_navigation_tests
 source install/setup.bash
-bash install/navigation/share/navigation/scripts/run_maneuver_tests.sh
+bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_maneuver_tests.sh
 ```
 
 Pass a directory to retain the reports at a specific location:
 
 ```bash
-bash install/navigation/share/navigation/scripts/run_maneuver_tests.sh \
+bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_maneuver_tests.sh \
   /home/michiel/karaburan/maneuver-test-results/manual-check
 ```
 
@@ -27,7 +27,7 @@ Add one or more scenario names after the report directory for a quick focused
 run. This is the preferred feedback loop while tuning a controller:
 
 ```bash
-bash install/navigation/share/navigation/scripts/run_maneuver_tests.sh \
+bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_maneuver_tests.sh \
   /home/michiel/karaburan/maneuver-test-results/follow-straight \
   actuator_straight follow_straight
 ```

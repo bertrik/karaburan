@@ -1,6 +1,6 @@
 import math
 
-from navigation.maneuver_metrics import (
+from karaburan_navigation_tests.maneuver_metrics import (
     obstacle_report,
     straight_report,
     turn_report,

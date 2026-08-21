@@ -10,14 +10,14 @@ import time
 from action_msgs.msg import GoalStatus
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import PoseStamped, Twist
-from nav2_msgs.action import FollowPath, NavigateToPose
-from nav_msgs.msg import Odometry, Path
-from navigation.maneuver_metrics import (
+from karaburan_navigation_tests.maneuver_metrics import (
     obstacle_report,
     path_length,
     straight_report,
     turn_report,
 )
+from nav2_msgs.action import FollowPath, NavigateToPose
+from nav_msgs.msg import Odometry, Path
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
@@ -243,8 +243,8 @@ def obstacle(node, side):
 
 
 def _spawn_block(y_position):
-    share = get_package_share_directory('navigation')
-    model = FilePath(share) / 'config' / 'maneuver_test_block.sdf'
+    share = get_package_share_directory('karaburan_navigation_tests')
+    model = FilePath(share) / 'scenarios' / 'maneuver_test_block.sdf'
     request = (
         'sdf_filename: "' + str(model) + '", '
         'pose: {position: {x: 1.5, y: ' + str(y_position) + '}}'

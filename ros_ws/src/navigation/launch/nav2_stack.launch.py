@@ -8,7 +8,6 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import LifecycleNode, Node
 from launch_ros.substitutions import FindPackageShare
-import launch_testing.actions
 
 
 def generate_launch_description():
@@ -275,5 +274,5 @@ def generate_launch_description():
         ),
     ]
     return LaunchDescription(
-        launch_actions + nodes + [launch_testing.actions.ReadyToTest()]
+        launch_actions + nodes
     )
