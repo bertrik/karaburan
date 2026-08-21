@@ -1,8 +1,8 @@
 {
   "complexity": {
-    "collision_count": 37,
-    "static_entity_count": 3,
-    "visual_count": 66
+    "collision_count": 46,
+    "static_entity_count": 4,
+    "visual_count": 77
   },
   "coordinates": {
     "frame": "map",
@@ -4726,6 +4726,327 @@
           ]
         ],
         "type": "polygon"
+      }
+    },
+    {
+      "collision": {
+        "shape": "box",
+        "size_m": [
+          18.0,
+          5.0,
+          1.6
+        ]
+      },
+      "id": "reed_01",
+      "navigation": {
+        "margin_m": 2.0,
+        "shape": "box",
+        "size_m": [
+          18.0,
+          5.0
+        ]
+      },
+      "navigation_class": "AVOID_ZONE",
+      "pose": {
+        "x": -200.0,
+        "y": 600.0,
+        "yaw": 0.35,
+        "z": 0.7
+      },
+      "semantic_type": "REED_ZONE",
+      "visual": {
+        "shape": "box",
+        "size_m": [
+          18.0,
+          5.0,
+          1.6
+        ]
+      }
+    },
+    {
+      "collision": {
+        "shape": "box",
+        "size_m": [
+          20.0,
+          6.0,
+          1.6
+        ]
+      },
+      "id": "reed_02",
+      "navigation": {
+        "margin_m": 2.5,
+        "shape": "box",
+        "size_m": [
+          20.0,
+          6.0
+        ]
+      },
+      "navigation_class": "AVOID_ZONE",
+      "pose": {
+        "x": 500.0,
+        "y": 0.0,
+        "yaw": 1.0,
+        "z": 0.7
+      },
+      "semantic_type": "REED_ZONE",
+      "visual": {
+        "shape": "box",
+        "size_m": [
+          20.0,
+          6.0,
+          1.6
+        ]
+      }
+    },
+    {
+      "collision": {
+        "shape": "box",
+        "size_m": [
+          24.0,
+          6.0,
+          1.6
+        ]
+      },
+      "id": "reed_03",
+      "navigation": {
+        "margin_m": 3.0,
+        "shape": "box",
+        "size_m": [
+          24.0,
+          6.0
+        ]
+      },
+      "navigation_class": "AVOID_ZONE",
+      "pose": {
+        "x": 300.0,
+        "y": -600.0,
+        "yaw": 0.8,
+        "z": 0.7
+      },
+      "semantic_type": "REED_ZONE",
+      "visual": {
+        "shape": "box",
+        "size_m": [
+          24.0,
+          6.0,
+          1.6
+        ]
+      }
+    },
+    {
+      "collision": {
+        "shape": "none"
+      },
+      "id": "lily_01",
+      "navigation": {
+        "margin_m": 3.0,
+        "shape": "box",
+        "size_m": [
+          22.0,
+          14.0
+        ]
+      },
+      "navigation_class": "STATIC_SOFT_OBSTACLE",
+      "pose": {
+        "x": -200.0,
+        "y": 500.0,
+        "yaw": -0.2,
+        "z": -0.005
+      },
+      "semantic_type": "LILY_PAD_FIELD",
+      "visual": {
+        "shape": "box",
+        "size_m": [
+          22.0,
+          14.0,
+          0.03
+        ]
+      }
+    },
+    {
+      "collision": {
+        "shape": "none"
+      },
+      "id": "lily_02",
+      "navigation": {
+        "margin_m": 3.0,
+        "shape": "box",
+        "size_m": [
+          18.0,
+          12.0
+        ]
+      },
+      "navigation_class": "STATIC_SOFT_OBSTACLE",
+      "pose": {
+        "x": 500.0,
+        "y": -300.0,
+        "yaw": 0.45,
+        "z": -0.005
+      },
+      "semantic_type": "LILY_PAD_FIELD",
+      "visual": {
+        "shape": "box",
+        "size_m": [
+          18.0,
+          12.0,
+          0.03
+        ]
+      }
+    },
+    {
+      "collision": {
+        "height_m": 0.4,
+        "radius_m": 1.4,
+        "shape": "cylinder"
+      },
+      "id": "peat_01",
+      "navigation": {
+        "margin_m": 1.6,
+        "radius_m": 1.4,
+        "shape": "circle"
+      },
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {
+        "x": 100.0,
+        "y": 200.0,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "semantic_type": "PEAT_CHUNK",
+      "visual": {
+        "height_m": 0.4,
+        "radius_m": 1.4,
+        "shape": "cylinder"
+      }
+    },
+    {
+      "collision": {
+        "height_m": 0.3,
+        "radius_m": 0.9,
+        "shape": "cylinder"
+      },
+      "id": "peat_02",
+      "navigation": {
+        "margin_m": 1.6,
+        "radius_m": 0.9,
+        "shape": "circle"
+      },
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {
+        "x": -300.0,
+        "y": 300.0,
+        "yaw": 0.0,
+        "z": -0.02
+      },
+      "semantic_type": "PEAT_CHUNK",
+      "visual": {
+        "height_m": 0.3,
+        "radius_m": 0.9,
+        "shape": "cylinder"
+      }
+    },
+    {
+      "collision": {
+        "height_m": 0.45,
+        "radius_m": 1.8,
+        "shape": "cylinder"
+      },
+      "id": "peat_03",
+      "navigation": {
+        "margin_m": 1.7,
+        "radius_m": 1.8,
+        "shape": "circle"
+      },
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {
+        "x": 400.0,
+        "y": -100.0,
+        "yaw": 0.0,
+        "z": 0.02
+      },
+      "semantic_type": "PEAT_CHUNK",
+      "visual": {
+        "height_m": 0.45,
+        "radius_m": 1.8,
+        "shape": "cylinder"
+      }
+    },
+    {
+      "collision": {
+        "height_m": 1.2,
+        "radius_m": 0.25,
+        "shape": "cylinder"
+      },
+      "id": "buoy_01",
+      "navigation": {
+        "margin_m": 3.0,
+        "radius_m": 0.25,
+        "shape": "circle"
+      },
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {
+        "x": 50.0,
+        "y": 300.0,
+        "yaw": 0.0,
+        "z": 0.35
+      },
+      "semantic_type": "BUOY",
+      "visual": {
+        "height_m": 1.2,
+        "radius_m": 0.25,
+        "shape": "cylinder"
+      }
+    },
+    {
+      "collision": {
+        "height_m": 1.2,
+        "radius_m": 0.25,
+        "shape": "cylinder"
+      },
+      "id": "buoy_02",
+      "navigation": {
+        "margin_m": 3.0,
+        "radius_m": 0.25,
+        "shape": "circle"
+      },
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {
+        "x": 350.0,
+        "y": 250.0,
+        "yaw": 0.0,
+        "z": 0.35
+      },
+      "semantic_type": "BUOY",
+      "visual": {
+        "height_m": 1.2,
+        "radius_m": 0.25,
+        "shape": "cylinder"
+      }
+    },
+    {
+      "collision": {
+        "height_m": 1.2,
+        "radius_m": 0.25,
+        "shape": "cylinder"
+      },
+      "id": "buoy_03",
+      "navigation": {
+        "margin_m": 3.0,
+        "radius_m": 0.25,
+        "shape": "circle"
+      },
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {
+        "x": 250.0,
+        "y": -250.0,
+        "yaw": 0.0,
+        "z": 0.35
+      },
+      "semantic_type": "BUOY",
+      "visual": {
+        "height_m": 1.2,
+        "radius_m": 0.25,
+        "shape": "cylinder"
       }
     }
   ],

@@ -1,8 +1,9 @@
 # Ravensberg simulation world
 
-The Ravensberg MVP is a deterministic, metre-scale Gazebo Sim world for early
-autonomous navigation development. It intentionally uses inexpensive geometry
-and a debug-first workflow. Later milestones can add semantic obstacles and
+The Ravensberg scenario is a deterministic, metre-scale Gazebo Sim world for
+autonomous navigation development. Its first static scenario adds reeds,
+lily-pad fields, peat chunks, and buoys to inexpensive fixed world geometry and
+a debug-first workflow. Later milestones can add procedural placement and
 bathymetry without replacing the source geometry or the existing boat.
 
 ## Quick start
@@ -19,8 +20,8 @@ ros2 run karaburan_simulation generate_ravensberg_scenario \
   --output-dir /tmp/ravensberg-mvp
 ```
 
-The command writes deterministic metadata and an SVG geometry map. Start the
-committed Ravensberg baseline directly with:
+The command writes deterministic metadata plus separate SVG geometry and
+scenario maps. Start the committed Ravensberg baseline directly with:
 
 ```bash
 ros2 launch karaburan_simulation sim.launch.py
@@ -56,12 +57,14 @@ start pose to the existing standard simulator and boat spawn flow.
 ## Data flow
 
 `config/ravensberg_mvp.json` is the single source for fixed geometry, geographic
-origin, seed, ownship start, and goal. The generator validates that start and
-goal are in water and outside all islands, then produces:
+origin, seed, ownship start, goal, and explicitly positioned static scenario
+objects. The generator validates that start, goal, object centres, and complete
+navigation extents are in navigable water, then produces:
 
 - an SDF world for Gazebo;
 - compact JSON scenario metadata for tools and later navigation validation; and
-- an SVG geometry view for fast inspection without Gazebo.
+- an SVG geometry view for fast inspection without Gazebo; and
+- an SVG scenario view with object IDs and exact navigation extents.
 
 Do not edit files in `karaburan_simulation/generated` by hand. Regenerate them
 from the configuration. The committed output is an inspectable baseline; a
@@ -105,8 +108,19 @@ navigation_class: HARD_OBSTACLE
 ```
 
 The metadata separates scenario semantics and navigation classification from
-Gazebo collision and visual geometry. The seed is present from the MVP onward,
-although Milestone 1 contains no random placement.
+Gazebo collision and visual geometry. The static scenario uses:
+
+| Object | Semantic type | Navigation class | Physical representation |
+| --- | --- | --- | --- |
+| Reed patch | `REED_ZONE` | `AVOID_ZONE` | One box collision per cluster |
+| Lily-pad field | `LILY_PAD_FIELD` | `STATIC_SOFT_OBSTACLE` | No collision; navigation extent only |
+| Peat chunk | `PEAT_CHUNK` | `STATIC_HARD_OBSTACLE` | One cylinder collision |
+| Buoy | `BUOY` | `STATIC_HARD_OBSTACLE` | One cylinder collision |
+
+Visual, collision, and navigation extents remain independently configurable.
+The scenario SVG draws navigation extents with their safety margins, not merely
+the smaller Gazebo visuals. The seed is present from the MVP onward, although
+Milestone 2 deliberately uses explicit positions rather than random placement.
 
 ## Existing boat integration
 
@@ -117,13 +131,15 @@ existing manual-control and Nav2 commands continue to apply.
 
 ## Performance choices
 
-The generated fixed world contains three static models: water, flat bottom, and
-land. The current source geometry produces 37 collision shapes and 66 visuals.
-The outer shoreline uses a small set of box segments; islands use one extruded
-polygon visual and one conservative box collision each. There are no per-vertex
-entities, terrain meshes, waves, or dynamic scenery. Box collisions are used
-because Gazebo Harmonic's buoyancy system does not support polyline collision
-geometry.
+The generated world contains four static models: water, flat bottom, land, and
+one aggregate model for all static scenario objects. The current source
+geometry and scenario produce 46 collision shapes and 77 visuals. The outer
+shoreline uses a small set of box segments; islands use one extruded polygon
+visual and one conservative box collision each. Reed and lily clusters do not
+use per-stem or per-leaf entities. Lily fields are navigation-only obstacles,
+while the three reeds, three peat chunks, and three buoys add only nine simple
+collisions. Box collisions are used because Gazebo Harmonic's buoyancy system
+does not support polyline collision geometry.
 
 Generation time and the deterministic complexity counts are printed by the
 command. Runtime real-time factor must be observed on a machine with Gazebo
@@ -138,6 +154,12 @@ reduced the mean by approximately 3.3%, within the accepted approximately 10%
 limit. Publishing forward `/cmd_vel` for ten seconds in the final world moved
 the boat from x = -120.00 m to x = -116.60 m.
 
+The Milestone 2 check used the same Gazebo Sim 8.11.0 software-rendered runtime,
+world settings, boat, and sensors. Fifty samples measured mean real-time factors
+of 0.957 for the Milestone 1 baseline and 0.896 for the static cluster scenario,
+a decrease of approximately 6.4%. This remains within the previously accepted
+approximately 10% change budget while adding all four static object types.
+
 ## Known limitations
 
 - The shoreline and forty islands are deliberately simplified. Twenty-nine
@@ -149,6 +171,12 @@ the boat from x = -120.00 m to x = -116.60 m.
 - The bottom is flat and collision detail is optimized for test performance,
   not visual realism.
 - The water is a static translucent visual; it has no waves or current.
+- Static scenario objects use explicit positions and abstract box/cylinder
+  cluster visuals. They are intended for navigation tests, not botanical or
+  photorealistic rendering.
+- Lily-pad fields have no physical collision in the performance-oriented
+  cluster representation. Consumers must respect their semantic navigation
+  extents.
 - Route existence is not validated yet. That belongs to Milestone 3.
 - The optional Leaflet UI still has the legacy WGS84 origin. Keep `with_map`
   disabled for Ravensberg until that UI becomes scenario-origin aware.

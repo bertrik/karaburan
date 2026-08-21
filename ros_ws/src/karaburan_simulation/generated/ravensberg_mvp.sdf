@@ -1682,5 +1682,226 @@
         </visual>
       </link>
     </model>
+    <model name="static_scenario_objects">
+      <static>true</static>
+      <link name="objects">
+        <collision name="reed_01_collision">
+          <pose>-200 600 0.7 0 0 0.35</pose>
+          <geometry>
+            <box>
+              <size>18 5 1.6</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="reed_01_visual">
+          <pose>-200 600 0.7 0 0 0.35</pose>
+          <geometry>
+            <box>
+              <size>18 5 1.6</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.25 0.38 0.08 1</ambient>
+            <diffuse>0.38 0.55 0.12 1</diffuse>
+          </material>
+        </visual>
+        <collision name="reed_02_collision">
+          <pose>500 0 0.7 0 0 1</pose>
+          <geometry>
+            <box>
+              <size>20 6 1.6</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="reed_02_visual">
+          <pose>500 0 0.7 0 0 1</pose>
+          <geometry>
+            <box>
+              <size>20 6 1.6</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.25 0.38 0.08 1</ambient>
+            <diffuse>0.38 0.55 0.12 1</diffuse>
+          </material>
+        </visual>
+        <collision name="reed_03_collision">
+          <pose>300 -600 0.7 0 0 0.8</pose>
+          <geometry>
+            <box>
+              <size>24 6 1.6</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="reed_03_visual">
+          <pose>300 -600 0.7 0 0 0.8</pose>
+          <geometry>
+            <box>
+              <size>24 6 1.6</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.25 0.38 0.08 1</ambient>
+            <diffuse>0.38 0.55 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="lily_01_visual">
+          <pose>-200 500 -0.005 0 0 -0.2</pose>
+          <geometry>
+            <box>
+              <size>22 14 0.03</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.08 0.32 0.10 1</ambient>
+            <diffuse>0.12 0.48 0.16 1</diffuse>
+          </material>
+        </visual>
+        <visual name="lily_02_visual">
+          <pose>500 -300 -0.005 0 0 0.45</pose>
+          <geometry>
+            <box>
+              <size>18 12 0.03</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.08 0.32 0.10 1</ambient>
+            <diffuse>0.12 0.48 0.16 1</diffuse>
+          </material>
+        </visual>
+        <collision name="peat_01_collision">
+          <pose>100 200 0 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>1.4</radius>
+              <length>0.4</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="peat_01_visual">
+          <pose>100 200 0 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>1.4</radius>
+              <length>0.4</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.16 0.09 0.04 1</ambient>
+            <diffuse>0.25 0.14 0.06 1</diffuse>
+          </material>
+        </visual>
+        <collision name="peat_02_collision">
+          <pose>-300 300 -0.02 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.9</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="peat_02_visual">
+          <pose>-300 300 -0.02 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.9</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.16 0.09 0.04 1</ambient>
+            <diffuse>0.25 0.14 0.06 1</diffuse>
+          </material>
+        </visual>
+        <collision name="peat_03_collision">
+          <pose>400 -100 0.02 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>1.8</radius>
+              <length>0.45</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="peat_03_visual">
+          <pose>400 -100 0.02 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>1.8</radius>
+              <length>0.45</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.16 0.09 0.04 1</ambient>
+            <diffuse>0.25 0.14 0.06 1</diffuse>
+          </material>
+        </visual>
+        <collision name="buoy_01_collision">
+          <pose>50 300 0.35 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>1.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="buoy_01_visual">
+          <pose>50 300 0.35 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>1.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.72 0.12 0.03 1</ambient>
+            <diffuse>0.95 0.22 0.04 1</diffuse>
+          </material>
+        </visual>
+        <collision name="buoy_02_collision">
+          <pose>350 250 0.35 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>1.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="buoy_02_visual">
+          <pose>350 250 0.35 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>1.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.72 0.12 0.03 1</ambient>
+            <diffuse>0.95 0.22 0.04 1</diffuse>
+          </material>
+        </visual>
+        <collision name="buoy_03_collision">
+          <pose>250 -250 0.35 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>1.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="buoy_03_visual">
+          <pose>250 -250 0.35 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>1.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.72 0.12 0.03 1</ambient>
+            <diffuse>0.95 0.22 0.04 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
   </world>
 </sdf>

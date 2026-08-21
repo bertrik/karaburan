@@ -51,6 +51,39 @@
 <polygon points="763.1,886.2 748.4,944.2 751.8,939.7 764.7,891.8" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
 <polygon points="691.6,1021.0 680.6,1016.7 674.4,1024.8 675.8,1031.5 688.1,1033.1" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
 <polygon points="315.7,585.3 310.1,588.0 304.9,596.9 299.6,610.8 301.6,616.3 309.8,605.2 316.7,588.7" fill="#6f8f3b" stroke="#344d20" stroke-width="2"/>
+<polygon points="314.0,251.4 320.1,249.2 326.2,247.0 325.3,244.5 324.4,242.0 318.3,244.2 312.2,246.5 313.1,248.9" class="navigation-zone"/>
+<polygon points="730.4,608.2 734.4,602.0 738.4,595.8 735.7,594.1 732.9,592.3 728.9,598.5 725.0,604.7 727.7,606.5" class="navigation-zone"/>
+<polygon points="610.2,962.7 616.4,956.3 622.5,950.0 620.0,947.5 617.4,945.1 611.3,951.4 605.1,957.7 607.7,960.2" class="navigation-zone"/>
+<polygon points="309.9,309.8 318.0,311.4 326.1,313.1 327.3,307.3 328.4,301.5 320.3,299.9 312.3,298.2 311.1,304.0" class="navigation-zone"/>
+<polygon points="727.6,784.9 734.0,781.9 740.4,778.8 738.0,774.0 735.7,769.2 729.4,772.3 723.0,775.4 725.3,780.2" class="navigation-zone"/>
+<circle cx="496.0" cy="482.4" r="1.8" class="navigation-zone"/>
+<circle cx="260.3" cy="423.5" r="1.5" class="navigation-zone"/>
+<circle cx="672.7" cy="659.2" r="2.1" class="navigation-zone"/>
+<circle cx="466.5" cy="423.5" r="1.9" class="navigation-zone"/>
+<circle cx="643.3" cy="453.0" r="1.9" class="navigation-zone"/>
+<circle cx="584.4" cy="747.6" r="1.9" class="navigation-zone"/>
+<polygon points="314.7,249.9 319.7,248.1 324.7,246.3 324.2,244.9 323.7,243.5 318.7,245.3 313.7,247.2 314.2,248.5" fill="#789b28" stroke="#17231b" stroke-width="1.5"/>
+<text x="326.2" y="239.7" class="object-label">reed_01</text>
+<polygon points="730.0,606.2 733.2,601.2 736.3,596.3 734.9,595.3 733.4,594.4 730.2,599.3 727.0,604.3 728.5,605.3" fill="#789b28" stroke="#17231b" stroke-width="1.5"/>
+<text x="738.7" y="593.3" class="object-label">reed_02</text>
+<polygon points="610.2,960.2 615.1,955.1 620.0,950.0 618.7,948.8 617.5,947.6 612.6,952.6 607.6,957.7 608.9,958.9" fill="#789b28" stroke="#17231b" stroke-width="1.5"/>
+<text x="620.8" y="946.9" class="object-label">reed_03</text>
+<polygon points="312.0,308.4 318.4,309.7 324.7,311.0 325.5,306.9 326.4,302.9 320.0,301.6 313.6,300.3 312.8,304.4" fill="#23a047" stroke="#17231b" stroke-width="1.5"/>
+<text x="326.2" y="298.7" class="object-label">lily_01</text>
+<polygon points="728.4,782.6 733.2,780.3 738.0,778.0 736.5,774.8 734.9,771.6 730.1,773.9 725.4,776.2 726.9,779.4" fill="#23a047" stroke="#17231b" stroke-width="1.5"/>
+<text x="738.7" y="770.1" class="object-label">lily_02</text>
+<circle cx="496.0" cy="482.4" r="3.0" fill="#56351f" stroke="white" stroke-width="1.5"/>
+<text x="503.0" y="475.4" class="object-label">peat_01</text>
+<circle cx="260.3" cy="423.5" r="3.0" fill="#56351f" stroke="white" stroke-width="1.5"/>
+<text x="267.3" y="416.5" class="object-label">peat_02</text>
+<circle cx="672.7" cy="659.2" r="3.0" fill="#56351f" stroke="white" stroke-width="1.5"/>
+<text x="679.7" y="652.2" class="object-label">peat_03</text>
+<circle cx="466.5" cy="423.5" r="3.0" fill="#f04a19" stroke="white" stroke-width="1.5"/>
+<text x="473.5" y="416.5" class="object-label">buoy_01</text>
+<circle cx="643.3" cy="453.0" r="3.0" fill="#f04a19" stroke="white" stroke-width="1.5"/>
+<text x="650.3" y="446.0" class="object-label">buoy_02</text>
+<circle cx="584.4" cy="747.6" r="3.0" fill="#f04a19" stroke="white" stroke-width="1.5"/>
+<text x="591.4" y="740.6" class="object-label">buoy_03</text>
 <style>text{font-family:Arial,sans-serif;fill:#12222b}.label{font-size:18px;font-weight:bold}.island{font-size:11px;text-anchor:middle}.object-label{font-size:11px;font-weight:bold}.navigation-zone{fill:#f4df5b;fill-opacity:0.25;stroke:#5f5200;stroke-width:1.5;stroke-dasharray:5 3}</style>
 <circle cx="366.3" cy="600.3" r="9" fill="#20a65a" stroke="white" stroke-width="3"/>
 <text x="380.3" y="606.3" class="label">START</text>
@@ -62,7 +95,7 @@
 <text x="80" y="1085" class="label">200 m</text>
 <path d="M 900 110 V 55 M 900 55 L 888 78 M 900 55 L 912 78" stroke="#111" stroke-width="4" fill="none"/>
 <text x="893" y="45" class="label">N</text>
-<text x="45" y="38" class="label">Ravensberg MVP - geometry view</text>
-<text x="45" y="62">Blue: navigable water | Green/tan: land | Scale: 1 unit = 1 metre</text>
+<text x="45" y="38" class="label">Ravensberg static scenario - scenario view</text>
+<text x="45" y="62">Blue: water | Olive: reeds | Green: lilies | Brown: peat | Orange: buoys | Dashed: navigation extent</text>
 <text x="45" y="1180">Seed 1 | Source: <a href="https://www.openstreetmap.org/relation/14671863">OpenStreetMap relation 14671863</a></text>
 </svg>

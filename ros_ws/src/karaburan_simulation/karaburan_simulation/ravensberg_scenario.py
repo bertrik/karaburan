@@ -13,6 +13,20 @@ import xml.etree.ElementTree as ET
 
 SEMANTIC_LAND = 'LAND'
 NAVIGATION_HARD_OBSTACLE = 'HARD_OBSTACLE'
+SEMANTIC_REED_ZONE = 'REED_ZONE'
+SEMANTIC_LILY_PAD_FIELD = 'LILY_PAD_FIELD'
+SEMANTIC_PEAT_CHUNK = 'PEAT_CHUNK'
+SEMANTIC_BUOY = 'BUOY'
+NAVIGATION_AVOID_ZONE = 'AVOID_ZONE'
+NAVIGATION_SOFT_OBSTACLE = 'STATIC_SOFT_OBSTACLE'
+NAVIGATION_STATIC_HARD_OBSTACLE = 'STATIC_HARD_OBSTACLE'
+
+SCENARIO_SEMANTICS = {
+    SEMANTIC_REED_ZONE: NAVIGATION_AVOID_ZONE,
+    SEMANTIC_LILY_PAD_FIELD: NAVIGATION_SOFT_OBSTACLE,
+    SEMANTIC_PEAT_CHUNK: NAVIGATION_STATIC_HARD_OBSTACLE,
+    SEMANTIC_BUOY: NAVIGATION_STATIC_HARD_OBSTACLE,
+}
 
 
 @dataclass(frozen=True)
@@ -21,6 +35,7 @@ class GenerationResult:
 
     metadata_path: Path
     debug_path: Path
+    scenario_debug_path: Path
     world_path: Path | None
     static_entity_count: int
     collision_count: int
@@ -145,6 +160,125 @@ def is_navigable_water(config, point):
     )
 
 
+def _is_number(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _rotated_box_points(pose, size, margin=0.0):
+    half_x = size[0] / 2.0 + margin
+    half_y = size[1] / 2.0 + margin
+    yaw = pose['yaw']
+    cosine = math.cos(yaw)
+    sine = math.sin(yaw)
+    local_points = [
+        [-half_x, -half_y],
+        [0.0, -half_y],
+        [half_x, -half_y],
+        [half_x, 0.0],
+        [half_x, half_y],
+        [0.0, half_y],
+        [-half_x, half_y],
+        [-half_x, 0.0],
+    ]
+    return [[
+        pose['x'] + local[0] * cosine - local[1] * sine,
+        pose['y'] + local[0] * sine + local[1] * cosine,
+    ] for local in local_points]
+
+
+def _circle_points(pose, radius, margin=0.0, count=24):
+    extent = radius + margin
+    return [[
+        pose['x'] + extent * math.cos(2.0 * math.pi * index / count),
+        pose['y'] + extent * math.sin(2.0 * math.pi * index / count),
+    ] for index in range(count)]
+
+
+def _navigation_extent_points(item):
+    navigation = item['navigation']
+    margin = navigation.get('margin_m', 0.0)
+    if navigation['shape'] == 'box':
+        return _rotated_box_points(
+            item['pose'], navigation['size_m'], margin)
+    return _circle_points(
+        item['pose'], navigation['radius_m'], margin)
+
+
+def _point_in_navigation(point, item):
+    return point_in_polygon(point, _navigation_extent_points(item))
+
+
+def _validate_shape(name, shape, allow_none=False):
+    shape_type = shape.get('shape')
+    if allow_none and shape_type == 'none':
+        return
+    if shape_type == 'box':
+        size = shape.get('size_m')
+        if (not isinstance(size, list) or len(size) not in (2, 3)
+                or not all(_is_number(value) and value > 0.0
+                           for value in size)):
+            raise ValueError(f'{name} box size_m is invalid')
+        return
+    if shape_type == 'cylinder':
+        if not _is_number(shape.get('radius_m')) or shape['radius_m'] <= 0.0:
+            raise ValueError(f'{name} cylinder radius_m is invalid')
+        if not _is_number(shape.get('height_m')) or shape['height_m'] <= 0.0:
+            raise ValueError(f'{name} cylinder height_m is invalid')
+        return
+    raise ValueError(f'{name} shape is invalid')
+
+
+def _validate_scenario_objects(config):
+    items = config.get('scenario_objects', [])
+    identifiers = [island['id'] for island in config['islands']]
+    identifiers.extend(item.get('id') for item in items)
+    if len(set(identifiers)) != len(identifiers):
+        raise ValueError('all object IDs must be unique')
+    start = config['ownship']['start']
+    protected_points = ([start['x'], start['y']], [
+        config['goal']['x'], config['goal']['y']])
+    for item in items:
+        identifier = item.get('id', '')
+        if not re.fullmatch(r'[a-z][a-z0-9_]*', identifier):
+            raise ValueError('scenario object ID is invalid')
+        expected_navigation = SCENARIO_SEMANTICS.get(item.get('semantic_type'))
+        if expected_navigation is None:
+            raise ValueError(f'{identifier} semantic_type is invalid')
+        if item.get('navigation_class') != expected_navigation:
+            raise ValueError(f'{identifier} navigation_class is invalid')
+        pose = item.get('pose', {})
+        if not all(_is_number(pose.get(key)) for key in ('x', 'y', 'z', 'yaw')):
+            raise ValueError(f'{identifier} pose is invalid')
+        _validate_shape(f'{identifier} visual', item.get('visual', {}))
+        _validate_shape(
+            f'{identifier} collision', item.get('collision', {}),
+            allow_none=True)
+        navigation = item.get('navigation', {})
+        margin = navigation.get('margin_m')
+        if not _is_number(margin) or margin < 0.0:
+            raise ValueError(f'{identifier} navigation margin_m is invalid')
+        if navigation.get('shape') == 'box':
+            size = navigation.get('size_m')
+            if (not isinstance(size, list) or len(size) != 2
+                    or not all(_is_number(value) and value > 0.0
+                               for value in size)):
+                raise ValueError(f'{identifier} navigation box is invalid')
+        elif navigation.get('shape') == 'circle':
+            radius = navigation.get('radius_m')
+            if not _is_number(radius) or radius <= 0.0:
+                raise ValueError(f'{identifier} navigation circle is invalid')
+        else:
+            raise ValueError(f'{identifier} navigation shape is invalid')
+        extent = _navigation_extent_points(item)
+        if (not is_navigable_water(config, [pose['x'], pose['y']])
+                or not all(is_navigable_water(config, point)
+                           for point in extent)):
+            raise ValueError(f'{identifier} extent must be in navigable water')
+        if any(_point_in_navigation(point, item)
+               for point in protected_points):
+            raise ValueError(f'{identifier} overlaps ownship start or goal')
+
+
 def validate_config(config):
     """Validate geometry, identifiers, scale, start, and goal."""
     if config.get('schema_version') != 1:
@@ -191,6 +325,7 @@ def validate_config(config):
         raise ValueError('bottom_depth_m must be positive')
     if world['shoreline_width_m'] <= 0.0:
         raise ValueError('shoreline_width_m must be positive')
+    _validate_scenario_objects(config)
 
 
 def _subelement(parent, tag, text=None, attributes=None):
@@ -219,6 +354,27 @@ def _add_material(visual, ambient, diffuse):
     material = _subelement(visual, 'material')
     _subelement(material, 'ambient', ambient)
     _subelement(material, 'diffuse', diffuse)
+
+
+def _add_shape(parent, shape):
+    geometry = _subelement(parent, 'geometry')
+    if shape['shape'] == 'box':
+        box = _subelement(geometry, 'box')
+        _subelement(box, 'size', ' '.join(
+            _number(value) for value in shape['size_m']))
+    else:
+        cylinder = _subelement(geometry, 'cylinder')
+        _subelement(cylinder, 'radius', _number(shape['radius_m']))
+        _subelement(cylinder, 'length', _number(shape['height_m']))
+
+
+def _scenario_material(semantic_type):
+    return {
+        SEMANTIC_REED_ZONE: ('0.25 0.38 0.08 1', '0.38 0.55 0.12 1'),
+        SEMANTIC_LILY_PAD_FIELD: ('0.08 0.32 0.10 1', '0.12 0.48 0.16 1'),
+        SEMANTIC_PEAT_CHUNK: ('0.16 0.09 0.04 1', '0.25 0.14 0.06 1'),
+        SEMANTIC_BUOY: ('0.72 0.12 0.03 1', '0.95 0.22 0.04 1'),
+    }[semantic_type]
 
 
 def _number(value):
@@ -274,6 +430,7 @@ def _world_tree(config):
     _add_water(world, config)
     _add_bottom(world, config)
     _add_land(world, config)
+    _add_scenario_objects(world, config)
     ET.indent(sdf, space='  ')
     return ET.ElementTree(sdf)
 
@@ -413,15 +570,55 @@ def _add_land(world, config):
         _add_material(visual, '0.16 0.30 0.09 1', '0.25 0.45 0.12 1')
 
 
+def _add_scenario_objects(world, config):
+    items = config.get('scenario_objects', [])
+    if not items:
+        return
+    model = _subelement(
+        world, 'model', attributes={'name': 'static_scenario_objects'})
+    _subelement(model, 'static', 'true')
+    link = _subelement(model, 'link', attributes={'name': 'objects'})
+    for item in items:
+        pose = item['pose']
+        pose_text = '{} {} {} 0 0 {}'.format(
+            _number(pose['x']),
+            _number(pose['y']),
+            _number(pose['z']),
+            _number(pose['yaw']),
+        )
+        collision_shape = item['collision']
+        if collision_shape['shape'] != 'none':
+            collision = _subelement(
+                link,
+                'collision',
+                attributes={'name': f"{item['id']}_collision"},
+            )
+            _subelement(collision, 'pose', pose_text)
+            _add_shape(collision, collision_shape)
+        visual = _subelement(
+            link,
+            'visual',
+            attributes={'name': f"{item['id']}_visual"},
+        )
+        _subelement(visual, 'pose', pose_text)
+        _add_shape(visual, item['visual'])
+        _add_material(visual, *_scenario_material(item['semantic_type']))
+
+
 def _complexity(config):
     shoreline = config.get(
         'shoreline_collision_outline', config['water_outline'])
     island_collisions = config['world'].get(
         'island_collision_count', len(config['islands']))
-    collision_count = 1 + len(shoreline) + island_collisions
-    visual_count = 2 + len(shoreline) + len(config['islands'])
+    items = config.get('scenario_objects', [])
+    scenario_collisions = sum(
+        item['collision']['shape'] != 'none' for item in items)
+    collision_count = (
+        1 + len(shoreline) + island_collisions + scenario_collisions)
+    visual_count = (
+        2 + len(shoreline) + len(config['islands']) + len(items))
     return {
-        'static_entity_count': 3,
+        'static_entity_count': 3 + bool(items),
         'collision_count': collision_count,
         'visual_count': visual_count,
     }
@@ -475,6 +672,7 @@ def _metadata(config):
                 'points': island['points'],
             },
         })
+    objects.extend(config.get('scenario_objects', []))
     return {
         'schema_version': 1,
         'scenario': config['scenario'],
@@ -500,7 +698,53 @@ def _svg_points(points, transform):
     )
 
 
-def _debug_svg(config):
+def _scenario_svg_lines(config, transform, scale):
+    items = config.get('scenario_objects', [])
+    lines = []
+    for item in items:
+        navigation = item['navigation']
+        if navigation['shape'] == 'box':
+            points = _navigation_extent_points(item)
+            lines.append(
+                f'<polygon points="{_svg_points(points, transform)}" '
+                'class="navigation-zone"/>')
+        else:
+            centre = transform([item['pose']['x'], item['pose']['y']])
+            radius = (
+                navigation['radius_m'] + navigation['margin_m']) * scale
+            lines.append(
+                f'<circle cx="{centre[0]:.1f}" cy="{centre[1]:.1f}" '
+                f'r="{radius:.1f}" class="navigation-zone"/>')
+    colours = {
+        SEMANTIC_REED_ZONE: '#789b28',
+        SEMANTIC_LILY_PAD_FIELD: '#23a047',
+        SEMANTIC_PEAT_CHUNK: '#56351f',
+        SEMANTIC_BUOY: '#f04a19',
+    }
+    for item in items:
+        pose = item['pose']
+        visual = item['visual']
+        colour = colours[item['semantic_type']]
+        if visual['shape'] == 'box':
+            points = _rotated_box_points(pose, visual['size_m'][:2])
+            lines.append(
+                f'<polygon points="{_svg_points(points, transform)}" '
+                f'fill="{colour}" stroke="#17231b" stroke-width="1.5"/>')
+        else:
+            centre = transform([pose['x'], pose['y']])
+            radius = max(3.0, visual['radius_m'] * scale)
+            lines.append(
+                f'<circle cx="{centre[0]:.1f}" cy="{centre[1]:.1f}" '
+                f'r="{radius:.1f}" fill="{colour}" stroke="white" '
+                'stroke-width="1.5"/>')
+        label = transform([pose['x'], pose['y']])
+        lines.append(
+            f'<text x="{label[0] + 7:.1f}" y="{label[1] - 7:.1f}" '
+            f'class="object-label">{escape(item["id"])}</text>')
+    return lines
+
+
+def _debug_svg(config, include_scenario=False):
     width = 1000
     height = 1200
     padding = 70
@@ -564,10 +808,21 @@ def _debug_svg(config):
             lines.append(
                 f'<text x="{label[0]:.1f}" y="{label[1]:.1f}" '
                 'class="island">{}</text>'.format(identifier))
+    if include_scenario:
+        lines.extend(_scenario_svg_lines(config, transform, scale))
+    title = ('Ravensberg static scenario - scenario view'
+             if include_scenario else 'Ravensberg MVP - geometry view')
+    legend = ('Blue: water | Olive: reeds | Green: lilies | Brown: peat | '
+              'Orange: buoys | Dashed: navigation extent'
+              if include_scenario else
+              'Blue: navigable water | Green/tan: land | Scale: 1 unit = 1 metre')
     lines.extend([
         '<style>text{font-family:Arial,sans-serif;fill:#12222b}'
         '.label{font-size:18px;font-weight:bold}'
-        '.island{font-size:11px;text-anchor:middle}</style>',
+        '.island{font-size:11px;text-anchor:middle}'
+        '.object-label{font-size:11px;font-weight:bold}'
+        '.navigation-zone{fill:#f4df5b;fill-opacity:0.25;stroke:#5f5200;'
+        'stroke-width:1.5;stroke-dasharray:5 3}</style>',
         f'<circle cx="{start_xy[0]:.1f}" cy="{start_xy[1]:.1f}" r="9" '
         'fill="#20a65a" stroke="white" stroke-width="3"/>',
         f'<text x="{start_xy[0] + 14:.1f}" y="{start_xy[1] + 6:.1f}" '
@@ -588,9 +843,8 @@ def _debug_svg(config):
         '<path d="M 900 110 V 55 M 900 55 L 888 78 M 900 55 L 912 78" '
         'stroke="#111" stroke-width="4" fill="none"/>',
         '<text x="893" y="45" class="label">N</text>',
-        '<text x="45" y="38" class="label">Ravensberg MVP - geometry view</text>',
-        '<text x="45" y="62">Blue: navigable water | Green/tan: land | '
-        'Scale: 1 unit = 1 metre</text>',
+        f'<text x="45" y="38" class="label">{title}</text>',
+        f'<text x="45" y="62">{legend}</text>',
         f'<text x="45" y="1180">Seed {config["seed"]} | Source: '
         f'<a href="{source_url}">OpenStreetMap relation '
         f'{config["source"]["osm_id"]}</a></text>',
@@ -608,12 +862,15 @@ def generate_scenario(config_path, output_dir, debug_only=False):
     prefix = f"seed_{config['seed']:04d}"
     metadata_path = output / f'{prefix}_metadata.json'
     debug_path = output / f'{prefix}_geometry.svg'
+    scenario_debug_path = output / f'{prefix}_scenario.svg'
     world_path = None if debug_only else output / f"{config['scenario']}.sdf"
     metadata_path.write_text(
         json.dumps(_metadata(config), indent=2, sort_keys=True) + '\n',
         encoding='utf-8',
     )
     debug_path.write_text(_debug_svg(config), encoding='utf-8')
+    scenario_debug_path.write_text(
+        _debug_svg(config, include_scenario=True), encoding='utf-8')
     if world_path is not None:
         tree = _world_tree(config)
         tree.write(world_path, encoding='unicode', xml_declaration=True)
@@ -621,6 +878,7 @@ def generate_scenario(config_path, output_dir, debug_only=False):
     return GenerationResult(
         metadata_path=metadata_path,
         debug_path=debug_path,
+        scenario_debug_path=scenario_debug_path,
         world_path=world_path,
         **complexity,
     )
@@ -650,7 +908,8 @@ def main(arguments=None):
     )
     elapsed_ms = (time.perf_counter() - started) * 1000.0
     print(f'Generated metadata: {result.metadata_path}')
-    print(f'Generated debug map: {result.debug_path}')
+    print(f'Generated geometry map: {result.debug_path}')
+    print(f'Generated scenario map: {result.scenario_debug_path}')
     if result.world_path is not None:
         print(f'Generated Gazebo world: {result.world_path}')
     print(
