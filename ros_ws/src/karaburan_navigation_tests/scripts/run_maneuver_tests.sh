@@ -8,6 +8,10 @@ fi
 
 # Avoid a long-lived ros2 daemon carrying graph state between scenarios.
 export ROS2CLI_NO_DAEMON=1
+# ROS and Gazebo launch output is archived as plain text. This makes it safe to
+# inspect in CI systems and editors that do not interpret terminal escapes.
+export RCUTILS_COLORIZED_OUTPUT=0
+export GZ_LOG_COLOR=0
 
 report_root="${1:-./maneuver-test-results/$(date -u +%Y%m%dT%H%M%SZ)}"
 shift || true
@@ -48,7 +52,9 @@ for scenario in "${scenarios[@]}"; do
 done
 
 scenario_index=0
+report_arguments=()
 for scenario in "${scenarios[@]}"; do
+  report_arguments+=(--scenario "$scenario")
   # Give every fresh simulator a private ROS graph and Gazebo transport graph.
   # This also avoids DDS discovery remnants from the preceding scenario.
   if [[ -n "${KARABURAN_TEST_DOMAIN_ID:-}" ]]; then
@@ -87,7 +93,8 @@ for scenario in "${scenarios[@]}"; do
     status=1
   elif ! ros2 run karaburan_navigation_tests maneuver_test_runner \
       --scenario "$scenario" \
-      --output "$report_root/$scenario.json"; then
+      --output "$report_root/$scenario.json" \
+      >"$report_root/$scenario.runner.log" 2>&1; then
     status=1
   fi
 
@@ -95,5 +102,12 @@ for scenario in "${scenarios[@]}"; do
   sleep 2
 done
 
-echo "Maneuver test reports: $report_root"
+set +e
+ros2 run karaburan_navigation_tests maneuver_test_report \
+  --report-root "$report_root" "${report_arguments[@]}"
+report_status=$?
+set -e
+if [[ "$report_status" -ne 0 ]]; then
+  status=1
+fi
 exit "$status"

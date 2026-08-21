@@ -24,6 +24,7 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert "glob('scenarios/*.sdf')" in setup
     assert "glob('scripts/*.sh')" in setup
     assert 'karaburan_navigation_tests.maneuver_test_runner:main' in setup
+    assert 'karaburan_navigation_tests.maneuver_report:main' in setup
     assert "'follow_straight'" in runner
     assert "'obstacle_port'" in runner
     assert "'obstacle_starboard'" in runner
@@ -31,3 +32,5 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
         'setsid ros2 launch karaburan_navigation_tests '
         'maneuver_test.launch.py'
     ) in script
+    assert 'RCUTILS_COLORIZED_OUTPUT=0' in script
+    assert 'maneuver_test_report' in script

@@ -1,8 +1,8 @@
 # Navigation maneuver tests
 
 This test set isolates propulsion, local path following, and complete obstacle
-avoidance. It is intentionally shorter than a GPS shuttle run and produces a
-machine-readable JSON report for every scenario.
+avoidance. It is intentionally shorter than a GPS shuttle run. Every execution
+produces per-scenario JSON plus suite-level JUnit, JSON, and HTML reports.
 
 ## Run the complete set
 
@@ -42,6 +42,26 @@ simulator leaking into the next one.
 Set `KARABURAN_TEST_DOMAIN_ID` or `KARABURAN_TEST_GZ_PARTITION` only when a CI
 executor needs fixed identifiers.
 
+## Results and diagnostics
+
+The command exits with status `1` when any acceptance check fails, when a
+runner crashes, or when a scenario does not write its result. The report
+directory contains:
+
+- `junit.xml`: one test case per scenario. CI systems display failed scenarios
+  as red tests rather than treating a completed script as success.
+- `summary.json`: a small suite summary suitable for automation.
+- `report.html`: a self-contained graphical report with the actual XY trace,
+  reference path, obstacle and goal markers, command velocity over time,
+  acceptance checks, metrics, and selected launch diagnostics.
+- `<scenario>.json`: the complete trace used to calculate the result.
+- `<scenario>.launch.log` and `<scenario>.runner.log`: plain-text logs with ANSI
+  terminal colour removed. The HTML report includes only relevant warning and
+  error lines; the full logs remain available for deeper investigation.
+
+Open `report.html` in a browser on the workstation used to inspect the test.
+It has no external assets and does not need a running ROS graph or web server.
+
 ## Scenarios and gates
 
 - `actuator_straight`: three metres of open-loop forward thrust.
@@ -65,5 +85,6 @@ recorded circle fails.
 The complete Gazebo set is deliberately not a required push check. It needs the
 Gazebo/Nav2 runtime, is sensitive to runner performance, and is substantially
 more expensive than the current ROS base build. Run it on the simulation
-machine while the controller is being tuned. It can become a scheduled or
-manually dispatched CI job after it passes reliably on that machine.
+machine while the controller is being tuned. Its non-zero exit status and
+`junit.xml` are ready for a dedicated scheduled or manually dispatched CI job;
+the deterministic report-generator tests remain part of every push check.

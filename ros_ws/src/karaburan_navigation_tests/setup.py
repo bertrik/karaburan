@@ -29,6 +29,8 @@ setup(
         'console_scripts': [
             'maneuver_test_runner = '
             'karaburan_navigation_tests.maneuver_test_runner:main',
+            'maneuver_test_report = '
+            'karaburan_navigation_tests.maneuver_report:main',
         ],
     },
 )

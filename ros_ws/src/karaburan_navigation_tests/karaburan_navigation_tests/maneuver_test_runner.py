@@ -57,6 +57,7 @@ class ManeuverTestNode(Node):
         self.command = Twist()
         self.samples = []
         self.latest_plan = None
+        self.reference_path = []
         self.initial_plan_length = None
         self.command_pub = self.create_publisher(Twist, '/cmd_vel_nav', 10)
         self.create_subscription(
@@ -85,12 +86,13 @@ class ManeuverTestNode(Node):
 
     def plan_callback(self, message):
         self.latest_plan = message
-        if self.initial_plan_length is None and len(message.poses) > 1:
-            points = [
+        if len(message.poses) > 1:
+            self.reference_path = [
                 {'x': pose.pose.position.x, 'y': pose.pose.position.y}
                 for pose in message.poses
             ]
-            self.initial_plan_length = path_length(points)
+        if self.initial_plan_length is None and len(message.poses) > 1:
+            self.initial_plan_length = path_length(self.reference_path)
 
     def wait_for_odometry(self, timeout=20.0):
         deadline = time.monotonic() + timeout
@@ -171,6 +173,10 @@ def _yaw_since(node, start_yaw):
 
 def follow_path(node, arc_sign=0.0):
     path = _make_path(node.current_pose(), arc_sign)
+    node.reference_path = [
+        {'x': pose.pose.position.x, 'y': pose.pose.position.y}
+        for pose in path.poses
+    ]
     goal = FollowPath.Goal()
     goal.path = path
     goal.controller_id = 'FollowPath'
@@ -294,8 +300,24 @@ def parse_args(args=None):
     return parser.parse_args(args)
 
 
+def scenario_markers(scenario):
+    """Return fixed points that help interpret a scenario plot."""
+    if scenario == 'obstacle_port':
+        return [
+            {'x': 1.5, 'y': 0.45, 'label': 'obstacle'},
+            {'x': 8.0, 'y': 0.0, 'label': 'goal'},
+        ]
+    if scenario == 'obstacle_starboard':
+        return [
+            {'x': 1.5, 'y': -0.45, 'label': 'obstacle'},
+            {'x': 8.0, 'y': 0.0, 'label': 'goal'},
+        ]
+    return []
+
+
 def main(args=None):
     options = parse_args(args)
+    started = time.monotonic()
     rclpy.init()
     node = ManeuverTestNode()
     try:
@@ -312,6 +334,9 @@ def main(args=None):
         node.command_pub.publish(Twist())
         report['scenario'] = options.scenario
         report['samples'] = node.samples
+        report['reference_path'] = node.reference_path
+        report['markers'] = scenario_markers(options.scenario)
+        report['duration_seconds'] = time.monotonic() - started
         options.output.parent.mkdir(parents=True, exist_ok=True)
         options.output.write_text(json.dumps(report, indent=2) + '\n')
         node.destroy_node()
