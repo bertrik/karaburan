@@ -46,30 +46,83 @@
           <geometry>
             <polyline>
               <height>0.02</height>
-              <point>-579.7 -95.5</point>
-              <point>-118.5 -459</point>
-              <point>10.7 -449.8</point>
-              <point>-14 -541.7</point>
-              <point>40.9 -586.7</point>
-              <point>1.7 -539.8</point>
-              <point>41.9 -418.6</point>
-              <point>126 -497.2</point>
-              <point>58.5 -599.7</point>
-              <point>443.4 -899.9</point>
-              <point>793.6 367.5</point>
-              <point>731.8 373.8</point>
-              <point>609.4 537.4</point>
-              <point>574.7 515</point>
-              <point>577.8 552.6</point>
-              <point>419.4 638</point>
-              <point>391.5 734.8</point>
-              <point>339.4 709.2</point>
-              <point>284.3 770.9</point>
-              <point>-135.3 850.6</point>
-              <point>-171.8 895.5</point>
-              <point>-311 528.9</point>
-              <point>-208.5 900.9</point>
-              <point>-459.9 123.7</point>
+              <point>-208.3 899.9</point>
+              <point>-191.6 895.5</point>
+              <point>-310.6 528.3</point>
+              <point>-296.8 525.9</point>
+              <point>-267.3 600.1</point>
+              <point>-171.6 894.5</point>
+              <point>-169.7 864.2</point>
+              <point>-135.2 849.7</point>
+              <point>-24.7 832.3</point>
+              <point>20.3 845.5</point>
+              <point>44.8 816.7</point>
+              <point>122 810.8</point>
+              <point>140.2 783.2</point>
+              <point>173.8 802.5</point>
+              <point>205.9 793.4</point>
+              <point>222.7 761.8</point>
+              <point>284 770</point>
+              <point>335.9 740.4</point>
+              <point>339 708.4</point>
+              <point>369.6 738.1</point>
+              <point>391.1 734</point>
+              <point>391.9 685.6</point>
+              <point>410.6 664.6</point>
+              <point>432.8 681.6</point>
+              <point>418.9 637.3</point>
+              <point>456 624.7</point>
+              <point>458.3 635.2</point>
+              <point>466 609</point>
+              <point>494.8 604.6</point>
+              <point>489 582.3</point>
+              <point>507.2 565.3</point>
+              <point>577.1 552</point>
+              <point>574.1 514.4</point>
+              <point>593.2 535.1</point>
+              <point>591.2 510.7</point>
+              <point>608.7 536.8</point>
+              <point>604.4 505.1</point>
+              <point>679.6 453</point>
+              <point>668.5 422</point>
+              <point>689.8 424.8</point>
+              <point>732.8 397.8</point>
+              <point>730.9 373.4</point>
+              <point>764.8 389.4</point>
+              <point>792.7 367.1</point>
+              <point>772.5 370.9</point>
+              <point>725.8 156.7</point>
+              <point>689.5 64.1</point>
+              <point>691.9 21.6</point>
+              <point>663.3 -42</point>
+              <point>618.8 -260.9</point>
+              <point>596.2 -292.2</point>
+              <point>585.8 -344.8</point>
+              <point>596.3 -368.6</point>
+              <point>515.9 -663.1</point>
+              <point>524.4 -595.5</point>
+              <point>500.8 -673.4</point>
+              <point>496.2 -747.7</point>
+              <point>445.1 -786.5</point>
+              <point>419.8 -873.4</point>
+              <point>442.9 -898.9</point>
+              <point>58.4 -599</point>
+              <point>86.9 -604.4</point>
+              <point>125.8 -496.6</point>
+              <point>88.5 -476.2</point>
+              <point>41.8 -418.2</point>
+              <point>1.6 -539.2</point>
+              <point>40.9 -586</point>
+              <point>-14 -541.1</point>
+              <point>10.7 -449.3</point>
+              <point>-9.1 -444.2</point>
+              <point>-25.2 -467.1</point>
+              <point>-28.9 -450.3</point>
+              <point>-57 -445.7</point>
+              <point>-118.3 -458.5</point>
+              <point>-579 -95.4</point>
+              <point>-546.3 -97.3</point>
+              <point>-459.4 123.6</point>
             </polyline>
           </geometry>
           <material>
@@ -84,10 +137,10 @@
       <static>true</static>
       <link name="bottom">
         <collision name="bottom_collision">
-          <pose>106.95 0.5 -2.1 0 0 0</pose>
+          <pose>106.85 0.5 -2.1 0 0 0</pose>
           <geometry>
             <box>
-              <size>1473.3 1900.8 0.2</size>
+              <size>1471.7 1898.8 0.2</size>
             </box>
           </geometry>
         </collision>
@@ -96,30 +149,83 @@
           <geometry>
             <polyline>
               <height>0.2</height>
-              <point>-579.7 -95.5</point>
-              <point>-118.5 -459</point>
-              <point>10.7 -449.8</point>
-              <point>-14 -541.7</point>
-              <point>40.9 -586.7</point>
-              <point>1.7 -539.8</point>
-              <point>41.9 -418.6</point>
-              <point>126 -497.2</point>
-              <point>58.5 -599.7</point>
-              <point>443.4 -899.9</point>
-              <point>793.6 367.5</point>
-              <point>731.8 373.8</point>
-              <point>609.4 537.4</point>
-              <point>574.7 515</point>
-              <point>577.8 552.6</point>
-              <point>419.4 638</point>
-              <point>391.5 734.8</point>
-              <point>339.4 709.2</point>
-              <point>284.3 770.9</point>
-              <point>-135.3 850.6</point>
-              <point>-171.8 895.5</point>
-              <point>-311 528.9</point>
-              <point>-208.5 900.9</point>
-              <point>-459.9 123.7</point>
+              <point>-208.3 899.9</point>
+              <point>-191.6 895.5</point>
+              <point>-310.6 528.3</point>
+              <point>-296.8 525.9</point>
+              <point>-267.3 600.1</point>
+              <point>-171.6 894.5</point>
+              <point>-169.7 864.2</point>
+              <point>-135.2 849.7</point>
+              <point>-24.7 832.3</point>
+              <point>20.3 845.5</point>
+              <point>44.8 816.7</point>
+              <point>122 810.8</point>
+              <point>140.2 783.2</point>
+              <point>173.8 802.5</point>
+              <point>205.9 793.4</point>
+              <point>222.7 761.8</point>
+              <point>284 770</point>
+              <point>335.9 740.4</point>
+              <point>339 708.4</point>
+              <point>369.6 738.1</point>
+              <point>391.1 734</point>
+              <point>391.9 685.6</point>
+              <point>410.6 664.6</point>
+              <point>432.8 681.6</point>
+              <point>418.9 637.3</point>
+              <point>456 624.7</point>
+              <point>458.3 635.2</point>
+              <point>466 609</point>
+              <point>494.8 604.6</point>
+              <point>489 582.3</point>
+              <point>507.2 565.3</point>
+              <point>577.1 552</point>
+              <point>574.1 514.4</point>
+              <point>593.2 535.1</point>
+              <point>591.2 510.7</point>
+              <point>608.7 536.8</point>
+              <point>604.4 505.1</point>
+              <point>679.6 453</point>
+              <point>668.5 422</point>
+              <point>689.8 424.8</point>
+              <point>732.8 397.8</point>
+              <point>730.9 373.4</point>
+              <point>764.8 389.4</point>
+              <point>792.7 367.1</point>
+              <point>772.5 370.9</point>
+              <point>725.8 156.7</point>
+              <point>689.5 64.1</point>
+              <point>691.9 21.6</point>
+              <point>663.3 -42</point>
+              <point>618.8 -260.9</point>
+              <point>596.2 -292.2</point>
+              <point>585.8 -344.8</point>
+              <point>596.3 -368.6</point>
+              <point>515.9 -663.1</point>
+              <point>524.4 -595.5</point>
+              <point>500.8 -673.4</point>
+              <point>496.2 -747.7</point>
+              <point>445.1 -786.5</point>
+              <point>419.8 -873.4</point>
+              <point>442.9 -898.9</point>
+              <point>58.4 -599</point>
+              <point>86.9 -604.4</point>
+              <point>125.8 -496.6</point>
+              <point>88.5 -476.2</point>
+              <point>41.8 -418.2</point>
+              <point>1.6 -539.2</point>
+              <point>40.9 -586</point>
+              <point>-14 -541.1</point>
+              <point>10.7 -449.3</point>
+              <point>-9.1 -444.2</point>
+              <point>-25.2 -467.1</point>
+              <point>-28.9 -450.3</point>
+              <point>-57 -445.7</point>
+              <point>-118.3 -458.5</point>
+              <point>-579 -95.4</point>
+              <point>-546.3 -97.3</point>
+              <point>-459.4 123.6</point>
             </polyline>
           </geometry>
           <material>
@@ -133,18 +239,18 @@
       <static>true</static>
       <link name="land_geometry">
         <collision name="shore_01">
-          <pose>-349.1 -277.25 -0.9 0 0 -0.66748</pose>
+          <pose>-259.45 714.1 -0.9 0 0 -1.839438</pose>
           <geometry>
             <box>
-              <size>591.228823 4 2.2</size>
+              <size>389.424247 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_01">
-          <pose>-349.1 -277.25 -0.9 0 0 -0.66748</pose>
+          <pose>-259.45 714.1 -0.9 0 0 -1.839438</pose>
           <geometry>
             <box>
-              <size>591.228823 4 2.2</size>
+              <size>389.424247 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -153,18 +259,18 @@
           </material>
         </visual>
         <collision name="shore_02">
-          <pose>-53.9 -454.4 -0.9 0 0 0.071087</pose>
+          <pose>-241.1 711.4 -0.9 0 0 1.208022</pose>
           <geometry>
             <box>
-              <size>133.52714 4 2.2</size>
+              <size>395.693043 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_02">
-          <pose>-53.9 -454.4 -0.9 0 0 0.071087</pose>
+          <pose>-241.1 711.4 -0.9 0 0 1.208022</pose>
           <geometry>
             <box>
-              <size>133.52714 4 2.2</size>
+              <size>395.693043 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -173,18 +279,18 @@
           </material>
         </visual>
         <collision name="shore_03">
-          <pose>-1.65 -495.75 -0.9 0 0 -1.833362</pose>
+          <pose>-153.4 872.1 -0.9 0 0 -0.88848</pose>
           <geometry>
             <box>
-              <size>99.161442 4 2.2</size>
+              <size>61.723479 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_03">
-          <pose>-1.65 -495.75 -0.9 0 0 -1.833362</pose>
+          <pose>-153.4 872.1 -0.9 0 0 -0.88848</pose>
           <geometry>
             <box>
-              <size>99.161442 4 2.2</size>
+              <size>61.723479 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -193,18 +299,18 @@
           </material>
         </visual>
         <collision name="shore_04">
-          <pose>13.45 -564.2 -0.9 0 0 -0.686622</pose>
+          <pose>74.4 809.85 -0.9 0 0 -0.187882</pose>
           <geometry>
             <box>
-              <size>74.985985 4 2.2</size>
+              <size>430.709187 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_04">
-          <pose>13.45 -564.2 -0.9 0 0 -0.686622</pose>
+          <pose>74.4 809.85 -0.9 0 0 -0.187882</pose>
           <geometry>
             <box>
-              <size>74.985985 4 2.2</size>
+              <size>430.709187 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -213,18 +319,18 @@
           </material>
         </visual>
         <collision name="shore_05">
-          <pose>21.3 -563.25 -0.9 0 0 2.267001</pose>
+          <pose>311.5 739.2 -0.9 0 0 -0.841942</pose>
           <geometry>
             <box>
-              <size>65.124872 4 2.2</size>
+              <size>86.580627 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_05">
-          <pose>21.3 -563.25 -0.9 0 0 2.267001</pose>
+          <pose>311.5 739.2 -0.9 0 0 -0.841942</pose>
           <geometry>
             <box>
-              <size>65.124872 4 2.2</size>
+              <size>86.580627 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -233,18 +339,18 @@
           </material>
         </visual>
         <collision name="shore_06">
-          <pose>21.8 -479.2 -0.9 0 0 1.250532</pose>
+          <pose>365.05 721.2 -0.9 0 0 0.456714</pose>
           <geometry>
             <box>
-              <size>131.692913 4 2.2</size>
+              <size>62.04972 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_06">
-          <pose>21.8 -479.2 -0.9 0 0 1.250532</pose>
+          <pose>365.05 721.2 -0.9 0 0 0.456714</pose>
           <geometry>
             <box>
-              <size>131.692913 4 2.2</size>
+              <size>62.04972 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -253,18 +359,18 @@
           </material>
         </visual>
         <collision name="shore_07">
-          <pose>83.95 -457.9 -0.9 0 0 -0.751606</pose>
+          <pose>405 685.65 -0.9 0 0 -1.290858</pose>
           <geometry>
             <box>
-              <size>119.111989 4 2.2</size>
+              <size>104.616748 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_07">
-          <pose>83.95 -457.9 -0.9 0 0 -0.751606</pose>
+          <pose>405 685.65 -0.9 0 0 -1.290858</pose>
           <geometry>
             <box>
-              <size>119.111989 4 2.2</size>
+              <size>104.616748 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -273,18 +379,18 @@
           </material>
         </visual>
         <collision name="shore_08">
-          <pose>92.25 -548.45 -0.9 0 0 -2.153149</pose>
+          <pose>498 594.65 -0.9 0 0 -0.494507</pose>
           <geometry>
             <box>
-              <size>126.729377 4 2.2</size>
+              <size>183.731272 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_08">
-          <pose>92.25 -548.45 -0.9 0 0 -2.153149</pose>
+          <pose>498 594.65 -0.9 0 0 -0.494507</pose>
           <geometry>
             <box>
-              <size>126.729377 4 2.2</size>
+              <size>183.731272 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -293,18 +399,18 @@
           </material>
         </visual>
         <collision name="shore_09">
-          <pose>250.95 -749.8 -0.9 0 0 -0.662391</pose>
+          <pose>575.6 533.2 -0.9 0 0 -1.650415</pose>
           <geometry>
             <box>
-              <size>492.127084 4 2.2</size>
+              <size>41.719491 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_09">
-          <pose>250.95 -749.8 -0.9 0 0 -0.662391</pose>
+          <pose>575.6 533.2 -0.9 0 0 -1.650415</pose>
           <geometry>
             <box>
-              <size>492.127084 4 2.2</size>
+              <size>41.719491 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -313,18 +419,18 @@
           </material>
         </visual>
         <collision name="shore_10">
-          <pose>618.5 -266.2 -0.9 0 0 1.301209</pose>
+          <pose>591.4 525.6 -0.9 0 0 0.574544</pose>
           <geometry>
             <box>
-              <size>1318.892695 4 2.2</size>
+              <size>45.217957 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_10">
-          <pose>618.5 -266.2 -0.9 0 0 1.301209</pose>
+          <pose>591.4 525.6 -0.9 0 0 0.574544</pose>
           <geometry>
             <box>
-              <size>1318.892695 4 2.2</size>
+              <size>45.217957 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -333,18 +439,18 @@
           </material>
         </visual>
         <collision name="shore_11">
-          <pose>762.7 370.65 -0.9 0 0 3.040002</pose>
+          <pose>669.8 455.1 -0.9 0 0 -0.928667</pose>
           <geometry>
             <box>
-              <size>66.120287 4 2.2</size>
+              <size>208.040192 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_11">
-          <pose>762.7 370.65 -0.9 0 0 3.040002</pose>
+          <pose>669.8 455.1 -0.9 0 0 -0.928667</pose>
           <geometry>
             <box>
-              <size>66.120287 4 2.2</size>
+              <size>208.040192 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -353,18 +459,18 @@
           </material>
         </visual>
         <collision name="shore_12">
-          <pose>670.6 455.6 -0.9 0 0 2.213123</pose>
+          <pose>761.8 370.25 -0.9 0 0 -0.101591</pose>
           <geometry>
             <box>
-              <size>208.320141 4 2.2</size>
+              <size>66.120287 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_12">
-          <pose>670.6 455.6 -0.9 0 0 2.213123</pose>
+          <pose>761.8 370.25 -0.9 0 0 -0.101591</pose>
           <geometry>
             <box>
-              <size>208.320141 4 2.2</size>
+              <size>66.120287 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -373,18 +479,18 @@
           </material>
         </visual>
         <collision name="shore_13">
-          <pose>592.05 526.2 -0.9 0 0 -2.568364</pose>
+          <pose>617.8 -265.9 -0.9 0 0 -1.840374</pose>
           <geometry>
             <box>
-              <size>45.301937 4 2.2</size>
+              <size>1317.436729 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_13">
-          <pose>592.05 526.2 -0.9 0 0 -2.568364</pose>
+          <pose>617.8 -265.9 -0.9 0 0 -1.840374</pose>
           <geometry>
             <box>
-              <size>45.301937 4 2.2</size>
+              <size>1317.436729 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -393,18 +499,18 @@
           </material>
         </visual>
         <collision name="shore_14">
-          <pose>576.25 533.8 -0.9 0 0 1.488536</pose>
+          <pose>250.65 -748.95 -0.9 0 0 2.479183</pose>
           <geometry>
             <box>
-              <size>41.727576 4 2.2</size>
+              <size>491.627173 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_14">
-          <pose>576.25 533.8 -0.9 0 0 1.488536</pose>
+          <pose>250.65 -748.95 -0.9 0 0 2.479183</pose>
           <geometry>
             <box>
-              <size>41.727576 4 2.2</size>
+              <size>491.627173 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -413,18 +519,18 @@
           </material>
         </visual>
         <collision name="shore_15">
-          <pose>498.6 595.3 -0.9 0 0 2.647124</pose>
+          <pose>92.1 -547.8 -0.9 0 0 0.988676</pose>
           <geometry>
             <box>
-              <size>183.954772 4 2.2</size>
+              <size>126.590864 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_15">
-          <pose>498.6 595.3 -0.9 0 0 2.647124</pose>
+          <pose>92.1 -547.8 -0.9 0 0 0.988676</pose>
           <geometry>
             <box>
-              <size>183.954772 4 2.2</size>
+              <size>126.590864 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -433,18 +539,18 @@
           </material>
         </visual>
         <collision name="shore_16">
-          <pose>405.45 686.4 -0.9 0 0 1.851414</pose>
+          <pose>83.8 -457.4 -0.9 0 0 2.390664</pose>
           <geometry>
             <box>
-              <size>104.740508 4 2.2</size>
+              <size>118.902393 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_16">
-          <pose>405.45 686.4 -0.9 0 0 1.851414</pose>
+          <pose>83.8 -457.4 -0.9 0 0 2.390664</pose>
           <geometry>
             <box>
-              <size>104.740508 4 2.2</size>
+              <size>118.902393 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -453,18 +559,18 @@
           </material>
         </visual>
         <collision name="shore_17">
-          <pose>365.45 722 -0.9 0 0 -2.684879</pose>
+          <pose>21.7 -478.7 -0.9 0 0 -1.891555</pose>
           <geometry>
             <box>
-              <size>62.04972 4 2.2</size>
+              <size>131.503098 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_17">
-          <pose>365.45 722 -0.9 0 0 -2.684879</pose>
+          <pose>21.7 -478.7 -0.9 0 0 -1.891555</pose>
           <geometry>
             <box>
-              <size>62.04972 4 2.2</size>
+              <size>131.503098 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -473,18 +579,18 @@
           </material>
         </visual>
         <collision name="shore_18">
-          <pose>311.85 740.05 -0.9 0 0 2.299748</pose>
+          <pose>21.25 -562.6 -0.9 0 0 -0.872287</pose>
           <geometry>
             <box>
-              <size>86.721823 4 2.2</size>
+              <size>65.112437 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_18">
-          <pose>311.85 740.05 -0.9 0 0 2.299748</pose>
+          <pose>21.25 -562.6 -0.9 0 0 -0.872287</pose>
           <geometry>
             <box>
-              <size>86.721823 4 2.2</size>
+              <size>65.112437 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -493,18 +599,18 @@
           </material>
         </visual>
         <collision name="shore_19">
-          <pose>74.5 810.75 -0.9 0 0 2.953886</pose>
+          <pose>13.45 -563.55 -0.9 0 0 2.456062</pose>
           <geometry>
             <box>
-              <size>431.102154 4 2.2</size>
+              <size>74.922634 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_19">
-          <pose>74.5 810.75 -0.9 0 0 2.953886</pose>
+          <pose>13.45 -563.55 -0.9 0 0 2.456062</pose>
           <geometry>
             <box>
-              <size>431.102154 4 2.2</size>
+              <size>74.922634 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -513,18 +619,18 @@
           </material>
         </visual>
         <collision name="shore_20">
-          <pose>-153.55 873.05 -0.9 0 0 2.253364</pose>
+          <pose>-1.65 -495.2 -0.9 0 0 1.307958</pose>
           <geometry>
             <box>
-              <size>61.864151 4 2.2</size>
+              <size>99.064873 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_20">
-          <pose>-153.55 873.05 -0.9 0 0 2.253364</pose>
+          <pose>-1.65 -495.2 -0.9 0 0 1.307958</pose>
           <geometry>
             <box>
-              <size>61.864151 4 2.2</size>
+              <size>99.064873 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -533,18 +639,18 @@
           </material>
         </visual>
         <collision name="shore_21">
-          <pose>-241.4 712.2 -0.9 0 0 -1.933686</pose>
+          <pose>-53.8 -453.9 -0.9 0 0 -3.070395</pose>
           <geometry>
             <box>
-              <size>396.137986 4 2.2</size>
+              <size>133.327646 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_21">
-          <pose>-241.4 712.2 -0.9 0 0 -1.933686</pose>
+          <pose>-53.8 -453.9 -0.9 0 0 -3.070395</pose>
           <geometry>
             <box>
-              <size>396.137986 4 2.2</size>
+              <size>133.327646 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -553,18 +659,18 @@
           </material>
         </visual>
         <collision name="shore_22">
-          <pose>-259.75 714.9 -0.9 0 0 1.30193</pose>
+          <pose>-348.65 -276.95 -0.9 0 0 2.47412</pose>
           <geometry>
             <box>
-              <size>389.862994 4 2.2</size>
+              <size>590.588527 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_22">
-          <pose>-259.75 714.9 -0.9 0 0 1.30193</pose>
+          <pose>-348.65 -276.95 -0.9 0 0 2.47412</pose>
           <geometry>
             <box>
-              <size>389.862994 4 2.2</size>
+              <size>590.588527 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -573,18 +679,18 @@
           </material>
         </visual>
         <collision name="shore_23">
-          <pose>-334.2 512.3 -0.9 0 0 -1.883643</pose>
+          <pose>-519.2 14.1 -0.9 0 0 1.070938</pose>
           <geometry>
             <box>
-              <size>820.848701 4 2.2</size>
+              <size>253.529878 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_23">
-          <pose>-334.2 512.3 -0.9 0 0 -1.883643</pose>
+          <pose>-519.2 14.1 -0.9 0 0 1.070938</pose>
           <geometry>
             <box>
-              <size>820.848701 4 2.2</size>
+              <size>253.529878 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -593,18 +699,18 @@
           </material>
         </visual>
         <collision name="shore_24">
-          <pose>-519.8 14.1 -0.9 0 0 -2.070974</pose>
+          <pose>-333.85 511.75 -0.9 0 0 1.25796</pose>
           <geometry>
             <box>
-              <size>253.801281 4 2.2</size>
+              <size>819.900055 4 2.2</size>
             </box>
           </geometry>
         </collision>
         <visual name="shore_24">
-          <pose>-519.8 14.1 -0.9 0 0 -2.070974</pose>
+          <pose>-333.85 511.75 -0.9 0 0 1.25796</pose>
           <geometry>
             <box>
-              <size>253.801281 4 2.2</size>
+              <size>819.900055 4 2.2</size>
             </box>
           </geometry>
           <material>
@@ -613,10 +719,10 @@
           </material>
         </visual>
         <collision name="island_01_collision">
-          <pose>156.25 -602.15 -0.9 0 0 0</pose>
+          <pose>156.05 -601.45 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>140.3 192.5 2.2</size>
+              <size>140.1 192.3 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -625,20 +731,26 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>86.1 -615.5</point>
-              <point>114.9 -544.8</point>
-              <point>135 -550.2</point>
-              <point>123.2 -585.3</point>
-              <point>156.7 -596.2</point>
-              <point>128.6 -582.8</point>
-              <point>162.3 -505.9</point>
-              <point>177.6 -529.3</point>
-              <point>166.8 -540</point>
-              <point>169.1 -565.1</point>
-              <point>195.9 -600.3</point>
-              <point>221.1 -597.6</point>
-              <point>226.4 -610.9</point>
-              <point>197.6 -698.4</point>
+              <point>197.4 -697.6</point>
+              <point>226.1 -610.3</point>
+              <point>219.6 -610.8</point>
+              <point>220.9 -596.9</point>
+              <point>208 -603.8</point>
+              <point>195.7 -599.7</point>
+              <point>168.9 -564.4</point>
+              <point>164.7 -552</point>
+              <point>166.7 -539.4</point>
+              <point>177.4 -528.8</point>
+              <point>168.8 -509.1</point>
+              <point>162.1 -505.3</point>
+              <point>151 -521</point>
+              <point>128.4 -582.1</point>
+              <point>156.5 -595.5</point>
+              <point>123.1 -584.7</point>
+              <point>134.8 -549.6</point>
+              <point>114.8 -544.2</point>
+              <point>109.2 -549.6</point>
+              <point>86 -614.8</point>
             </polyline>
           </geometry>
           <material>
@@ -647,10 +759,10 @@
           </material>
         </visual>
         <collision name="island_02_collision">
-          <pose>-310.75 -273.25 -0.9 0 0 0</pose>
+          <pose>-310.55 -273.05 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>175.7 144.1 2.2</size>
+              <size>175.3 143.7 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -659,17 +771,27 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>-398.6 -226.5</point>
-              <point>-381.3 -201.2</point>
-              <point>-321.3 -242.4</point>
-              <point>-283.8 -220.8</point>
-              <point>-240.2 -233.1</point>
-              <point>-233.5 -251.9</point>
-              <point>-262 -251.3</point>
-              <point>-238 -258.2</point>
-              <point>-222.9 -307.6</point>
-              <point>-254.5 -345.3</point>
-              <point>-273.6 -318.1</point>
+              <point>-245 -343.2</point>
+              <point>-222.9 -305.3</point>
+              <point>-234.3 -282.6</point>
+              <point>-237.8 -257.9</point>
+              <point>-261.1 -252.3</point>
+              <point>-261.7 -248.7</point>
+              <point>-233.3 -251.6</point>
+              <point>-239.9 -232.8</point>
+              <point>-283.5 -220.6</point>
+              <point>-296.9 -224.1</point>
+              <point>-301 -231.6</point>
+              <point>-311 -229.9</point>
+              <point>-320.9 -242.1</point>
+              <point>-382.6 -201.2</point>
+              <point>-398.2 -226.2</point>
+              <point>-392.3 -234.5</point>
+              <point>-343.1 -267.8</point>
+              <point>-291.2 -313.2</point>
+              <point>-273.3 -317.8</point>
+              <point>-272.9 -325.4</point>
+              <point>-254.2 -344.9</point>
             </polyline>
           </geometry>
           <material>
@@ -678,10 +800,10 @@
           </material>
         </visual>
         <collision name="island_03_collision">
-          <pose>275.4 -725.2 -0.9 0 0 0</pose>
+          <pose>276.1 -724.35 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>80.2 116.8 2.2</size>
+              <size>82.2 116.7 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -690,13 +812,19 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>235.3 -731.6</point>
-              <point>259.8 -666.8</point>
-              <point>302.8 -683.1</point>
-              <point>286.2 -732.1</point>
-              <point>294.9 -721.6</point>
-              <point>315.5 -738.1</point>
-              <point>302.6 -783.6</point>
+              <point>302.3 -782.7</point>
+              <point>317.2 -751.1</point>
+              <point>315.1 -737.2</point>
+              <point>304.7 -723.1</point>
+              <point>294.6 -720.8</point>
+              <point>290.2 -732.7</point>
+              <point>285.9 -731.3</point>
+              <point>302.5 -682.3</point>
+              <point>271.5 -667.2</point>
+              <point>259.5 -666</point>
+              <point>235 -730.8</point>
+              <point>276 -760.2</point>
+              <point>288 -776.5</point>
             </polyline>
           </geometry>
           <material>
@@ -705,10 +833,10 @@
           </material>
         </visual>
         <collision name="island_04_collision">
-          <pose>335.9 -736.95 -0.9 0 0 0</pose>
+          <pose>335.7 -736.7 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>57.8 133.5 2.2</size>
+              <size>57.4 134.4 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -717,13 +845,15 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>307 -786.6</point>
-              <point>320.7 -756.8</point>
-              <point>320.9 -696.3</point>
-              <point>343.1 -670.2</point>
-              <point>364.8 -678.5</point>
-              <point>359.7 -735.3</point>
-              <point>326.9 -803.7</point>
+              <point>323.4 -803.9</point>
+              <point>359.3 -734.5</point>
+              <point>364.4 -677.8</point>
+              <point>342.7 -669.5</point>
+              <point>329.3 -692.1</point>
+              <point>320.6 -695.5</point>
+              <point>313.8 -720.7</point>
+              <point>321.6 -746</point>
+              <point>307 -789.7</point>
             </polyline>
           </geometry>
           <material>
@@ -732,10 +862,10 @@
           </material>
         </visual>
         <collision name="island_05_collision">
-          <pose>247.9 18.55 -0.9 0 0 0</pose>
+          <pose>247.8 18.5 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>70.4 96.5 2.2</size>
+              <size>70 96.4 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -744,13 +874,20 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>212.7 -11.8</point>
-              <point>239.8 66.8</point>
-              <point>262.6 57.8</point>
-              <point>260.8 44.8</point>
-              <point>283.1 23.2</point>
-              <point>270.6 -4.6</point>
-              <point>248.5 -29.7</point>
+              <point>239.5 66.7</point>
+              <point>243.5 56.1</point>
+              <point>235.7 48.3</point>
+              <point>226.7 18.2</point>
+              <point>220.6 17</point>
+              <point>216.5 9.2</point>
+              <point>212.8 -16.1</point>
+              <point>233.3 -20.4</point>
+              <point>248.2 -29.7</point>
+              <point>270.3 -4.6</point>
+              <point>282.8 23.2</point>
+              <point>274.3 42.3</point>
+              <point>260.5 44.8</point>
+              <point>262.3 57.8</point>
             </polyline>
           </geometry>
           <material>
@@ -759,10 +896,10 @@
           </material>
         </visual>
         <collision name="island_06_collision">
-          <pose>-121.15 -388.8 -0.9 0 0 0</pose>
+          <pose>-121 -386.85 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>70.5 109 2.2</size>
+              <size>70.4 111.9 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -771,11 +908,12 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>-156.4 -424.1</point>
-              <point>-112.6 -334.3</point>
-              <point>-91.6 -334.7</point>
-              <point>-85.9 -344.4</point>
-              <point>-123.6 -443.3</point>
+              <point>-123.5 -442.8</point>
+              <point>-85.8 -344</point>
+              <point>-99.2 -330.9</point>
+              <point>-112.4 -334</point>
+              <point>-154.1 -410.8</point>
+              <point>-156.2 -423.6</point>
             </polyline>
           </geometry>
           <material>
@@ -784,10 +922,10 @@
           </material>
         </visual>
         <collision name="island_07_collision">
-          <pose>-423.55 -186.9 -0.9 0 0 0</pose>
+          <pose>-423.1 -186.35 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>81.7 70 2.2</size>
+              <size>81.6 69.3 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -796,10 +934,14 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>-464.4 -174.4</point>
-              <point>-451.3 -151.9</point>
-              <point>-382.7 -160.1</point>
-              <point>-406.4 -221.9</point>
+              <point>-401.2 -219.9</point>
+              <point>-388 -190.4</point>
+              <point>-382.3 -159.9</point>
+              <point>-394.4 -152.6</point>
+              <point>-413.6 -160.8</point>
+              <point>-450.8 -151.7</point>
+              <point>-463.9 -174.2</point>
+              <point>-410.3 -221</point>
             </polyline>
           </geometry>
           <material>
@@ -808,10 +950,10 @@
           </material>
         </visual>
         <collision name="island_08_collision">
-          <pose>401.2 -829.7 -0.9 0 0 0</pose>
+          <pose>400.75 -825.35 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>76.2 82.2 2.2</size>
+              <size>76.1 88.9 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -820,12 +962,16 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>363.1 -827.8</point>
-              <point>386.6 -796.6</point>
-              <point>381.4 -826.5</point>
-              <point>398.8 -790.4</point>
-              <point>439.3 -788.6</point>
-              <point>413.1 -870.8</point>
+              <point>422.2 -780.9</point>
+              <point>438.8 -787.7</point>
+              <point>410.4 -869.8</point>
+              <point>362.7 -826.9</point>
+              <point>386.2 -795.7</point>
+              <point>386.4 -808.8</point>
+              <point>379.8 -822.4</point>
+              <point>384.8 -825.2</point>
+              <point>398.3 -789.5</point>
+              <point>414.7 -792.5</point>
             </polyline>
           </geometry>
           <material>
@@ -834,10 +980,10 @@
           </material>
         </visual>
         <collision name="island_09_collision">
-          <pose>-35.15 -402.05 -0.9 0 0 0</pose>
+          <pose>-35.1 -401.9 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>69.5 80.7 2.2</size>
+              <size>69.4 81.2 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -846,11 +992,14 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>-69.9 -436.3</point>
-              <point>-43.1 -361.7</point>
-              <point>-31 -381</point>
-              <point>-0.4 -377.3</point>
-              <point>-27.1 -442.4</point>
+              <point>-0.4 -376.8</point>
+              <point>-11.2 -371.5</point>
+              <point>-30.9 -380.6</point>
+              <point>-43.1 -361.3</point>
+              <point>-69.8 -435.8</point>
+              <point>-51.9 -442.5</point>
+              <point>-27 -441.9</point>
+              <point>-15.5 -426.4</point>
             </polyline>
           </geometry>
           <material>
@@ -859,10 +1008,10 @@
           </material>
         </visual>
         <collision name="island_10_collision">
-          <pose>-472.95 -120.8 -0.9 0 0 0</pose>
+          <pose>-471.6 -120.15 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>60.9 104.2 2.2</size>
+              <size>62.6 105.3 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -871,14 +1020,17 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>-503.4 -145.8</point>
-              <point>-464.6 -68.7</point>
-              <point>-457.1 -76.5</point>
-              <point>-472 -115.7</point>
-              <point>-462.5 -103.1</point>
-              <point>-448.9 -106.1</point>
-              <point>-442.5 -143.9</point>
-              <point>-468.2 -172.9</point>
+              <point>-467.6 -172.8</point>
+              <point>-440.3 -136.7</point>
+              <point>-447.1 -134.2</point>
+              <point>-448.4 -106</point>
+              <point>-461.9 -102.9</point>
+              <point>-467.4 -117.1</point>
+              <point>-471.5 -115.6</point>
+              <point>-456.6 -76.4</point>
+              <point>-466.8 -67.5</point>
+              <point>-474.5 -72.9</point>
+              <point>-502.9 -145.6</point>
             </polyline>
           </geometry>
           <material>
@@ -887,10 +1039,10 @@
           </material>
         </visual>
         <collision name="island_11_collision">
-          <pose>-108.95 589.9 -0.9 0 0 0</pose>
+          <pose>-154.85 -369.85 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>141.5 50.2 2.2</size>
+              <size>60.9 95.5 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -899,15 +1051,10 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>-179.7 589.5</point>
-              <point>-163.2 613.3</point>
-              <point>-82.4 593</point>
-              <point>-50.5 615</point>
-              <point>-38.2 608.9</point>
-              <point>-67.6 577.9</point>
-              <point>-91.2 582.4</point>
-              <point>-105.2 564.8</point>
-              <point>-134 598.5</point>
+              <point>-161.7 -417.6</point>
+              <point>-124.4 -342.6</point>
+              <point>-152.4 -322.1</point>
+              <point>-185.3 -400.6</point>
             </polyline>
           </geometry>
           <material>
@@ -916,10 +1063,10 @@
           </material>
         </visual>
         <collision name="island_12_collision">
-          <pose>-155.85 -370.3 -0.9 0 0 0</pose>
+          <pose>-515.6 -73.75 -0.9 0 0 0</pose>
           <geometry>
             <box>
-              <size>59.3 95.6 2.2</size>
+              <size>60.2 111.9 2.2</size>
             </box>
           </geometry>
         </collision>
@@ -928,10 +1075,604 @@
           <geometry>
             <polyline>
               <height>2.2</height>
-              <point>-185.5 -401</point>
-              <point>-152.6 -322.5</point>
-              <point>-126.2 -349.8</point>
-              <point>-161.9 -418.1</point>
+              <point>-503.3 -17.8</point>
+              <point>-545.7 -114.7</point>
+              <point>-525 -129.7</point>
+              <point>-506.9 -95.8</point>
+              <point>-485.5 -28.8</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_13_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-49.6 438.9</point>
+              <point>-41 441</point>
+              <point>-17.5 496.3</point>
+              <point>3.4 516.5</point>
+              <point>29.2 599</point>
+              <point>47.3 621.4</point>
+              <point>45.3 636.9</point>
+              <point>38.7 635.5</point>
+              <point>17.4 603.7</point>
+              <point>11.6 570.5</point>
+              <point>0.2 554.3</point>
+              <point>-12.7 516.8</point>
+              <point>-29.4 505.3</point>
+              <point>-49.9 448.4</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_14_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-207.1 -53.8</point>
+              <point>-204.3 -60.5</point>
+              <point>-186.9 -68.2</point>
+              <point>-160.7 -77.1</point>
+              <point>-145.7 -76.3</point>
+              <point>-138.2 -63.4</point>
+              <point>-122.2 -62.7</point>
+              <point>-108.1 -39</point>
+              <point>-110.4 -22.3</point>
+              <point>-114.4 -19.6</point>
+              <point>-130.5 -53.3</point>
+              <point>-144.6 -57.6</point>
+              <point>-151.6 -48.6</point>
+              <point>-166.5 -43.1</point>
+              <point>-168.4 -28.9</point>
+              <point>-173.7 -27</point>
+              <point>-187.4 -28.9</point>
+              <point>-205.5 -45.1</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_15_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-395.1 230.6</point>
+              <point>-407.1 225.8</point>
+              <point>-423.2 196.5</point>
+              <point>-417.8 187.5</point>
+              <point>-407.3 198.2</point>
+              <point>-413.9 162.2</point>
+              <point>-409.7 153.5</point>
+              <point>-399.1 158.2</point>
+              <point>-391.9 171.8</point>
+              <point>-379.1 162.9</point>
+              <point>-374 164.2</point>
+              <point>-365.8 182.1</point>
+              <point>-375.1 205.3</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_16_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-192.3 -394.7</point>
+              <point>-147.9 -302.1</point>
+              <point>-168.4 -288.7</point>
+              <point>-173 -291.4</point>
+              <point>-196.9 -357.2</point>
+              <point>-209.7 -378.2</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_17_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>357.2 -825.9</point>
+              <point>369.9 -805</point>
+              <point>382.3 -757.3</point>
+              <point>380.8 -749.6</point>
+              <point>371.8 -745</point>
+              <point>358.1 -749.5</point>
+              <point>352.3 -757.1</point>
+              <point>327.4 -805.4</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_18_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-87 -374</point>
+              <point>-122.3 -449.6</point>
+              <point>-117.7 -454.6</point>
+              <point>-108.6 -454.3</point>
+              <point>-91 -436.6</point>
+              <point>-75.5 -435.4</point>
+              <point>-61.8 -389.4</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_19_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-342.1 96.6</point>
+              <point>-334.9 98.1</point>
+              <point>-326.1 113.8</point>
+              <point>-312.7 120.9</point>
+              <point>-318.2 135</point>
+              <point>-317.4 164.2</point>
+              <point>-327 171.1</point>
+              <point>-325.5 185.7</point>
+              <point>-330.7 195.4</point>
+              <point>-340.5 191.4</point>
+              <point>-353.9 160.5</point>
+              <point>-344.4 144.1</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_20_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>234.3 -722.4</point>
+              <point>255.2 -666.4</point>
+              <point>217.8 -652.8</point>
+              <point>201.8 -706.1</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_21_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-210.5 -307.7</point>
+              <point>-243.7 -352.6</point>
+              <point>-211.9 -376</point>
+              <point>-186.4 -319.5</point>
+              <point>-189.8 -313.8</point>
+              <point>-198 -310.6</point>
+              <point>-200.5 -315.1</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_22_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>403.9 -207.1</point>
+              <point>400.1 -199.3</point>
+              <point>407.7 -191.8</point>
+              <point>413.4 -163.7</point>
+              <point>433.1 -161.2</point>
+              <point>420.1 -149.5</point>
+              <point>424.2 -143.9</point>
+              <point>423.4 -130.5</point>
+              <point>438.3 -127.6</point>
+              <point>446 -134.7</point>
+              <point>446.5 -143</point>
+              <point>441 -186.2</point>
+              <point>431.3 -199.7</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_23_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-225.1 184</point>
+              <point>-241.5 180.3</point>
+              <point>-266.3 128.3</point>
+              <point>-281.5 77</point>
+              <point>-279.9 38.4</point>
+              <point>-276.4 37.9</point>
+              <point>-268.3 84</point>
+              <point>-253.7 116.2</point>
+              <point>-243.3 155.5</point>
+              <point>-233.8 166.5</point>
+              <point>-215.4 163.5</point>
+              <point>-212.3 167.6</point>
+              <point>-211.5 175.5</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_24_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>256.4 -664.3</point>
+              <point>269.3 -640.2</point>
+              <point>273.4 -618.6</point>
+              <point>239.5 -602.3</point>
+              <point>230.7 -628.1</point>
+              <point>252.1 -632.4</point>
+              <point>249.5 -639.1</point>
+              <point>227.5 -631.3</point>
+              <point>220.1 -650</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_25_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>319.4 -12.5</point>
+              <point>328 0.9</point>
+              <point>346.9 69.2</point>
+              <point>330.5 75.5</point>
+              <point>321 60.9</point>
+              <point>304.4 -2.1</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_26_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-504.5 -145</point>
+              <point>-466.3 -41.5</point>
+              <point>-477.2 -36.8</point>
+              <point>-488.6 -52.8</point>
+              <point>-518.1 -134.8</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_27_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>479.7 15.3</point>
+              <point>486.4 21.5</point>
+              <point>491.6 43.7</point>
+              <point>513 85</point>
+              <point>512.3 93.3</point>
+              <point>521.7 104.6</point>
+              <point>522.9 117.7</point>
+              <point>518.5 126.1</point>
+              <point>507.4 107.8</point>
+              <point>509.5 99.3</point>
+              <point>503.1 102.5</point>
+              <point>508.2 96.3</point>
+              <point>497.8 85.3</point>
+              <point>488.2 87.1</point>
+              <point>473.4 55.6</point>
+              <point>476.6 48.6</point>
+              <point>474 31.4</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_28_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-39.6 613.2</point>
+              <point>-38.2 608.2</point>
+              <point>-67.5 577.3</point>
+              <point>-73.8 574.8</point>
+              <point>-91 581.7</point>
+              <point>-99.3 567.4</point>
+              <point>-105 564.1</point>
+              <point>-112.1 567.4</point>
+              <point>-115.3 578.8</point>
+              <point>-99.4 600.5</point>
+              <point>-82.3 592.4</point>
+              <point>-50.5 614.3</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_29_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-99.4 600.5</point>
+              <point>-108.7 606.5</point>
+              <point>-163 612.6</point>
+              <point>-173.1 607.4</point>
+              <point>-179.5 588.8</point>
+              <point>-171.5 583</point>
+              <point>-157.1 599.5</point>
+              <point>-133.9 597.9</point>
+              <point>-115.3 578.8</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_30_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-188 -223.3</point>
+              <point>-165.5 -229.3</point>
+              <point>-162.8 -234.9</point>
+              <point>-183.4 -301.9</point>
+              <point>-191.2 -294.2</point>
+              <point>-184.2 -259.3</point>
+              <point>-194.6 -249</point>
+              <point>-195.7 -238.2</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_31_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-0.1 -369.5</point>
+              <point>0.4 -354.9</point>
+              <point>-12.8 -330.3</point>
+              <point>-27.2 -330.2</point>
+              <point>-42.3 -357.6</point>
+              <point>-34.4 -369.1</point>
+              <point>-22.8 -371.1</point>
+              <point>-17.1 -364.4</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_32_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-38.1 320.6</point>
+              <point>-36.2 329.8</point>
+              <point>-64.8 349.3</point>
+              <point>-62.9 366.9</point>
+              <point>-68.3 371.4</point>
+              <point>-74.4 369.4</point>
+              <point>-81.9 336.1</point>
+              <point>-79.9 327.5</point>
+              <point>-50.4 318.9</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_33_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>20.7 -431.4</point>
+              <point>32.7 -386.5</point>
+              <point>11.3 -378.9</point>
+              <point>0.6 -409.7</point>
+              <point>0.6 -424.4</point>
+              <point>5 -426.2</point>
+              <point>10.7 -411.3</point>
+              <point>14.8 -412.4</point>
+              <point>9.7 -429</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_34_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>444.7 -565.4</point>
+              <point>451.2 -563.1</point>
+              <point>466.6 -531.3</point>
+              <point>470.1 -489.5</point>
+              <point>462.7 -491.9</point>
+              <point>453.7 -510.5</point>
+              <point>439.7 -554.5</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_35_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>575.8 -235</point>
+              <point>569.3 -281.1</point>
+              <point>551.5 -327.7</point>
+              <point>545.7 -321.5</point>
+              <point>558 -284.7</point>
+              <point>558.7 -267.3</point>
+              <point>569.4 -238.5</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_36_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-313.7 -6.4</point>
+              <point>-312.7 -11.8</point>
+              <point>-276.8 -25.9</point>
+              <point>-263.9 -25</point>
+              <point>-258.4 -18.5</point>
+              <point>-259.3 -13.6</point>
+              <point>-278.8 -10.7</point>
+              <point>-287.1 -0.3</point>
+              <point>-301.2 1.2</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_37_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>630.1 119.8</point>
+              <point>633.3 133.8</point>
+              <point>643 140.5</point>
+              <point>623.9 147</point>
+              <point>624.5 156</point>
+              <point>619.5 158.9</point>
+              <point>605.1 146.5</point>
+              <point>604.2 138.3</point>
+              <point>608.2 133</point>
+              <point>618.6 133.1</point>
+              <point>622.6 123.2</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_38_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>553.3 -485.2</point>
+              <point>528.4 -583.6</point>
+              <point>534.1 -576</point>
+              <point>556 -494.6</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_39_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>432 -714</point>
+              <point>413.4 -706.6</point>
+              <point>402.8 -720.3</point>
+              <point>405.2 -731.8</point>
+              <point>426.1 -734.4</point>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0.16 0.30 0.09 1</ambient>
+            <diffuse>0.25 0.45 0.12 1</diffuse>
+          </material>
+        </visual>
+        <visual name="island_40_visual">
+          <pose>0 0 -2 0 0 0</pose>
+          <geometry>
+            <polyline>
+              <height>2.2</height>
+              <point>-205.9 25.5</point>
+              <point>-215.4 20.9</point>
+              <point>-224.3 5.7</point>
+              <point>-233.3 -17.8</point>
+              <point>-229.8 -27.1</point>
+              <point>-215.9 -8.3</point>
+              <point>-204.2 19.6</point>
             </polyline>
           </geometry>
           <material>

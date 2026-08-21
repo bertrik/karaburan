@@ -35,3 +35,13 @@ def test_ravensberg_launch_uses_generated_world_and_configured_start():
     assert 'generate_scenario(config_path, output_dir)' in launch
     assert "'world_sdf': str(result.world_path)" in launch
     assert "'x': str(start['x'])" in launch
+
+
+def test_gazebo_server_owns_world_before_optional_gui_connects():
+    launch = (PACKAGE_DIR / 'launch' / 'sim.launch.py').read_text()
+
+    assert "'gz_args': [world_sdf, ' -r -s']" in launch
+    assert "'gz_args': '-g'" in launch
+    assert 'actions=[gazebo_gui]' in launch
+    assert 'condition=UnlessCondition(headless)' in launch
+    assert "'gz_args': [world_sdf, ' -r']" not in launch

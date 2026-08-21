@@ -157,9 +157,18 @@ def validate_config(config):
     if coordinates.get('orientation') != 'ENU' or coordinates.get('unit') != 'm':
         raise ValueError('coordinates must use metre-scale ENU')
     _validate_polygon('water_outline', config['water_outline'])
+    _validate_polygon(
+        'shoreline_collision_outline',
+        config.get('shoreline_collision_outline', config['water_outline']),
+    )
     identifiers = [island['id'] for island in config['islands']]
     if len(set(identifiers)) != len(identifiers):
         raise ValueError('island IDs must be unique')
+    label_count = config.get('debug', {}).get(
+        'island_label_count', len(config['islands']))
+    if not isinstance(label_count, int) or not 0 <= label_count <= len(
+            config['islands']):
+        raise ValueError('debug island_label_count is invalid')
     for island in config['islands']:
         _validate_polygon(island['id'], island['points'])
         if not all(
@@ -173,6 +182,11 @@ def validate_config(config):
     if not is_navigable_water(config, [goal['x'], goal['y']]):
         raise ValueError('goal must be in navigable water')
     world = config['world']
+    collision_island_count = world.get(
+        'island_collision_count', len(config['islands']))
+    if (not isinstance(collision_island_count, int)
+            or not 0 <= collision_island_count <= len(config['islands'])):
+        raise ValueError('world island_collision_count is invalid')
     if world['bottom_depth_m'] <= 0.0:
         raise ValueError('bottom_depth_m must be positive')
     if world['shoreline_width_m'] <= 0.0:
@@ -333,7 +347,8 @@ def _add_land(world, config):
     model = _subelement(world, 'model', attributes={'name': 'land'})
     _subelement(model, 'static', 'true')
     link = _subelement(model, 'link', attributes={'name': 'land_geometry'})
-    outline = config['water_outline']
+    outline = config.get(
+        'shoreline_collision_outline', config['water_outline'])
     for index, first in enumerate(outline):
         second = outline[(index + 1) % len(outline)]
         dx = second[0] - first[0]
@@ -358,7 +373,9 @@ def _add_land(world, config):
         box = _subelement(geometry, 'box')
         _subelement(box, 'size', size)
         _add_material(visual, '0.18 0.28 0.10 1', '0.28 0.42 0.15 1')
-    for island in config['islands']:
+    collision_island_count = world_config.get(
+        'island_collision_count', len(config['islands']))
+    for index, island in enumerate(config['islands']):
         minimum_x = min(point[0] for point in island['points'])
         maximum_x = max(point[0] for point in island['points'])
         minimum_y = min(point[1] for point in island['points'])
@@ -368,23 +385,24 @@ def _add_land(world, config):
             _number((minimum_y + maximum_y) / 2.0),
             _number(centre_z),
         )
-        collision = _subelement(
-            link,
-            'collision',
-            attributes={'name': f"{island['id']}_collision"},
-        )
-        _subelement(collision, 'pose', collision_pose)
-        geometry = _subelement(collision, 'geometry')
-        box = _subelement(geometry, 'box')
-        _subelement(
-            box,
-            'size',
-            '{} {} {}'.format(
-                _number(maximum_x - minimum_x),
-                _number(maximum_y - minimum_y),
-                _number(height),
-            ),
-        )
+        if index < collision_island_count:
+            collision = _subelement(
+                link,
+                'collision',
+                attributes={'name': f"{island['id']}_collision"},
+            )
+            _subelement(collision, 'pose', collision_pose)
+            geometry = _subelement(collision, 'geometry')
+            box = _subelement(geometry, 'box')
+            _subelement(
+                box,
+                'size',
+                '{} {} {}'.format(
+                    _number(maximum_x - minimum_x),
+                    _number(maximum_y - minimum_y),
+                    _number(height),
+                ),
+            )
         visual = _subelement(
             link,
             'visual',
@@ -396,8 +414,12 @@ def _add_land(world, config):
 
 
 def _complexity(config):
-    collision_count = 1 + len(config['water_outline']) + len(config['islands'])
-    visual_count = 2 + len(config['water_outline']) + len(config['islands'])
+    shoreline = config.get(
+        'shoreline_collision_outline', config['water_outline'])
+    island_collisions = config['world'].get(
+        'island_collision_count', len(config['islands']))
+    collision_count = 1 + len(shoreline) + island_collisions
+    visual_count = 2 + len(shoreline) + len(config['islands'])
     return {
         'static_entity_count': 3,
         'collision_count': collision_count,
@@ -418,12 +440,16 @@ def _metadata(config):
         'collision': {
             'type': 'box_segments',
             'width_m': config['world']['shoreline_width_m'],
+            'points': config.get(
+                'shoreline_collision_outline', config['water_outline']),
         },
         'navigation': {
             'type': 'outside_water_outline',
         },
     }]
-    for island in config['islands']:
+    collision_island_count = config['world'].get(
+        'island_collision_count', len(config['islands']))
+    for index, island in enumerate(config['islands']):
         minimum_x = min(point[0] for point in island['points'])
         maximum_x = max(point[0] for point in island['points'])
         minimum_y = min(point[1] for point in island['points'])
@@ -436,11 +462,14 @@ def _metadata(config):
                 'type': 'polygon',
                 'points': island['points'],
             },
-            'collision': {
+            'collision': ({
                 'type': 'axis_aligned_box',
                 'minimum': [minimum_x, minimum_y],
                 'maximum': [maximum_x, maximum_y],
-            },
+            } if index < collision_island_count else {
+                'type': 'none',
+                'reason': 'MVP performance budget',
+            }),
             'navigation': {
                 'type': 'polygon',
                 'points': island['points'],
@@ -511,18 +540,30 @@ def _debug_svg(config):
         f'<polygon points="{water}" fill="#70add8" stroke="#174b65" '
         'stroke-width="3"/>',
     ]
-    for island in config['islands']:
+    label_count = config.get('debug', {}).get(
+        'island_label_count', len(config['islands']))
+    label_positions = []
+    for index, island in enumerate(config['islands']):
         polygon = _svg_points(island['points'], transform)
-        centre_x = sum(point[0] for point in island['points']) / len(island['points'])
-        centre_y = sum(point[1] for point in island['points']) / len(island['points'])
-        label = transform([centre_x, centre_y])
-        identifier = escape(island['id'])
-        lines.extend([
+        lines.append(
             f'<polygon points="{polygon}" fill="#6f8f3b" '
-            'stroke="#344d20" stroke-width="2"/>',
-            f'<text x="{label[0]:.1f}" y="{label[1]:.1f}" '
-            'class="island">{}</text>'.format(identifier),
-        ])
+            'stroke="#344d20" stroke-width="2"/>')
+        if index < label_count:
+            centre_x = sum(
+                point[0] for point in island['points']
+            ) / len(island['points'])
+            centre_y = sum(
+                point[1] for point in island['points']
+            ) / len(island['points'])
+            label = transform([centre_x, centre_y])
+            if any(math.dist(label, position) < 40.0
+                   for position in label_positions):
+                continue
+            label_positions.append(label)
+            identifier = escape(island['id'])
+            lines.append(
+                f'<text x="{label[0]:.1f}" y="{label[1]:.1f}" '
+                'class="island">{}</text>'.format(identifier))
     lines.extend([
         '<style>text{font-family:Arial,sans-serif;fill:#12222b}'
         '.label{font-size:18px;font-weight:bold}'

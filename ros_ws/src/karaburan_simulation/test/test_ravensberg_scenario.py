@@ -26,7 +26,12 @@ def test_source_geometry_has_real_scale_and_valid_start_goal():
     assert config['coordinates']['unit'] == 'm'
     assert width > 1300.0
     assert height > 1700.0
-    assert len(config['islands']) == 12
+    assert len(config['water_outline']) == 77
+    assert len(config['shoreline_collision_outline']) < 40
+    assert len(config['islands']) == 40
+    assert config['world']['island_collision_count'] == 12
+    assert min(item['source_area_m2'] for item in config['islands']) >= 250.0
+    assert len({item['osm_way_id'] for item in config['islands']}) == 40
     start = config['ownship']['start']
     assert is_navigable_water(config, [start['x'], start['y']])
     assert is_navigable_water(config, [config['goal']['x'], config['goal']['y']])
@@ -46,7 +51,10 @@ def test_generation_is_byte_stable_and_world_is_valid_xml(tmp_path):
     assert world.findtext('spherical_coordinates/latitude_deg') == '52.0436549'
     assert world.findtext('spherical_coordinates/longitude_deg') == '4.7416484'
     assert world.find("model[@name='flat_bottom']") is not None
-    assert world.find("model[@name='land']") is not None
+    land = world.find("model[@name='land']/link[@name='land_geometry']")
+    assert land is not None
+    assert len(land.findall('collision')) + 1 == first.collision_count
+    assert len(world.findall('.//visual')) == first.visual_count
 
 
 def test_metadata_separates_semantics_and_reports_complexity(tmp_path):
@@ -57,11 +65,13 @@ def test_metadata_separates_semantics_and_reports_complexity(tmp_path):
     assert metadata['scenario'] == 'ravensberg_mvp'
     assert metadata['objects'][0]['semantic_type'] == 'LAND'
     assert metadata['objects'][0]['navigation_class'] == 'HARD_OBSTACLE'
-    assert len({item['id'] for item in metadata['objects']}) == 13
+    assert metadata['objects'][12]['collision']['type'] == 'axis_aligned_box'
+    assert metadata['objects'][13]['collision']['type'] == 'none'
+    assert len({item['id'] for item in metadata['objects']}) == 41
     assert metadata['complexity'] == {
         'collision_count': 37,
         'static_entity_count': 3,
-        'visual_count': 38,
+        'visual_count': 66,
     }
     assert result.collision_count == 37
 
@@ -72,7 +82,9 @@ def test_debug_only_does_not_write_a_gazebo_world(tmp_path):
     assert result.world_path is None
     assert result.metadata_path.is_file()
     assert result.debug_path.is_file()
-    assert '<svg ' in result.debug_path.read_text(encoding='utf-8')
+    debug = result.debug_path.read_text(encoding='utf-8')
+    assert '<svg ' in debug
+    assert 1 <= debug.count('class="island"') <= 12
     assert not list(tmp_path.glob('*.sdf'))
 
 

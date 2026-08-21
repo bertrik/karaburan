@@ -88,23 +88,26 @@ def generate_launch_description():
         ).items()
     )
 
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(PathJoinSubstitution([
-            FindPackageShare('ros_gz_sim'), 'launch', 'gz_sim.launch.py'
-        ])),
-        launch_arguments={
-            'gz_args': [world_sdf, ' -r']
-        }.items(),
-        condition=UnlessCondition(headless),
-    )
-    gazebo_headless = IncludeLaunchDescription(
+    gazebo_server = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
             FindPackageShare('ros_gz_sim'), 'launch', 'gz_sim.launch.py'
         ])),
         launch_arguments={
             'gz_args': [world_sdf, ' -r -s']
         }.items(),
-        condition=IfCondition(headless),
+    )
+    gazebo_gui = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(PathJoinSubstitution([
+            FindPackageShare('ros_gz_sim'), 'launch', 'gz_sim.launch.py'
+        ])),
+        launch_arguments={
+            'gz_args': '-g'
+        }.items(),
+    )
+    delayed_gazebo_gui = TimerAction(
+        period=2.0,
+        actions=[gazebo_gui],
+        condition=UnlessCondition(headless),
     )
     rviz = Node(
         package='rviz2',
@@ -196,8 +199,8 @@ def generate_launch_description():
         *recording_argument_declarations('./bags'),
         *instrument_argument_declarations(),
 
-        gazebo,
-        gazebo_headless,
+        gazebo_server,
+        delayed_gazebo_gui,
         nav_launch,
         simcontrol,
         measurement_launch,

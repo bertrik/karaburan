@@ -21,10 +21,12 @@ Working baseline:
 - ROS 2 Jazzy and Gazebo Sim Harmonic (`gz sim` 8.11.0 in runtime verification).
 - A deterministic, 1:1 metre Ravensberg world generated from repository-owned
   scenario configuration derived from OpenStreetMap relation `14671863`.
-- Simplified water outline, twelve main islands/legakkers, a flat 2.0 m bottom,
+- A 10 m water outline, forty main islands/legakkers, a flat 2.0 m bottom,
   land collisions, ownship start, goal, semantic metadata, and an SVG debug map.
 - The existing boat spawns at the configured start and moves through its
   unchanged `/cmd_vel`, buoyancy, hydrodynamics, and twin-thruster path.
+- Gazebo starts the world-bearing server before attaching the optional GUI as a
+  separate client, avoiding the combined-process world-selection wait.
 - Debug-only generation works without Gazebo and the same configuration drives
   SDF, metadata, and debug geometry.
 
@@ -37,21 +39,23 @@ Important files:
 - `ros_ws/src/karaburan_simulation/generated/`
 - `ros_ws/src/karaburan_simulation/models/karaburan_boat.sdf`
 - `ros_ws/src/karaburan_simulation/test/test_ravensberg_scenario.py`
+- `ros_ws/src/karaburan_simulation/tools/import_ravensberg_osm.py`
 - `docker/ros-test.sh`
 - `AGENTS.md`
 
 Known issues:
 
-- The MVP geometry is intentionally simplified and omits many small legakkers
-  and narrow channels.
+- The MVP retains forty of 69 OSM inner rings and still omits the 29 smallest
+  legakkers plus some narrow source detail.
 - Island visuals and navigation polygons follow the source outline, while
-  Gazebo uses conservative box collisions because its buoyancy system rejects
-  polyline collision geometry.
+  Gazebo uses conservative box collisions for only the twelve largest islands
+  because its buoyancy system rejects polyline collision geometry and forty
+  separate boxes exceeded the accepted performance budget.
 - The bottom is flat; bathymetry belongs to Milestone 4.
 - The optional Leaflet UI still uses the legacy WGS84 origin. Leave `with_map`
   disabled for Ravensberg until the UI becomes scenario-origin aware.
-- SVG labels overlap in the dense southern area, but metadata IDs and polygons
-  remain unambiguous.
+- SVG labels are selective and proximity-filtered; metadata IDs and polygons
+  remain the authoritative identification.
 - The existing boat SDF emits parser warnings for Gazebo-specific `gz_frame_id`
   sensor elements. These predate Ravensberg and do not block the sensors.
 - The repository contains unrelated existing/concurrent working-tree changes
@@ -76,16 +80,20 @@ Milestone 1 verification:
 - Deterministic generation: repeated output is byte-stable.
 - Debug-only generation: metadata and SVG succeed without Gazebo.
 - Geometry: start and goal are valid navigable-water positions.
-- Complexity: 3 static models, 37 collision shapes, and 38 visuals.
-- Generator duration: approximately 6-21 ms in tested environments.
+- Complexity: 3 static models, 37 collision shapes, and 66 visuals.
+- Generator duration: approximately 25-132 ms in tested environments.
 - Gazebo: generated world loads without world/geometry/plugin errors.
 - Control: ten seconds of forward `/cmd_vel` moved ownship from x = -120.00 m
-  to x = -117.45 m.
-- Performance: 50-sample mean real-time factor 0.801 versus 0.831 for the old
-  empty-water world in the same software-rendering container (about 3.6% lower).
+  to x = -116.60 m in the final refined world.
+- Performance: 50-sample mean real-time factor 0.932 versus 0.964 for an
+  otherwise identical 12-island visual proxy (about 3.3% lower).
 - Focused validation: 7 targeted tests passed and `ament_flake8` was clean.
-- Required complete CI: clean `--pull --no-cache` image build succeeded; 47
+- Required complete CI: clean `--pull --no-cache` image build succeeded; 48
   tests ran with 0 errors and 0 failures, and launch/generator/MCAP checks passed.
+- GUI startup refinement: the world-bearing server now starts independently and
+  the optional GUI connects after a short delay, without owning world selection;
+  a 40-second Gazebo Harmonic/Xvfb runtime check remained healthy and loaded the
+  world and ownship without the previous GUI wait warning.
 
 ## Non-negotiable working rules
 
