@@ -33,7 +33,7 @@ their readings are published as follows:
 # Boat total setup launch file
 
 This currently works on My Machine TM (use the generic instructions at the top first):
-`colcon build && source install/setup.bash && ros2 launch navigation boat.launch.py`
+`colcon build && source install/setup.bash && ros2 launch karaburan_bringup boat.launch.py`
 
 Clone the repository with its MPU9250 driver reference, or initialise it after
 an existing clone:
@@ -51,7 +51,7 @@ The motor controller uses `/dev/ttyS0` at 115200 baud by default. Override the
 serial settings when needed:
 
 ```bash
-ros2 launch navigation boat.launch.py \
+ros2 launch karaburan_bringup boat.launch.py \
   motor_serial_port:=/dev/ttyS0 \
   motor_baud_rate:=115200
 ```
@@ -71,7 +71,29 @@ Apply the GPSD configuration with:
 sudo systemctl restart gpsd.socket gpsd.service
 ```
 
-Replace `boat.launch.py` with `sim.launch.py` for the simulated stuff (laptop only! Requires GUI!)
+Start the laptop simulation from its dedicated package:
+
+```bash
+ros2 launch karaburan_simulation sim.launch.py
+```
+
+The deterministic Ravensberg navigation-test world has its own launch file:
+
+```bash
+ros2 launch karaburan_simulation ravensberg.launch.py
+```
+
+Generate its metadata and debug map without Gazebo with:
+
+```bash
+ros2 run karaburan_simulation generate_ravensberg_scenario \
+  --debug-only --output-dir /tmp/ravensberg-mvp
+```
+
+See [`docs/ravensberg_world.md`](docs/ravensberg_world.md) for the geometry
+source, coordinate system, generated artifacts, and known limitations.
+
+Use `headless:=true with_rviz:=false` when no GUI is required.
 
 ## GPS shuttle route
 
@@ -118,19 +140,20 @@ running simulator:
 source /opt/ros/jazzy/setup.bash
 cd ~/karaburan/ros_ws
 source install/setup.bash
-ros2 launch navigation leaflet_map.launch.py
+ros2 launch karaburan_ui leaflet_map.launch.py
 ```
 
 Alternatively, let the simulator start the map after ten seconds:
 
 ```bash
-ros2 launch navigation sim.launch.py with_map:=true
+ros2 launch karaburan_simulation sim.launch.py with_map:=true
 ```
 
 The map opens locally and is also available at `http://<sim-host>:8088`. Its
-configured WGS84 origin matches `config/world.sdf`. Map tiles are visual context
-only: navigation continues to use ROS topics and local `map`/`odom` frames if
-the internet connection or tile service is unavailable. The default
+configured WGS84 origin matches
+`karaburan_simulation/worlds/world.sdf`. Map tiles are visual context only:
+navigation continues to use ROS topics and local `map`/`odom` frames if the
+internet connection or tile service is unavailable. The default
 OpenStreetMap tile service is intended only for normal interactive viewing; do
 not use it for bulk download or offline prefetching.
 
@@ -189,7 +212,7 @@ Recording is disabled by default. Start the physical boat with the standard
 `navigation` profile without LiDAR:
 
 ```bash
-ros2 launch navigation boat.launch.py \
+ros2 launch karaburan_bringup boat.launch.py \
   record_enabled:=true \
   record_profile:=navigation \
   record_include_scan:=false \
@@ -199,7 +222,7 @@ ros2 launch navigation boat.launch.py \
 For the simulator:
 
 ```bash
-ros2 launch navigation sim.launch.py \
+ros2 launch karaburan_simulation sim.launch.py \
   record_enabled:=true \
   record_profile:=navigation \
   record_include_scan:=false \
@@ -218,7 +241,7 @@ Available profiles:
 Use `record_extra_topics` to add comma-separated topics:
 
 ```bash
-ros2 launch navigation boat.launch.py \
+ros2 launch karaburan_bringup boat.launch.py \
   record_enabled:=true \
   record_profile:=navigation \
   record_extra_topics:="/diagnostics,/battery_state"
@@ -287,7 +310,7 @@ measurement drivers remain disabled. Configure the instruments connected to
 the boat as needed:
 
 ```bash
-ros2 launch navigation boat.launch.py \
+ros2 launch karaburan_bringup boat.launch.py \
   with_temperature:=true \
   temperature_sensor_id:=28.C23646D48524 \
   temperature_sensor_id_2:=28.5CD456B5013C \

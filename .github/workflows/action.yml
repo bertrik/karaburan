@@ -43,6 +43,10 @@ jobs:
             karaburan_msgs
             boatcontrol
             navigation
+            karaburan_bringup
+            karaburan_ui
+            karaburan_simulation
+            karaburan_navigation_tests
             mpu9250
             tempreader
             lidar

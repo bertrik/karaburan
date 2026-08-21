@@ -9,7 +9,6 @@ setup(
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name + '/launch', ['launch/boatcontrol.launch.py']),
-        ('share/' + package_name + '/launch', ['launch/simcontrol.launch.py']),
         ('share/' + package_name, ['package.xml']),
     ],
     install_requires=['setuptools', 'pyserial'],
@@ -22,7 +21,6 @@ setup(
     entry_points={
         'console_scripts': [
             'boatcontrol_node = boatcontrol.boatcontrolnode:main',
-            'simcontrol_node = boatcontrol.simcontrolnode:main'
         ],
     },
 )

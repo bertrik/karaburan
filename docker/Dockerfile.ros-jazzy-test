@@ -4,12 +4,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3-colcon-common-extensions \
+        python3-pip \
         python3-serial \
         ros-jazzy-geographic-msgs \
         ros-jazzy-nav2-msgs \
         ros-jazzy-rosbag2-storage-mcap \
         ros-jazzy-rosidl-default-generators \
     && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --break-system-packages --no-cache-dir \
+        junit2html==31.1.4
 
 WORKDIR /karaburan/ros_ws
 COPY ros_ws/src ./src

@@ -53,7 +53,6 @@ def test_lidar_obstacles_feed_both_costmaps_and_controller():
     collision_monitor = (CONFIG_DIR / 'collision_monitor.yaml').read_text()
     planner = (CONFIG_DIR / 'planner_server.yaml').read_text()
     launch = (LAUNCH_DIR / 'nav2_stack.launch.py').read_text()
-    boat_model = (CONFIG_DIR / 'karaburan_boat.sdf').read_text()
 
     assert 'plugins: ["obstacle_layer", "inflation_layer"]' in controller
     assert 'observation_sources: scan' in controller
@@ -80,8 +79,6 @@ def test_lidar_obstacles_feed_both_costmaps_and_controller():
     assert planner.count('footprint: "[[0.28, 0.15]') == 1
     assert 'inflation_radius: 3.0' in planner
     assert 'cost_scaling_factor: 1.0' in planner
-    assert '<pose>0 0 0.155 0 0 0</pose>' in boat_model
-    assert '<gz_frame_id>lidar_link</gz_frame_id>' in boat_model
     assert 'cmd_vel_in_topic: /cmd_vel_nav' in collision_monitor
     assert 'cmd_vel_out_topic: /cmd_vel' in collision_monitor
     assert 'action_type: approach' in collision_monitor
@@ -117,46 +114,3 @@ def test_reverse_arc_is_fast_stateful_and_geometry_driven():
     assert 'starboard_score = self.arc_cost(1.0)' in controller
     assert 'self.required_plan_generation = self.plan_generation + 1' in controller
     assert 'reverse_arc_controller = navigation.reverse_arc_controller:main' in setup
-
-
-def test_leaflet_map_matches_simulation_origin_and_topics():
-    map_node = (PACKAGE_DIR / 'navigation' / 'leaflet_map.py').read_text()
-    map_launch = (LAUNCH_DIR / 'leaflet_map.launch.py').read_text()
-    map_html = (PACKAGE_DIR / 'web' / 'leaflet_map.html').read_text()
-    sim_launch = (LAUNCH_DIR / 'sim.launch.py').read_text()
-    world = (CONFIG_DIR / 'world.sdf').read_text()
-
-    assert 'ORIGIN_LATITUDE = 52.018599' in map_launch
-    assert 'ORIGIN_LONGITUDE = 4.708720' in map_launch
-    assert '<latitude_deg>52.018599</latitude_deg>' in world
-    assert '<longitude_deg>4.708720</longitude_deg>' in world
-    assert "NavSatFix, '/fix/valid'" in map_node
-    assert "NavPath, '/plan'" in map_node
-    assert 'tile.openstreetmap.org' in map_html
-    assert 'OpenStreetMap contributors' in map_html
-    assert "'with_map'" in sim_launch
-
-
-def test_repeatable_maneuver_suite_is_installed_and_headless():
-    setup = (PACKAGE_DIR / 'setup.py').read_text()
-    package = (PACKAGE_DIR / 'package.xml').read_text()
-    sim_launch = (LAUNCH_DIR / 'sim.launch.py').read_text()
-    test_launch = (LAUNCH_DIR / 'maneuver_test.launch.py').read_text()
-    runner = (PACKAGE_DIR / 'navigation' / 'maneuver_test_runner.py').read_text()
-    script = (PACKAGE_DIR / 'scripts' / 'run_maneuver_tests.sh').read_text()
-
-    assert '<depend>action_msgs</depend>' in package
-    assert '<depend>ament_index_python</depend>' in package
-    assert "'headless'" in sim_launch
-    assert "'with_rviz'" in sim_launch
-    assert "'headless': 'true'" in test_launch
-    assert "'with_rviz': 'false'" in test_launch
-    assert "'record_enabled': 'false'" in test_launch
-    assert 'maneuver_test_world.sdf' in setup
-    assert 'maneuver_test_block.sdf' in setup
-    assert 'scripts/run_maneuver_tests.sh' in setup
-    assert 'maneuver_test_runner = navigation.maneuver_test_runner:main' in setup
-    assert "'follow_straight'" in runner
-    assert "'obstacle_port'" in runner
-    assert "'obstacle_starboard'" in runner
-    assert 'setsid ros2 launch navigation maneuver_test.launch.py' in script
