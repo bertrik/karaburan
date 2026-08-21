@@ -27,6 +27,8 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert "glob('scripts/*.sh')" in setup
     assert 'karaburan_navigation_tests.maneuver_test_runner:main' in setup
     assert 'karaburan_navigation_tests.maneuver_report:main' in setup
+    assert 'karaburan_navigation_tests.junit_html_report:main' in setup
+    assert '<exec_depend>python3-junit2html</exec_depend>' in package
     assert "'follow_straight'" in runner
     assert "'obstacle_port'" in runner
     assert "'obstacle_starboard'" in runner
@@ -41,3 +43,5 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert 'actuator_turn_left' in simulation_script
     assert 'actuator_turn_right' in simulation_script
     assert 'follow_straight' not in simulation_script
+    assert 'colcon test' in simulation_script
+    assert 'junit_html_report' in simulation_script

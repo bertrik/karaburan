@@ -51,9 +51,11 @@ directory contains:
 - `junit.xml`: one test case per scenario. CI systems display failed scenarios
   as red tests rather than treating a completed script as success.
 - `summary.json`: a small suite summary suitable for automation.
-- `report.html`: a self-contained graphical report with the actual XY trace,
-  reference path, obstacle and goal markers, command velocity over time,
-  acceptance checks, metrics, and selected launch diagnostics.
+- `report.html`: a self-contained `junit2html` report listing every test case,
+  the exact failed acceptance checks, observed metrics, relevant log lines, and
+  the names of the related artifacts.
+- `<scenario>.svg`: a static plot of the actual XY trajectory and reference
+  path, labelled with the scenario status and failed checks.
 - `<scenario>.json`: the complete trace used to calculate the result.
 - `<scenario>.launch.log` and `<scenario>.runner.log`: plain-text logs with ANSI
   terminal colour removed. The HTML report includes only relevant warning and
@@ -73,9 +75,11 @@ bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts
 ```
 
 This creates a new leaf directory named `YYYYMMDDHHMMSS` for every run. The
-directory contains the same JUnit, graphical HTML, JSON, and plain-text log
-artifacts as the complete manoeuvre suite. A failed actuator test or missing
-result makes the command exit with status `1`.
+directory contains a combined `report.html` and `junit.xml` for the three
+dynamic actuator scenarios, the `karaburan_simulation` unit tests, and the
+navigation test harness. The original JUnit files, static trajectory plots,
+JSON traces, and plain-text logs remain beside the combined report. A failing
+test or missing result makes the command exit with status `1`.
 
 ## Scenarios and gates
 

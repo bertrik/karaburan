@@ -17,6 +17,7 @@
   <exec_depend>karaburan_simulation</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>navigation</exec_depend>
+  <exec_depend>python3-junit2html</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

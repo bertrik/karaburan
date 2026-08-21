@@ -31,6 +31,8 @@ setup(
             'karaburan_navigation_tests.maneuver_test_runner:main',
             'maneuver_test_report = '
             'karaburan_navigation_tests.maneuver_report:main',
+            'junit_html_report = '
+            'karaburan_navigation_tests.junit_html_report:main',
         ],
     },
 )

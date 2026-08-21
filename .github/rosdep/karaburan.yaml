@@ -8,3 +8,8 @@ ament_python:
     apt:
       packages:
         - python3-setuptools
+python3-junit2html:
+  ubuntu:
+    pip:
+      packages:
+        - junit2html==31.1.4

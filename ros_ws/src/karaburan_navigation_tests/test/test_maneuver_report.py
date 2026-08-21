@@ -48,10 +48,18 @@ def test_failed_scenario_produces_red_junit_and_graphical_report(tmp_path):
     assert suite.attrib['failures'] == '1'
     assert suite.find('./testcase/failure') is not None
     document = (tmp_path / 'report.html').read_text()
-    assert 'XY trajectory' in document
-    assert 'Command velocity over simulation time' in document
+    assert 'actuator_straight' in document
+    assert 'goal_reached' in document
     assert 'controller failed' in document
-    assert 'Infinity' not in document
+    assert 'actuator_straight.svg' in document
+    assert document.count('controller failed') == 1
+    plot = (tmp_path / 'actuator_straight.svg').read_text()
+    assert 'actual trajectory' in plot
+    assert 'FAIL' in plot
+    failure = suite.find('./testcase/failure').text
+    assert 'goal_reached: the controller must report a reached goal' in failure
+    assert 'travelled: 3.25' in failure
+    assert 'radius: inf' in failure
     assert '\x1b[' not in launch_log.read_text()
     assert main([
         '--report-root', str(tmp_path),
@@ -67,6 +75,8 @@ def test_missing_scenario_result_is_a_failure(tmp_path):
         'scenario_result_written']
     suite = ElementTree.parse(tmp_path / 'junit.xml').getroot()
     assert suite.attrib['failures'] == '1'
+    assert 'scenario must write its JSON result' in (
+        suite.find('./testcase/failure').text)
 
 
 def test_passing_scenario_produces_green_junit(tmp_path):
