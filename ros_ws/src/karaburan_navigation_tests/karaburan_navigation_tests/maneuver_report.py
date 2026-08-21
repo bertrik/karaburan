@@ -42,6 +42,15 @@ CHECK_REQUIREMENTS = {
 }
 
 
+def scenario_layer(scenario):
+    """Separate propulsion, local control, and global planning scenarios."""
+    if scenario.startswith('actuator_'):
+        return 'actuator'
+    if scenario.startswith('follow_'):
+        return 'controller'
+    return 'planner'
+
+
 def strip_ansi(value):
     """Remove terminal control sequences from text."""
     return ANSI_ESCAPE.sub('', value).replace('\r', '')
@@ -143,7 +152,9 @@ def _write_junit(report_root, reports):
     })
     for report in reports:
         case = ElementTree.SubElement(suite, 'testcase', {
-            'classname': 'karaburan_navigation_tests.maneuver',
+            'classname': (
+                'karaburan_navigation_tests.'
+                + scenario_layer(report['scenario'])),
             'name': report['scenario'],
             'time': f"{float(report.get('duration_seconds', 0.0)):.3f}",
         })
@@ -237,6 +248,7 @@ def generate_report(report_root, scenarios):
         'passed_count': passed, 'failed_count': len(reports) - passed,
         'scenarios': [{
             'name': report['scenario'], 'passed': report['passed'],
+            'layer': scenario_layer(report['scenario']),
             'failed_checks': _failed_checks(report),
             'error': report.get('error'),
         } for report in reports],
@@ -261,13 +273,15 @@ def main(args=None):
         options.report_root, options.scenario or list(SCENARIOS))
     print('')
     print('Navigation manoeuvre test summary')
-    print('RESULT  SCENARIO                    FAILED CHECKS')
+    print('RESULT  LAYER       SCENARIO                    FAILED CHECKS')
     for result in summary['scenarios']:
         status = 'PASS' if result['passed'] else 'FAIL'
         detail = ', '.join(result['failed_checks']) or '-'
         if result['error']:
             detail = result['error']
-        print(f"{status:<6}  {result['name']:<28} {detail}")
+        print(
+            f"{status:<6}  {result['layer']:<10}  "
+            f"{result['name']:<28} {detail}")
     print('')
     print(f"{summary['failed_count']} failed, "
           f"{summary['passed_count']} passed")

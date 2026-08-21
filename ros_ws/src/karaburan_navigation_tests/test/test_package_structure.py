@@ -23,6 +23,8 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert "'headless': 'true'" in test_launch
     assert "'with_rviz': 'false'" in test_launch
     assert "'record_enabled': 'false'" in test_launch
+    assert "'world_name': 'ocean'" in test_launch
+    assert "'x': '0.0'" in test_launch
     assert "glob('scenarios/*.sdf')" in setup
     assert "glob('scripts/*.sh')" in setup
     assert 'karaburan_navigation_tests.maneuver_test_runner:main' in setup

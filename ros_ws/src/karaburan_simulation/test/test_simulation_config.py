@@ -24,6 +24,8 @@ def test_simulation_owns_model_world_and_control_node():
     assert "'with_map'" in launch
     assert '<pose>0 0 0.155 0 0 0</pose>' in model
     assert '<gz_frame_id>lidar_link</gz_frame_id>' in model
+    assert '<xyz>-1 0 0</xyz>' in model
+    assert '<thrust_coefficient>-0.004422</thrust_coefficient>' in model
     assert '<latitude_deg>52.018599</latitude_deg>' in world
     assert '<longitude_deg>4.708720</longitude_deg>' in world
 

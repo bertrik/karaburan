@@ -83,6 +83,14 @@ test or missing result makes the command exit with status `1`.
 
 ## Scenarios and gates
 
+The report separates three layers so a propulsion defect cannot be mistaken
+for a route-planning defect:
+
+- `actuator`: open-loop commands bypass Nav2 and validate simulation thrust.
+- `controller`: a supplied local path validates tracking without global
+  planning.
+- `planner`: obstacle scenarios include global planning and execution.
+
 - `actuator_straight`: three metres of open-loop forward thrust.
 - `actuator_turn_left` and `actuator_turn_right`: symmetric steering signs.
 - `follow_straight`: a three-metre path sent directly to `FollowPath`.

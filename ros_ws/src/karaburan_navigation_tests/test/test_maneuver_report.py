@@ -2,7 +2,11 @@ import json
 import math
 import xml.etree.ElementTree as ElementTree
 
-from karaburan_navigation_tests.maneuver_report import generate_report, main
+from karaburan_navigation_tests.maneuver_report import (
+    generate_report,
+    main,
+    scenario_layer,
+)
 
 
 def write_result(root, scenario, passed):
@@ -44,9 +48,11 @@ def test_failed_scenario_produces_red_junit_and_graphical_report(tmp_path):
 
     assert not summary['passed']
     assert summary['failed_count'] == 1
+    assert summary['scenarios'][0]['layer'] == 'actuator'
     suite = ElementTree.parse(tmp_path / 'junit.xml').getroot()
     assert suite.attrib['failures'] == '1'
     assert suite.find('./testcase/failure') is not None
+    assert suite.find('./testcase').attrib['classname'].endswith('.actuator')
     document = (tmp_path / 'report.html').read_text()
     assert 'actuator_straight' in document
     assert 'goal_reached' in document
@@ -92,3 +98,9 @@ def test_passing_scenario_produces_green_junit(tmp_path):
         '--report-root', str(tmp_path),
         '--scenario', 'actuator_turn_left',
     ]) == 0
+
+
+def test_scenarios_are_separated_by_navigation_layer():
+    assert scenario_layer('actuator_straight') == 'actuator'
+    assert scenario_layer('follow_straight') == 'controller'
+    assert scenario_layer('obstacle_port') == 'planner'

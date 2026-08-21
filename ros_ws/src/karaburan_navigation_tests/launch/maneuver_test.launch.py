@@ -21,6 +21,10 @@ def generate_launch_description():
                     test_share, 'scenarios', 'maneuver_test_world.sdf'),
                 'model_sdf': os.path.join(
                     simulation_share, 'models', 'karaburan_boat.sdf'),
+                'world_name': 'ocean',
+                'x': '0.0',
+                'y': '0.0',
+                'Y': '0.0',
                 'headless': 'true',
                 'with_rviz': 'false',
                 'with_map': 'false',

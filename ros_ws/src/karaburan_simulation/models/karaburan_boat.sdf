@@ -125,8 +125,7 @@
     <child>right_prop</child>
     <pose>-0.25 -0.11 0.065 0 0 0</pose>
     <axis>
-      <!-- Counter-rotating starboard propeller. Its negative command still
-           produces forward thrust because both axis and velocity are reversed. -->
+      <!-- Reversed shaft axis makes the starboard propeller counter-rotate. -->
       <xyz>-1 0 0</xyz>
       <limit><lower>-1e16</lower><upper>1e16</upper></limit>
     </axis>
@@ -147,7 +146,8 @@
     <joint_name>right_prop_joint</joint_name>
     <fluid_density>1000</fluid_density>
     <propeller_diameter>0.05</propeller_diameter>
-    <thrust_coefficient>0.004422</thrust_coefficient>
+    <!-- Negative coefficient preserves +X thrust around the reversed axis. -->
+    <thrust_coefficient>-0.004422</thrust_coefficient>
     <velocity_control>true</velocity_control>
   </plugin>
 
