@@ -14,6 +14,9 @@ setup(
         ('share/' + package_name + '/config', ['config/karaburan.xacro']),
         ('share/' + package_name + '/config', ['config/karaburan_boat.sdf']),
         ('share/' + package_name + '/config', ['config/controller_server.yaml']),
+        ('share/' + package_name + '/config', ['config/collision_monitor.yaml']),
+        ('share/' + package_name + '/config', ['config/reverse_arc_controller.yaml']),
+        ('share/' + package_name + '/config', ['config/navigate_to_pose_boat.xml']),
         ('share/' + package_name + '/config', ['config/planner_server.yaml']),
         ('share/' + package_name + '/config', ['config/behavior_server.yaml']),
         ('share/' + package_name + '/config', ['config/bt_navigator.yaml']),
@@ -39,6 +42,7 @@ setup(
             'gps_shuttle = navigation.gps_shuttle:main',
             'gps_four_point_route = navigation.gps_shuttle:main_four_point',
             'leaflet_map = navigation.leaflet_map:main',
+            'reverse_arc_controller = navigation.reverse_arc_controller:main',
         ],
     },
 )
