@@ -7,14 +7,13 @@ file focused on current and future work.
 
 ## Current status
 
-Current milestone: Milestone 1 - navigable and debuggable MVP
+Current milestone: Milestone 2 - first static scenario
 
-Status: Technical implementation and verification complete; awaiting explicit
-user acceptance. Feedback remains part of Milestone 1. Do not implement
-Milestone 2 yet.
+Status: Not started. Awaiting an explicit performance-option choice and user
+authorization. Do not implement Milestone 2 yet.
 
-Last completed milestone: Milestone 0 - project inspection, accepted when the
-user explicitly authorized Milestone 1.
+Last completed milestone: Milestone 1 - navigable and debuggable MVP, accepted
+by the user on 2026-08-21.
 
 Working baseline:
 
@@ -64,9 +63,8 @@ Known issues:
 - The repository contains unrelated existing/concurrent working-tree changes
   and untracked `20260818-logfiles/`; preserve them and do not stage them.
 
-Next proposed step: after the user accepts Milestone 1 and selects a performance
-option below, implement only Milestone 2 with explicit static reed, lily-pad,
-peat-chunk, and buoy positions.
+Next proposed step: user selects Option A below and explicitly authorizes only
+Milestone 2 with static reed, lily-pad, peat-chunk, and buoy positions.
 
 Do not continue beyond this step without user approval.
 
@@ -74,7 +72,7 @@ Do not continue beyond this step without user approval.
 
 - Milestone 0: repository, ROS/Gazebo, boat, physics, sensor, launch, frame, test,
   and performance-baseline inspection.
-- Milestone 1 technical result: navigable and debuggable Ravensberg MVP. See
+- Milestone 1: accepted navigable and debuggable Ravensberg MVP. See
   `docs/ravensberg_world.md` for architecture, source provenance, coordinate
   frames, commands, performance decisions, and limitations.
 
