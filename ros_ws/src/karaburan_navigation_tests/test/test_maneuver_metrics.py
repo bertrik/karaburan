@@ -1,7 +1,8 @@
 import math
 
 from karaburan_navigation_tests.maneuver_metrics import (
-    obstacle_report,
+    harbour_departure_report,
+    open_obstacle_report,
     path_tracking_report,
     planner_direct_report,
     planner_island_report,
@@ -100,45 +101,45 @@ def test_island_plan_requires_one_smooth_side_without_a_cusp():
     assert not failed['checks']['planner_no_cusps']
 
 
-def test_obstacle_trace_requires_one_switch_and_rejects_a_loop():
-    reverse = [
-        sample(index * 0.1,
-               -2.0 * math.sin(index * math.pi / 40.0),
-               2.0 * (1.0 - math.cos(index * math.pi / 40.0)),
-               -index * math.pi / 40.0,
-               -1.0,
-               -0.5)
-        for index in range(21)
+def test_open_obstacle_requires_a_forward_detour_and_rejects_reverse():
+    passing = [
+        sample(index * 0.1, index * 0.2,
+               1.6 * math.sin(math.pi * index / 40.0), 0.0, 0.25)
+        for index in range(41)
     ]
-    forward = [
-        sample(2.1 + index * 0.1, -2.0 + index * 0.2,
-               2.0 * (1.0 - index / 50.0),
-               -math.pi / 2.0 + min(index * 0.08, math.pi / 2.0),
-               0.25)
-        for index in range(51)
-    ]
-    passing = reverse + forward
-
-    report = obstacle_report(
+    report = open_obstacle_report(
         passing,
         goal=(8.0, 0.0),
         obstacle=(1.5, 0.0),
     )
     assert report['passed']
-
-    loop = reverse + [
-        sample(2.1 + index * 0.1,
-               1.5 + 3.5 * math.cos(index * 0.08),
-               3.5 * math.sin(index * 0.08),
-               index * 0.08,
-               0.25,
-               0.08)
-        for index in range(100)
-    ]
-    failed = obstacle_report(
-        loop,
+    reversed_once = list(passing)
+    reversed_once[5] = sample(0.5, 1.0, 0.5, 0.0, -0.25)
+    failed = open_obstacle_report(
+        reversed_once,
         goal=(8.0, 0.0),
         obstacle=(1.5, 0.0),
     )
     assert not failed['passed']
-    assert not failed['checks']['no_forward_loop']
+    assert not failed['checks']['forward_only']
+
+
+def test_harbour_departures_distinguish_both_arcs_and_straight():
+    starboard = [
+        sample(index * 0.1,
+               -2.0 * math.sin(index * math.pi / 40.0),
+               -2.0 * (1.0 - math.cos(index * math.pi / 40.0)),
+               index * math.pi / 40.0, -0.5, 0.25)
+        for index in range(21)
+    ]
+    port = [dict(item, y=-item['y'], yaw=-item['yaw'], angular=-0.25)
+            for item in starboard]
+    straight = [
+        sample(index * 0.1, -index * 0.14, 0.0, 0.0, -0.5)
+        for index in range(21)
+    ]
+
+    assert harbour_departure_report(starboard, 'stern_starboard')['passed']
+    assert harbour_departure_report(port, 'stern_port')['passed']
+    assert harbour_departure_report(straight, 'straight')['passed']
+    assert not harbour_departure_report(starboard, 'stern_port')['passed']

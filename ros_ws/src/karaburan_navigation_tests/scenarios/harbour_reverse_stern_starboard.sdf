@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<sdf version="1.10">
+  <model name="harbour_reverse_stern_starboard">
+    <static>true</static>
+    <!-- A C-shaped berth. The bow faces +X and the only clear reverse arc
+         moves the stern towards starboard (-Y). -->
+    <link name="quay">
+      <collision name="front_collision">
+        <pose>1.25 0 0.5 0 0 0</pose>
+        <geometry><box><size>0.30 2.60 1.0</size></box></geometry>
+      </collision>
+      <visual name="front_visual">
+        <pose>1.25 0 0.5 0 0 0</pose>
+        <geometry><box><size>0.30 2.60 1.0</size></box></geometry>
+      </visual>
+      <collision name="port_collision">
+        <pose>-0.65 1.15 0.5 0 0 0</pose>
+        <geometry><box><size>3.80 0.30 1.0</size></box></geometry>
+      </collision>
+      <visual name="port_visual">
+        <pose>-0.65 1.15 0.5 0 0 0</pose>
+        <geometry><box><size>3.80 0.30 1.0</size></box></geometry>
+      </visual>
+      <collision name="aft_collision">
+        <pose>-2.40 0.55 0.5 0 0 0</pose>
+        <geometry><box><size>0.30 1.50 1.0</size></box></geometry>
+      </collision>
+      <visual name="aft_visual">
+        <pose>-2.40 0.55 0.5 0 0 0</pose>
+        <geometry><box><size>0.30 1.50 1.0</size></box></geometry>
+      </visual>
+      <visual name="quay_material">
+        <geometry><box><size>0.01 0.01 0.01</size></box></geometry>
+        <material><diffuse>0.20 0.25 0.35 1</diffuse></material>
+      </visual>
+    </link>
+  </model>
+</sdf>

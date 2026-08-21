@@ -20,7 +20,9 @@ SCENARIOS = (
     'planner_direct',
     'planner_island',
     'island_navigation',
-    'obstacle_port', 'obstacle_starboard',
+    'open_obstacle_port', 'open_obstacle_starboard',
+    'harbour_reverse_stern_port', 'harbour_reverse_stern_starboard',
+    'harbour_reverse_straight',
 )
 CHECK_REQUIREMENTS = {
     'action_succeeded': 'the ROS action must finish successfully',
@@ -30,6 +32,7 @@ CHECK_REQUIREMENTS = {
     'controller_path_efficiency': 'travel must be at most 125% of path length',
     'forward_progress': 'forward progress must reach the scenario target',
     'goal_reached': 'the controller must report a reached goal',
+    'forward_only': 'an isolated obstacle must be passed without reversing',
     'heading_change': 'absolute heading change must be at least 45 degrees',
     'heading_error': 'absolute heading error must be at most 5 degrees',
     'heel_angle': 'absolute simulated roll must stay within 8 degrees',
@@ -38,6 +41,7 @@ CHECK_REQUIREMENTS = {
         'goal distance must decrease in at least 70% of comparisons'),
     'no_forward_loop': 'forward cumulative yaw must be at most 150 degrees',
     'no_obstacle_return': 'the boat must not return after clearing the obstacle',
+    'obstacle_clearance': 'the hull centre must stay 0.70 metres from the obstacle',
     'one_reverse_then_forward': 'drive direction must change exactly once',
     'path_efficiency': 'travel must be at most 115% of the reference path',
     'plan_available': 'the planner must return at least two path poses',
@@ -51,7 +55,15 @@ CHECK_REQUIREMENTS = {
         'the plan may be at most 0.05 metres longer than the direct line'),
     'planner_reasonable_length': 'the island route must be at most 135% of direct distance',
     'planner_smooth': 'successive path headings must change by at most 15 degrees',
-    'reverse_heading': 'reverse turn must be 90 +/- 3 degrees',
+    'reverse_heading': 'reverse turn must be 90 +/- 5 degrees',
+    'reverse_distance': 'straight reverse travel must be at least 2.50 metres',
+    'reverse_lateral_error': 'straight reverse lateral error must stay within 0.35 metres',
+    'reverse_only': 'the harbour departure must contain no forward motion',
+    'reverse_started': 'the reverse departure must start',
+    'reverse_stern_side': 'the stern must leave through the expected side',
+    'reverse_straight': 'straight reverse heading error must stay within 8 degrees',
+    'reverse_turn_sign': 'the reverse arc must turn towards the expected berth exit',
+    'single_reverse_maneuver': 'the harbour departure must be one uninterrupted reverse segment',
     'reverse_radius': 'reverse turn radius must be 2.0 +/- 0.2 metres',
     'scenario_result_readable': 'the scenario JSON must be valid',
     'scenario_result_written': 'the scenario must write its JSON result',
@@ -225,9 +237,13 @@ def _write_trajectory_svg(report_root, report):
     marker_extents = []
     for marker in markers:
         radius = float(marker.get('radius', 0.0))
+        half_width = float(marker.get('width', 0.0)) / 2.0
+        half_height = float(marker.get('height', 0.0)) / 2.0
         marker_extents.extend([
-            {'x': marker['x'] - radius, 'y': marker['y'] - radius},
-            {'x': marker['x'] + radius, 'y': marker['y'] + radius},
+            {'x': marker['x'] - max(radius, half_width),
+             'y': marker['y'] - max(radius, half_height)},
+            {'x': marker['x'] + max(radius, half_width),
+             'y': marker['y'] + max(radius, half_height)},
         ])
     bounds = _bounds(samples + reference + markers + marker_extents)
     actual_points = _svg_points(samples, bounds)
@@ -242,16 +258,49 @@ def _write_trajectory_svg(report_root, report):
     for marker in markers:
         x = 45.0 + (marker['x'] - min_x) * scale_x
         y = 355.0 - (marker['y'] - min_y) * scale_y
-        radius = float(marker.get('radius', 0.10)) * min(scale_x, scale_y)
-        marker_elements.extend([
-            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{max(radius, 4.0):.1f}" '
-            'fill="#ef444455" stroke="#dc2626" stroke-width="2"/>',
+        if 'width' in marker and 'height' in marker:
+            width = float(marker['width']) * scale_x
+            height = float(marker['height']) * scale_y
+            marker_elements.append(
+                f'<rect x="{x - width / 2:.1f}" y="{y - height / 2:.1f}" '
+                f'width="{width:.1f}" height="{height:.1f}" '
+                'fill="#47556999" stroke="#1e293b" stroke-width="2"/>')
+        else:
+            radius = float(marker.get('radius', 0.10)) * min(
+                scale_x, scale_y)
+            marker_elements.append(
+                f'<circle cx="{x:.1f}" cy="{y:.1f}" '
+                f'r="{max(radius, 4.0):.1f}" fill="#ef444455" '
+                'stroke="#dc2626" stroke-width="2"/>')
+        marker_elements.append(
             f'<text x="{x + 6:.1f}" y="{y - 6:.1f}" '
             'font-family="sans-serif" font-size="12" fill="#991b1b">'
-            f'{marker.get("label", "marker")}</text>',
+            f'{marker.get("label", "marker")}</text>')
+    heading_elements = []
+    for label, sample, colour in (
+        ('start bow', samples[0] if samples else None, '#15803d'),
+        ('end bow', samples[-1] if samples else None, '#b45309'),
+    ):
+        if sample is None:
+            continue
+        x = 45.0 + (sample['x'] - min_x) * scale_x
+        y = 355.0 - (sample['y'] - min_y) * scale_y
+        arrow_length = 0.65 * min(scale_x, scale_y)
+        end_x = x + math.cos(sample['yaw']) * arrow_length
+        end_y = y - math.sin(sample['yaw']) * arrow_length
+        heading_elements.extend([
+            f'<line x1="{x:.1f}" y1="{y:.1f}" x2="{end_x:.1f}" '
+            f'y2="{end_y:.1f}" stroke="{colour}" stroke-width="3" '
+            'marker-end="url(#arrowhead)"/>',
+            f'<text x="{x + 5:.1f}" y="{y + 16:.1f}" '
+            f'font-family="sans-serif" font-size="11" fill="{colour}">'
+            f'{label}</text>',
         ])
     svg = '\n'.join([
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 440">',
+        '<defs><marker id="arrowhead" markerWidth="8" markerHeight="6" '
+        'refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" '
+        'fill="context-stroke"/></marker></defs>',
         '<rect width="720" height="440" fill="white"/>',
         f'<text x="45" y="25" font-family="sans-serif" font-size="18" '
         f'fill="{status_colour}">{status} - {report["scenario"]}</text>',
@@ -262,6 +311,7 @@ def _write_trajectory_svg(report_root, report):
         f'<polyline points="{actual_points}" fill="none" '
         'stroke="#1677b8" stroke-width="3"/>',
         *marker_elements,
+        *heading_elements,
         '<text x="45" y="385" font-family="sans-serif" font-size="14" '
         'fill="#1677b8">actual trajectory</text>',
         '<text x="220" y="385" font-family="sans-serif" font-size="14" '

@@ -11,7 +11,8 @@ from action_msgs.msg import GoalStatus
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import PoseStamped, Twist
 from karaburan_navigation_tests.maneuver_metrics import (
-    obstacle_report,
+    harbour_departure_report,
+    open_obstacle_report,
     path_length,
     path_tracking_report,
     planner_direct_report,
@@ -37,8 +38,11 @@ SCENARIOS = (
     'planner_direct',
     'planner_island',
     'island_navigation',
-    'obstacle_port',
-    'obstacle_starboard',
+    'open_obstacle_port',
+    'open_obstacle_starboard',
+    'harbour_reverse_stern_port',
+    'harbour_reverse_stern_starboard',
+    'harbour_reverse_straight',
 )
 
 
@@ -86,6 +90,8 @@ class ManeuverTestNode(Node):
         self.initial_plan_length = None
         self.maximum_plan_length = None
         self.command_pub = self.create_publisher(Twist, '/cmd_vel_nav', 10)
+        self.planner_command_pub = self.create_publisher(
+            Twist, '/cmd_vel_planner', 10)
         self.create_subscription(
             Odometry, '/odometry/filtered', self.odometry_callback, 10)
         self.create_subscription(Twist, '/cmd_vel', self.command_callback, 10)
@@ -436,7 +442,7 @@ def island_navigation(node):
     return report
 
 
-def obstacle(node, side):
+def open_obstacle(node, side):
     block_y = 0.45 if side == 'port' else -0.45
     _spawn_block(block_y)
     # Let both costmaps observe the obstacle before accepting a goal.  This
@@ -448,7 +454,9 @@ def obstacle(node, side):
     goal.pose.pose.position.x = 8.0
     goal.pose.pose.orientation.w = 1.0
     succeeded = node.send_action(node.navigate_client, goal, timeout=150.0)
-    report = obstacle_report(
+    if node.initial_reference_path:
+        node.reference_path = node.initial_reference_path
+    report = open_obstacle_report(
         node.samples,
         goal=(8.0, 0.0),
         obstacle=(1.5, block_y),
@@ -457,6 +465,40 @@ def obstacle(node, side):
     report['checks']['action_succeeded'] = succeeded
     report['passed'] = all(report['checks'].values())
     return report
+
+
+def harbour_departure(node, expected_maneuver):
+    """Request one BackUp recovery inside an explicit berth geometry."""
+    filename = {
+        'stern_port': 'harbour_reverse_stern_port.sdf',
+        'stern_starboard': 'harbour_reverse_stern_starboard.sdf',
+        'straight': 'harbour_reverse_straight.sdf',
+    }[expected_maneuver]
+    _spawn_model(filename, 0.0, 0.0)
+    node.markers = harbour_markers(expected_maneuver)
+    node.spin_for(2.0)
+
+    command = Twist()
+    command.linear.x = -0.20
+    deadline = time.monotonic() + 20.0
+    reverse_started = False
+    stopped_samples = 0
+    while time.monotonic() < deadline:
+        node.planner_command_pub.publish(command)
+        rclpy.spin_once(node, timeout_sec=0.05)
+        if node.command.linear.x < -0.05:
+            reverse_started = True
+            stopped_samples = 0
+        elif reverse_started and abs(node.command.linear.x) <= 0.01:
+            stopped_samples += 1
+            if stopped_samples >= 5:
+                break
+    node.planner_command_pub.publish(Twist())
+    if not reverse_started:
+        raise RuntimeError('Reverse controller did not start the departure')
+    if stopped_samples < 5:
+        raise RuntimeError('Reverse controller did not finish the departure')
+    return harbour_departure_report(node.samples, expected_maneuver)
 
 
 def _spawn_block(y_position):
@@ -508,10 +550,16 @@ def execute(node, scenario):
         return planner_island(node)
     if scenario == 'island_navigation':
         return island_navigation(node)
-    if scenario == 'obstacle_port':
-        return obstacle(node, 'port')
-    if scenario == 'obstacle_starboard':
-        return obstacle(node, 'starboard')
+    if scenario == 'open_obstacle_port':
+        return open_obstacle(node, 'port')
+    if scenario == 'open_obstacle_starboard':
+        return open_obstacle(node, 'starboard')
+    if scenario == 'harbour_reverse_stern_port':
+        return harbour_departure(node, 'stern_port')
+    if scenario == 'harbour_reverse_stern_starboard':
+        return harbour_departure(node, 'stern_starboard')
+    if scenario == 'harbour_reverse_straight':
+        return harbour_departure(node, 'straight')
     raise ValueError('Unknown scenario: ' + scenario)
 
 
@@ -524,17 +572,48 @@ def parse_args(args=None):
 
 def scenario_markers(scenario):
     """Return fixed points that help interpret a scenario plot."""
-    if scenario == 'obstacle_port':
+    if scenario == 'open_obstacle_port':
         return [
-            {'x': 1.5, 'y': 0.45, 'label': 'obstacle'},
+            {'x': 1.5, 'y': 0.45, 'width': 1.0, 'height': 1.0,
+             'label': 'isolated obstacle'},
             {'x': 8.0, 'y': 0.0, 'label': 'goal'},
         ]
-    if scenario == 'obstacle_starboard':
+    if scenario == 'open_obstacle_starboard':
         return [
-            {'x': 1.5, 'y': -0.45, 'label': 'obstacle'},
+            {'x': 1.5, 'y': -0.45, 'width': 1.0, 'height': 1.0,
+             'label': 'isolated obstacle'},
             {'x': 8.0, 'y': 0.0, 'label': 'goal'},
         ]
     return []
+
+
+def harbour_markers(expected_maneuver):
+    """Return the quay rectangles used by one harbour model."""
+    markers = [
+        {'x': 1.25, 'y': 0.0, 'width': 0.30, 'height': 2.60,
+         'label': 'front quay'},
+    ]
+    if expected_maneuver in ('straight', 'stern_starboard'):
+        markers.append({
+            'x': -0.65, 'y': 1.15, 'width': 3.80, 'height': 0.30,
+            'label': 'port quay',
+        })
+    if expected_maneuver in ('straight', 'stern_port'):
+        markers.append({
+            'x': -0.65, 'y': -1.15, 'width': 3.80, 'height': 0.30,
+            'label': 'starboard quay',
+        })
+    if expected_maneuver == 'stern_starboard':
+        markers.append({
+            'x': -2.40, 'y': 0.55, 'width': 0.30, 'height': 1.50,
+            'label': 'aft quay',
+        })
+    if expected_maneuver == 'stern_port':
+        markers.append({
+            'x': -2.40, 'y': -0.55, 'width': 0.30, 'height': 1.50,
+            'label': 'aft quay',
+        })
+    return markers
 
 
 def main(args=None):

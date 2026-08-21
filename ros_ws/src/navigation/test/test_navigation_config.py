@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from navigation.reverse_arc_controller import choose_reverse_maneuver
+
 
 PACKAGE_DIR = Path(__file__).parents[1]
 CONFIG_DIR = PACKAGE_DIR / 'config'
@@ -101,6 +103,7 @@ def test_reverse_arc_is_fast_stateful_and_geometry_driven():
 
     assert 'radius: 2.0' in config
     assert 'heading_change: 1.5707963267948966' in config
+    assert 'straight_reverse_distance: 2.8' in config
     assert 'reverse_speed: 0.5' in config
     assert 'angular_feedforward_gain: 1.65' in config
     assert 'forward_speed: 0.25' in config
@@ -119,11 +122,41 @@ def test_reverse_arc_is_fast_stateful_and_geometry_driven():
     assert "'/local_costmap/costmap_raw'" in controller
     assert "LaserScan, '/scan'" in controller
     assert "Path, '/plan'" in controller
-    assert 'port_score = self.arc_cost(-1.0)' in controller
-    assert 'starboard_score = self.arc_cost(1.0)' in controller
+    assert "'straight': self.straight_cost()" in controller
+    assert "'port': self.arc_cost(-1.0)" in controller
+    assert "'starboard': self.arc_cost(1.0)" in controller
     assert 'requested_sign = self.obstacle_avoidance_sign()' in controller
-    assert 'and abs(command.linear.x) > 0.01' in controller
+    assert 'and command.linear.x < -0.01' in controller
+    assert 'and abs(command.linear.x) > 0.01' not in controller
     assert 'and self.front_blocked()' in controller
     assert 'if self.scan_front_blocked()' in controller
+    assert 'scan_points = self.scan_points()' in controller
+    assert 'self.point_inside_footprint(' in controller
     assert 'self.arc_start_plan_generation + 1' in controller
     assert 'reverse_arc_controller = navigation.reverse_arc_controller:main' in setup
+
+
+def test_reverse_maneuver_prefers_clearance_then_time():
+    scores = {
+        'straight': (1, 100, 120, 5.6),
+        'port': (0, 40, 400, 6.3),
+        'starboard': (3, 100, 500, 6.3),
+    }
+    assert choose_reverse_maneuver(scores) == 'port'
+
+    clear = {
+        'straight': (0, 60, 500, 5.6),
+        'port': (0, 20, 100, 6.3),
+        'starboard': (0, 20, 100, 6.3),
+    }
+    assert choose_reverse_maneuver(clear) == 'straight'
+
+
+def test_reverse_maneuver_uses_requested_side_only_as_tie_breaker():
+    tied = {
+        'straight': (2, 100, 500, 5.6),
+        'port': (0, 20, 100, 6.3),
+        'starboard': (0, 20, 100, 6.3),
+    }
+    assert choose_reverse_maneuver(tied, -1.0) == 'port'
+    assert choose_reverse_maneuver(tied, 1.0) == 'starboard'

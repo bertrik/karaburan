@@ -33,8 +33,17 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert '<exec_depend>python3-junit2html</exec_depend>' in package
     assert "'follow_straight'" in runner
     assert "'planner_direct'" in runner
-    assert "'obstacle_port'" in runner
-    assert "'obstacle_starboard'" in runner
+    assert "'open_obstacle_port'" in runner
+    assert "'open_obstacle_starboard'" in runner
+    assert "'harbour_reverse_stern_port'" in runner
+    assert "'harbour_reverse_stern_starboard'" in runner
+    assert "'harbour_reverse_straight'" in runner
+    for scenario in (
+        'harbour_reverse_stern_port.sdf',
+        'harbour_reverse_stern_starboard.sdf',
+        'harbour_reverse_straight.sdf',
+    ):
+        assert (PACKAGE_DIR / 'scenarios' / scenario).exists()
     assert (
         'setsid ros2 launch karaburan_navigation_tests '
         'maneuver_test.launch.py'

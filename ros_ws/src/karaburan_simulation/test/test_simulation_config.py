@@ -26,6 +26,8 @@ def test_simulation_owns_model_world_and_control_node():
     assert "'with_map'" in launch
     assert '<pose>0 0 0.155 0 0 0</pose>' in model
     assert '<gz_frame_id>lidar_link</gz_frame_id>' in model
+    assert '<min_angle>-3.141593</min_angle>' in model
+    assert '<max_angle> 3.141593</max_angle>' in model
     assert model.count('<xyz>1 0 0</xyz>') == 2
     assert model.count('<thrust_coefficient>0.004422</thrust_coefficient>') == 2
     assert '<pose>0 0 -0.05 0 0 0</pose>' in model

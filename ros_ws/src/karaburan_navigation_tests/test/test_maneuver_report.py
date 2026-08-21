@@ -61,6 +61,8 @@ def test_failed_scenario_produces_red_junit_and_graphical_report(tmp_path):
     assert document.count('controller failed') == 1
     plot = (tmp_path / 'actuator_straight.svg').read_text()
     assert 'actual trajectory' in plot
+    assert 'start bow' in plot
+    assert 'end bow' in plot
     assert 'FAIL' in plot
     failure = suite.find('./testcase/failure').text
     assert 'goal_reached: the controller must report a reached goal' in failure
@@ -103,4 +105,22 @@ def test_passing_scenario_produces_green_junit(tmp_path):
 def test_scenarios_are_separated_by_navigation_layer():
     assert scenario_layer('actuator_straight') == 'actuator'
     assert scenario_layer('follow_straight') == 'controller'
-    assert scenario_layer('obstacle_port') == 'planner'
+    assert scenario_layer('open_obstacle_port') == 'planner'
+    assert scenario_layer('harbour_reverse_stern_port') == 'planner'
+
+
+def test_harbour_evidence_draws_quays_as_rectangles(tmp_path):
+    write_result(tmp_path, 'harbour_reverse_straight', True)
+    result_path = tmp_path / 'harbour_reverse_straight.json'
+    result = json.loads(result_path.read_text())
+    result['markers'] = [{
+        'x': 1.0, 'y': 0.0, 'width': 0.3, 'height': 2.6,
+        'label': 'front quay',
+    }]
+    result_path.write_text(json.dumps(result))
+
+    generate_report(tmp_path, ['harbour_reverse_straight'])
+
+    plot = (tmp_path / 'harbour_reverse_straight.svg').read_text()
+    assert '<rect x=' in plot
+    assert 'front quay' in plot

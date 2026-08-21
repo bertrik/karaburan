@@ -307,62 +307,95 @@ def _cusp_count(points):
     )
 
 
-def obstacle_report(samples, goal, obstacle, planned_length=None):
-    """Evaluate the complete one-reverse obstacle manoeuvre."""
+def open_obstacle_report(samples, goal, obstacle, planned_length=None):
+    """Require a forward detour around an isolated open-water obstacle."""
     if len(samples) < 2:
         return _report(False, {'samples': 'at least two samples required'})
     segments = direction_segments(samples)
-    reverse = arc_metrics(samples, direction=-1)
-    forward_start = next(
-        (
-            index for index, sample in enumerate(samples)
-            if sample['linear'] > 0.01
-            and any(item['linear'] < -0.01 for item in samples[:index])
-        ),
-        len(samples),
-    )
-    forward_samples = samples[forward_start:]
     goal_distances = [
         math.hypot(sample['x'] - goal[0], sample['y'] - goal[1])
-        for sample in forward_samples
+        for sample in samples
     ]
     obstacle_distances = [
         math.hypot(sample['x'] - obstacle[0], sample['y'] - obstacle[1])
-        for sample in forward_samples
+        for sample in samples
     ]
-    forward_yaw = cumulative_yaw(forward_samples)
-    returned_to_obstacle = _returned_to_obstacle(obstacle_distances)
     decreasing_ratio = _decreasing_ratio(goal_distances)
     travelled = path_length(samples)
-    final_goal_distance = (
-        goal_distances[-1] if goal_distances else math.inf)
+    final_goal_distance = goal_distances[-1]
     checks = {
-        'one_reverse_then_forward': segments == [-1, 1],
-        'reverse_radius': abs(reverse['radius'] - 2.0) <= 0.20,
-        'reverse_heading': abs(
-            reverse['heading_change'] - math.pi / 2.0
-        ) <= math.radians(3.0),
-        'no_obstacle_return': not returned_to_obstacle,
+        'forward_only': segments == [1],
+        'obstacle_clearance': min(obstacle_distances) >= 0.70,
         'goal_distance_decreases': decreasing_ratio >= 0.70,
-        # A reverse-to-forward S transition can exceed 180 degrees of summed
-        # steering without circling the obstacle. A genuine loop still crosses
-        # this 270 degree bound and is also caught by obstacle return.
-        'no_forward_loop': forward_yaw <= math.radians(270.0),
+        'no_forward_loop': cumulative_yaw(samples) <= math.radians(180.0),
         'goal_reached': final_goal_distance <= 0.30,
     }
     if planned_length is not None:
-        # /plan is first available after the recovery arc. Compare the total
-        # trace with that forward plan plus the measured reverse manoeuvre.
-        expected_total = planned_length + reverse['distance']
-        checks['path_efficiency'] = travelled <= expected_total * 1.25
+        checks['path_efficiency'] = travelled <= planned_length * 1.25
     return _report(all(checks.values()), checks, {
         'segments': segments,
-        'reverse': reverse,
-        'forward_cumulative_yaw': forward_yaw,
+        'minimum_obstacle_clearance': min(obstacle_distances),
+        'cumulative_yaw': cumulative_yaw(samples),
         'goal_decreasing_ratio': decreasing_ratio,
         'travelled': travelled,
         'planned_length': planned_length,
         'final_goal_distance': final_goal_distance,
+    })
+
+
+def harbour_departure_report(samples, expected_maneuver):
+    """Check the initial reverse departure selected inside a berth."""
+    if len(samples) < 2:
+        return _report(False, {'samples': 'at least two samples required'})
+    reverse_samples = [sample for sample in samples if sample['linear'] < -0.01]
+    if len(reverse_samples) < 2:
+        return _report(False, {'reverse_started': False})
+
+    segments = direction_segments(samples)
+    reverse = arc_metrics(samples, direction=-1)
+    signed_heading = sum(
+        normalize_angle(current['yaw'] - previous['yaw'])
+        for previous, current in zip(reverse_samples, reverse_samples[1:])
+    )
+    start = reverse_samples[0]
+    end = reverse_samples[-1]
+    dx = end['x'] - start['x']
+    dy = end['y'] - start['y']
+    lateral = -math.sin(start['yaw']) * dx + math.cos(start['yaw']) * dy
+    expected_sign = {
+        'stern_port': -1.0,
+        'stern_starboard': 1.0,
+    }.get(expected_maneuver, 0.0)
+    moving_samples = [
+        sample for sample in samples if abs(sample['linear']) > 0.01]
+    checks = {
+        'reverse_only': segments == [-1],
+        'single_reverse_maneuver': len(segments) == 1,
+        'heel_angle': max(
+            abs(sample.get('roll', 0.0)) for sample in moving_samples
+        ) <= math.radians(8.0),
+    }
+    if expected_maneuver == 'straight':
+        checks.update({
+            'reverse_distance': reverse['distance'] >= 2.50,
+            'reverse_straight': abs(signed_heading) <= math.radians(8.0),
+            'reverse_lateral_error': abs(lateral) <= 0.35,
+        })
+    else:
+        checks.update({
+            'reverse_radius': abs(reverse['radius'] - 2.0) <= 0.25,
+            'reverse_heading': abs(
+                abs(signed_heading) - math.pi / 2.0
+            ) <= math.radians(5.0),
+            'reverse_turn_sign': signed_heading * expected_sign > 0.0,
+            'reverse_stern_side': lateral * expected_sign < -0.50,
+        })
+    return _report(all(checks.values()), checks, {
+        'expected_maneuver': expected_maneuver,
+        'segments': segments,
+        'reverse': reverse,
+        'signed_heading_change': signed_heading,
+        'stern_lateral_displacement': lateral,
     })
 
 

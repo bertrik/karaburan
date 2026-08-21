@@ -2,6 +2,7 @@
   ros__parameters:
     radius: 2.0
     heading_change: 1.5707963267948966
+    straight_reverse_distance: 2.8
     # Twice normal cruise speed is a decisive escape without driving the tiny
     # simulated propellers into DART/ODE's unstable >5 N impulse range.
     reverse_speed: 0.5

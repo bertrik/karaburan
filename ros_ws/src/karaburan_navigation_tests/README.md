@@ -106,13 +106,22 @@ for a route-planning defect:
   island and rejects loops, cusps, side changes, and excessive detours.
 - `island_navigation`: sails that island route and checks endpoint,
   cross-track error, forward-only motion, efficiency, and heel angle.
-- `obstacle_port` and `obstacle_starboard`: mirrored blocks at 1.5 metres and
-  an eight-metre navigation goal.
+- `open_obstacle_port` and `open_obstacle_starboard`: mirrored isolated blocks
+  at 1.5 metres and an eight-metre navigation goal. Open water remains
+  available around the block, so any reverse command fails the scenario.
+- `harbour_reverse_stern_port` and `harbour_reverse_stern_starboard`: mirrored
+  C-shaped berths. A wall blocks straight reverse travel and one side wall
+  blocks the wrong arc, so the stern must leave through the named side.
+- `harbour_reverse_straight`: a symmetric U-shaped berth in which both arcs
+  meet a side wall and straight reverse is the shortest clear departure.
 
-The obstacle reports require one reverse segment followed by one forward
-segment, a `2.0 +/- 0.2 m` reverse radius, a `90 +/- 3 degree` heading change,
-no return to the obstacle, no forward loop above 150 degrees, decreasing goal
-distance, and successful goal completion.
+The open-water reports require forward-only travel, obstacle clearance, no
+loop, reasonable path efficiency, decreasing goal distance, and successful
+goal completion. The harbour reports isolate the initial departure. They
+require one uninterrupted reverse segment and either a straight 2.8-metre
+escape or the selected 2-metre-radius, 90-degree arc. The plot draws the quay
+geometry and start/end bow headings, so a wrong stern direction is visible as
+well as machine-verifiable.
 
 ## CI policy
 

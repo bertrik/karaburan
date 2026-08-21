@@ -55,8 +55,9 @@
             <horizontal>
               <samples>720</samples>
               <resolution>1</resolution>
-              <min_angle>-1.570796</min_angle>  <!-- -90° -->
-              <max_angle> 1.570796</max_angle>  <!--  +90° -->
+              <!-- A rotating marine lidar observes reverse clearance too. -->
+              <min_angle>-3.141593</min_angle>
+              <max_angle> 3.141593</max_angle>
             </horizontal>
             <vertical>
               <samples>1</samples>
