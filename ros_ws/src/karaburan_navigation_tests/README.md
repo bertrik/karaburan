@@ -21,7 +21,7 @@ Pass a directory to retain the reports at a specific location:
 
 ```bash
 bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_maneuver_tests.sh \
-  /home/michiel/karaburan/maneuver-test-results/manual-check
+  /home/michiel/karaburan/test-results-manual-check
 ```
 
 Add one or more scenario names after the report directory for a quick focused
@@ -29,7 +29,7 @@ run. This is the preferred feedback loop while tuning a controller:
 
 ```bash
 bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_maneuver_tests.sh \
-  /home/michiel/karaburan/maneuver-test-results/follow-straight \
+  /home/michiel/karaburan/test-results-follow-straight \
   actuator_straight follow_straight
 ```
 
@@ -56,7 +56,9 @@ directory contains:
   the exact failed acceptance checks, observed metrics, relevant log lines, and
   the names of the related artifacts.
 - `<scenario>.svg`: a static plot of the actual XY trajectory and reference
-  path, labelled with the scenario status and failed checks.
+  path, labelled with the scenario status and failed checks. Every plot is
+  also embedded directly in the combined HTML report, for both passed and
+  failed scenarios.
 - `<scenario>.json`: the complete trace used to calculate the result.
 - `<scenario>.launch.log` and `<scenario>.runner.log`: plain-text logs with ANSI
   terminal colour removed. The HTML report includes only relevant warning and
@@ -65,22 +67,22 @@ directory contains:
 Open `report.html` in a browser on the workstation used to inspect the test.
 It has no external assets and does not need a running ROS graph or web server.
 
-## Run the simulation subsystem tests
+## Run every navigation test in one report
 
-Use the focused simulation suite to verify straight thrust and both steering
-directions without running the Nav2 controller scenarios:
+Run all manoeuvre scenarios and the normal `karaburan_navigation_tests`
+package tests with one command:
 
 ```bash
 bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_simulation_tests.sh \
-  /home/michiel/karaburan/simulation-test-results
+  /home/michiel/karaburan
 ```
 
-This creates a new leaf directory named `YYYYMMDDHHMMSS` for every run. The
-directory contains a combined `report.html` and `junit.xml` for the three
-dynamic actuator scenarios, the `karaburan_simulation` unit tests, and the
-navigation test harness. The original JUnit files, static trajectory plots,
-JSON traces, and plain-text logs remain beside the combined report. A failing
-test or missing result makes the command exit with status `1`.
+This creates exactly one flat directory named
+`test-results-YYYYMMDDHHMMSS`, for example
+`test-results-20260821221557`. It contains one combined `report.html` and
+`junit.xml`, plus the original JUnit files, embedded and standalone SVG plots,
+JSON traces, and plain-text logs. No result subdirectories are created. A
+failing test or missing result makes the command exit with status `1`.
 
 ## Scenarios and gates
 

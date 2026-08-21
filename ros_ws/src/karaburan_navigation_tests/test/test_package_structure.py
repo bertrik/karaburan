@@ -42,9 +42,12 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert 'RCUTILS_COLORIZED_OUTPUT=0' in script
     assert 'maneuver_test_report' in script
     assert 'timestamp="$(date +%Y%m%d%H%M%S)"' in simulation_script
-    assert 'actuator_straight' in simulation_script
-    assert 'actuator_turn_left' in simulation_script
-    assert 'actuator_turn_right' in simulation_script
-    assert 'follow_straight' not in simulation_script
+    assert 'test-results-$timestamp' in simulation_script
+    assert 'bash "$script_dir/run_maneuver_tests.sh"' in simulation_script
+    assert '--packages-select karaburan_navigation_tests' in simulation_script
+    assert (
+        'karaburan_simulation karaburan_navigation_tests'
+        not in simulation_script
+    )
     assert 'colcon test' in simulation_script
     assert 'junit_html_report' in simulation_script
