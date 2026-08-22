@@ -17,7 +17,7 @@ def test_runtime_rates_and_ranges_match_boat_hardware():
     assert 'max_laser_range: 10.0' in slam
 
 
-def test_navigation_uses_external_slam_lifecycle_and_hybrid_planner():
+def test_navigation_uses_external_slam_lifecycle_and_shortest_path_planner():
     planner = (CONFIG_DIR / 'planner_server.yaml').read_text()
     boat_bt = (CONFIG_DIR / 'navigate_to_pose_boat.xml').read_text()
     launch = (LAUNCH_DIR / 'nav2_stack.launch.py').read_text()
@@ -25,12 +25,12 @@ def test_navigation_uses_external_slam_lifecycle_and_hybrid_planner():
     managed_nodes_end = launch.index(']', managed_nodes_start)
     managed_nodes = launch[managed_nodes_start:managed_nodes_end]
 
-    assert 'nav2_theta_star_planner::ThetaStarPlanner' in planner
+    assert 'nav2_navfn_planner::NavfnPlanner' in planner
+    assert 'nav2_theta_star_planner::ThetaStarPlanner' not in planner
     assert 'nav2_smac_planner::SmacPlannerHybrid' not in planner
     assert 'motion_model_for_search' not in planner
-    assert 'how_many_corners: 8' in planner
-    assert 'w_euc_cost: 1.0' in planner
-    assert 'w_traversal_cost: 1.0' in planner
+    assert 'use_astar: true' in planner
+    assert 'allow_unknown: true' in planner
     assert 'use_final_approach_orientation: false' in planner
     assert "'use_lifecycle_manager': 'true'" in launch
     assert managed_nodes.index("'slam_toolbox',") < managed_nodes.index("'planner_server',")
@@ -119,7 +119,7 @@ def test_reverse_arc_is_fast_stateful_and_geometry_driven():
         PACKAGE_DIR / 'navigation' / 'reverse_arc_controller.py'
     ).read_text()
     assert 'OccupancyGrid, Odometry, Path' in controller
-    assert "'/local_costmap/costmap_raw'" in controller
+    assert "'/local_costmap/costmap'" in controller
     assert "LaserScan, '/scan'" in controller
     assert "Path, '/plan'" in controller
     assert "'straight': self.straight_cost()" in controller

@@ -103,7 +103,7 @@ class ReverseArcController(Node):
             Odometry, '/odometry/filtered', self.odom_callback, 10)
         self.costmap_sub = self.create_subscription(
             OccupancyGrid,
-            '/local_costmap/costmap_raw',
+            '/local_costmap/costmap',
             self.costmap_callback,
             10,
         )

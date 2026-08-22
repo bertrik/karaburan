@@ -2,6 +2,7 @@ import math
 
 from karaburan_navigation_tests.maneuver_metrics import (
     harbour_departure_report,
+    harbour_docking_report,
     open_obstacle_report,
     path_tracking_report,
     planner_direct_report,
@@ -86,7 +87,7 @@ def test_direct_planner_path_passes_and_v_path_fails():
 
 def test_island_plan_requires_one_smooth_side_without_a_cusp():
     route = [
-        {'x': index * 0.5, 'y': 3.0 * math.sin(math.pi * index / 40.0)}
+        {'x': index * 0.5, 'y': 3.2 * math.sin(math.pi * index / 40.0)}
         for index in range(41)
     ]
     report = planner_island_report(
@@ -143,3 +144,40 @@ def test_harbour_departures_distinguish_both_arcs_and_straight():
     assert harbour_departure_report(port, 'stern_port')['passed']
     assert harbour_departure_report(straight, 'straight')['passed']
     assert not harbour_departure_report(starboard, 'stern_port')['passed']
+
+
+def test_harbour_docking_checks_hull_heading_and_approach_side():
+    quays = [
+        {'x': 1.25, 'y': 0.0, 'width': 0.30, 'height': 2.60},
+        {'x': -0.65, 'y': -1.15, 'width': 3.80, 'height': 0.30},
+        {'x': -2.40, 'y': -0.55, 'width': 0.30, 'height': 1.50},
+    ]
+    approach = [
+        sample(
+            index * 0.1,
+            -2.0 + 2.0 * (1.0 - math.cos(index * math.pi / 40.0)),
+            2.0 - 2.0 * math.sin(index * math.pi / 40.0),
+            -math.pi / 2.0 + index * math.pi / 40.0,
+            0.25,
+        )
+        for index in range(21)
+    ]
+
+    report = harbour_docking_report(
+        approach, 'from_port', (0.0, 0.0, 0.0), quays)
+    assert report['passed']
+    assert not harbour_docking_report(
+        approach, 'from_starboard', (0.0, 0.0, 0.0), quays)['passed']
+
+
+def test_harbour_docking_rejects_a_hull_quay_overlap():
+    quays = [{'x': 0.0, 'y': 0.0, 'width': 0.30, 'height': 2.60}]
+    collision = [
+        sample(index * 0.1, -1.0 + index * 0.05, 0.0, 0.0, 0.25)
+        for index in range(21)
+    ]
+
+    report = harbour_docking_report(
+        collision, 'straight', (0.0, 0.0, 0.0), quays)
+    assert not report['passed']
+    assert not report['checks']['dock_collision_free']

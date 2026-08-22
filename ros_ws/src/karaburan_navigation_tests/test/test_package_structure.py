@@ -25,6 +25,7 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert "'record_enabled': 'false'" in test_launch
     assert "'world_name': 'ocean'" in test_launch
     assert "'x': '0.0'" in test_launch
+    assert "'Y': '0.0'" in test_launch
     assert "glob('scenarios/*.sdf')" in setup
     assert "glob('scripts/*.sh')" in setup
     assert 'karaburan_navigation_tests.maneuver_test_runner:main' in setup
@@ -38,6 +39,9 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert "'harbour_reverse_stern_port'" in runner
     assert "'harbour_reverse_stern_starboard'" in runner
     assert "'harbour_reverse_straight'" in runner
+    assert "'harbour_dock_stern_port'" in runner
+    assert "'harbour_dock_stern_starboard'" in runner
+    assert "'harbour_dock_straight'" in runner
     for scenario in (
         'harbour_reverse_stern_port.sdf',
         'harbour_reverse_stern_starboard.sdf',

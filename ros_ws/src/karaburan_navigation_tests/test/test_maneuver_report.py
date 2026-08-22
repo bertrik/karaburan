@@ -63,6 +63,7 @@ def test_failed_scenario_produces_red_junit_and_graphical_report(tmp_path):
     assert 'actual trajectory' in plot
     assert 'start bow' in plot
     assert 'end bow' in plot
+    assert '0.50 x 0.25 m hull; dashed = padded footprint' in plot
     assert 'FAIL' in plot
     failure = suite.find('./testcase/failure').text
     assert 'goal_reached: the controller must report a reached goal' in failure
@@ -107,6 +108,7 @@ def test_scenarios_are_separated_by_navigation_layer():
     assert scenario_layer('follow_straight') == 'controller'
     assert scenario_layer('open_obstacle_port') == 'planner'
     assert scenario_layer('harbour_reverse_stern_port') == 'planner'
+    assert scenario_layer('harbour_dock_stern_port') == 'planner'
 
 
 def test_harbour_evidence_draws_quays_as_rectangles(tmp_path):

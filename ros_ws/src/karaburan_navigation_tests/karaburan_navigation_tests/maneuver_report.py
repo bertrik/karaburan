@@ -23,6 +23,8 @@ SCENARIOS = (
     'open_obstacle_port', 'open_obstacle_starboard',
     'harbour_reverse_stern_port', 'harbour_reverse_stern_starboard',
     'harbour_reverse_straight',
+    'harbour_dock_stern_port', 'harbour_dock_stern_starboard',
+    'harbour_dock_straight',
 )
 CHECK_REQUIREMENTS = {
     'action_succeeded': 'the ROS action must finish successfully',
@@ -31,8 +33,11 @@ CHECK_REQUIREMENTS = {
     'controller_forward_only': 'ordinary path tracking must not reverse',
     'controller_path_efficiency': 'travel must be at most 125% of path length',
     'forward_progress': 'forward progress must reach the scenario target',
+    'finite_simulation_state': (
+        'Gazebo, sensors, and filtered odometry must remain finite'),
     'goal_reached': 'the controller must report a reached goal',
     'forward_only': 'an isolated obstacle must be passed without reversing',
+    'forward_started': 'the docking approach must start moving forward',
     'heading_change': 'absolute heading change must be at least 45 degrees',
     'heading_error': 'absolute heading error must be at most 5 degrees',
     'heel_angle': 'absolute simulated roll must stay within 8 degrees',
@@ -46,15 +51,19 @@ CHECK_REQUIREMENTS = {
     'path_efficiency': 'travel must be at most 115% of the reference path',
     'plan_available': 'the planner must return at least two path poses',
     'planner_cross_track': 'the plan must stay within 0.50 metres of the line',
-    'planner_goal_reached': 'the plan endpoint must be within 0.10 metres',
-    'island_avoided': 'the planned hull centre must clear the island by 0.25 metres',
+    'planner_goal_reached': 'the plan endpoint must be within 0.25 metres',
+    'island_avoided': (
+        'the planned hull centre must clear the island plus the 0.32 metre '
+        'padded hull radius'),
     'planner_monotonic': 'the plan must not move away from the goal',
     'planner_no_cusps': 'the plan must not contain a direction cusp',
     'planner_one_side': 'the route must pass the island on one consistent side',
     'planner_path_length': (
-        'the plan may be at most 0.05 metres longer than the direct line'),
+        'the plan may be at most 0.30 metres longer than the direct line'),
     'planner_reasonable_length': 'the island route must be at most 135% of direct distance',
-    'planner_smooth': 'successive path headings must change by at most 15 degrees',
+    'planner_smooth': (
+        'course changes over a 0.50 metre hull-scale span must be at most '
+        '15 degrees'),
     'reverse_heading': 'reverse turn must be 90 +/- 5 degrees',
     'reverse_distance': 'straight reverse travel must be at least 2.50 metres',
     'reverse_lateral_error': 'straight reverse lateral error must stay within 0.35 metres',
@@ -64,6 +73,13 @@ CHECK_REQUIREMENTS = {
     'reverse_straight': 'straight reverse heading error must stay within 8 degrees',
     'reverse_turn_sign': 'the reverse arc must turn towards the expected berth exit',
     'single_reverse_maneuver': 'the harbour departure must be one uninterrupted reverse segment',
+    'dock_collision_free': 'the padded hull footprint must not overlap a quay',
+    'dock_heading': 'the final bow heading must be within 15 degrees',
+    'dock_heading_change': 'a side approach must turn approximately 90 degrees',
+    'dock_path_efficiency': 'the docking route must be at most 135% of direct distance',
+    'dock_position': 'the hull centre must finish within 0.30 metres of the berth pose',
+    'dock_straight': 'the straight berth approach must not turn significantly',
+    'dock_turn_sign': 'the side approach must turn into the expected berth opening',
     'reverse_radius': 'reverse turn radius must be 2.0 +/- 0.2 metres',
     'scenario_result_readable': 'the scenario JSON must be valid',
     'scenario_result_written': 'the scenario must write its JSON result',
@@ -255,6 +271,36 @@ def _write_trajectory_svg(report_root, report):
     min_x, max_x, min_y, max_y = bounds
     scale_x = 630.0 / (max_x - min_x)
     scale_y = 310.0 / (max_y - min_y)
+    hull_elements = []
+    hull_stride = max(1, len(samples) // 12)
+    hull_samples = samples[::hull_stride]
+    if samples and samples[-1] not in hull_samples:
+        hull_samples.append(samples[-1])
+    for sample in hull_samples:
+        cosine = math.cos(sample['yaw'])
+        sine = math.sin(sample['yaw'])
+
+        def hull_corners(half_length, half_width):
+            corners = []
+            for local_x, local_y in (
+                (half_length, half_width), (half_length, -half_width),
+                (-half_length, -half_width), (-half_length, half_width),
+            ):
+                world_x = sample['x'] + cosine * local_x - sine * local_y
+                world_y = sample['y'] + sine * local_x + cosine * local_y
+                corners.append(
+                    f'{45.0 + (world_x - min_x) * scale_x:.1f},'
+                    f'{355.0 - (world_y - min_y) * scale_y:.1f}')
+            return corners
+
+        padded_corners = hull_corners(0.28, 0.15)
+        physical_corners = hull_corners(0.25, 0.125)
+        hull_elements.append(
+            f'<polygon points="{" ".join(padded_corners)}" fill="#38bdf811" '
+            'stroke="#0369a1" stroke-width="1" stroke-dasharray="3 2"/>')
+        hull_elements.append(
+            f'<polygon points="{" ".join(physical_corners)}" fill="#38bdf855" '
+            'stroke="#075985" stroke-width="1"/>')
     for marker in markers:
         x = 45.0 + (marker['x'] - min_x) * scale_x
         y = 355.0 - (marker['y'] - min_y) * scale_y
@@ -264,7 +310,9 @@ def _write_trajectory_svg(report_root, report):
             marker_elements.append(
                 f'<rect x="{x - width / 2:.1f}" y="{y - height / 2:.1f}" '
                 f'width="{width:.1f}" height="{height:.1f}" '
-                'fill="#47556999" stroke="#1e293b" stroke-width="2"/>')
+                'fill="#47556999" stroke="#1e293b" stroke-width="2" '
+                f'transform="rotate({-math.degrees(marker.get("yaw", 0.0)):.1f} '
+                f'{x:.1f} {y:.1f})"/>')
         else:
             radius = float(marker.get('radius', 0.10)) * min(
                 scale_x, scale_y)
@@ -310,12 +358,15 @@ def _write_trajectory_svg(report_root, report):
         'stroke="#8b5cf6" stroke-width="2" stroke-dasharray="8 5"/>',
         f'<polyline points="{actual_points}" fill="none" '
         'stroke="#1677b8" stroke-width="3"/>',
+        *hull_elements,
         *marker_elements,
         *heading_elements,
         '<text x="45" y="385" font-family="sans-serif" font-size="14" '
         'fill="#1677b8">actual trajectory</text>',
         '<text x="220" y="385" font-family="sans-serif" font-size="14" '
         'fill="#8b5cf6">reference path</text>',
+        '<text x="390" y="385" font-family="sans-serif" font-size="14" '
+        'fill="#0369a1">0.50 x 0.25 m hull; dashed = padded footprint</text>',
         '<text x="45" y="415" font-family="monospace" font-size="13" '
         f'fill="#334155">Failed checks: {failed}</text>',
         '</svg>',

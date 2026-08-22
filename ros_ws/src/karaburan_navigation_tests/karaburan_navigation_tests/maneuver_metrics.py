@@ -201,11 +201,13 @@ def planner_direct_report(points, start, goal):
         points[-1]['x'] - goal[0], points[-1]['y'] - goal[1])
     checks = {
         'plan_available': True,
-        'planner_path_length': length_excess <= 0.05,
+        # The endpoint may lie one 0.20 m grid cell from the exact request.
+        # Larger detours still indicate a planner problem.
+        'planner_path_length': length_excess <= 0.30,
         'planner_cross_track': max(cross_track) <= 0.50,
         'planner_monotonic': backwards_steps == 0,
         'planner_no_cusps': cusp_count == 0,
-        'planner_goal_reached': end_error <= 0.10,
+        'planner_goal_reached': end_error <= 0.25,
     }
     return _report(all(checks.values()), checks, {
         'direct_distance': direct_distance,
@@ -256,7 +258,9 @@ def planner_island_report(points, start, goal, island, radius):
         points[-1]['x'] - goal[0], points[-1]['y'] - goal[1])
     checks = {
         'plan_available': True,
-        'island_avoided': island_clearance >= radius + 0.25,
+        # Clearance is measured at the path centre. Include the circumscribed
+        # radius of the padded 0.56 x 0.30 m Nav2 footprint.
+        'island_avoided': island_clearance >= radius + 0.32,
         'planner_one_side': len(significant_sides) == 1,
         'planner_monotonic': backwards_steps == 0,
         'planner_no_cusps': _cusp_count(points) == 0,
@@ -264,7 +268,7 @@ def planner_island_report(points, start, goal, island, radius):
             not heading_steps
             or max(abs(step) for step in heading_steps) <= math.radians(15.0)),
         'planner_reasonable_length': planned_distance <= direct_distance * 1.35,
-        'planner_goal_reached': end_error <= 0.10,
+        'planner_goal_reached': end_error <= 0.25,
     }
     return _report(all(checks.values()), checks, {
         'direct_distance': direct_distance,
@@ -280,13 +284,20 @@ def planner_island_report(points, start, goal, island, radius):
     })
 
 
-def _path_heading_steps(points):
+def _path_heading_steps(points, minimum_span=0.50):
+    """Measure course changes over a hull-scale distance.
+
+    Comparing every grid-interpolated segment exaggerates a single endpoint
+    snap and says little about whether the 0.56 m boat can follow the curve.
+    """
     headings = []
-    for previous, current in zip(points, points[1:]):
-        dx = current['x'] - previous['x']
-        dy = current['y'] - previous['y']
-        if math.hypot(dx, dy) > 1e-3:
+    anchor = points[0]
+    for current in points[1:]:
+        dx = current['x'] - anchor['x']
+        dy = current['y'] - anchor['y']
+        if math.hypot(dx, dy) >= minimum_span:
             headings.append(math.atan2(dy, dx))
+            anchor = current
     return [
         normalize_angle(current - previous)
         for previous, current in zip(headings, headings[1:])
@@ -397,6 +408,113 @@ def harbour_departure_report(samples, expected_maneuver):
         'signed_heading_change': signed_heading,
         'stern_lateral_displacement': lateral,
     })
+
+
+def harbour_docking_report(samples, expected_approach, goal, quays):
+    """Require one collision-free forward approach into the berth."""
+    if len(samples) < 2:
+        return _report(False, {'samples': 'at least two samples required'})
+    moving = [sample for sample in samples if abs(sample['linear']) > 0.01]
+    if not moving:
+        return _report(False, {'forward_started': False})
+    start = samples[0]
+    end = samples[-1]
+    signed_heading = sum(
+        normalize_angle(current['yaw'] - previous['yaw'])
+        for previous, current in zip(samples, samples[1:])
+    )
+    direct_distance = math.hypot(start['x'] - goal[0], start['y'] - goal[1])
+    expected_sign = {
+        'from_port': 1.0,
+        'from_starboard': -1.0,
+    }.get(expected_approach, 0.0)
+    collisions = sum(
+        any(_boxes_overlap(
+            _boat_box(sample),
+            _quay_box(quay),
+        ) for quay in quays)
+        for sample in samples
+    )
+    checks = {
+        'forward_only': direction_segments(samples) == [1],
+        'dock_position': math.hypot(end['x'] - goal[0], end['y'] - goal[1]) <= 0.30,
+        'dock_heading': abs(normalize_angle(end['yaw'] - goal[2])) <= math.radians(15.0),
+        'dock_collision_free': collisions == 0,
+        'dock_path_efficiency': path_length(samples) <= direct_distance * 1.35,
+        'heel_angle': max(
+            abs(sample.get('roll', 0.0)) for sample in moving
+        ) <= math.radians(8.0),
+    }
+    if expected_approach == 'straight':
+        checks['dock_straight'] = abs(signed_heading) <= math.radians(12.0)
+    else:
+        checks['dock_turn_sign'] = signed_heading * expected_sign > 0.0
+        checks['dock_heading_change'] = abs(
+            abs(signed_heading) - math.pi / 2.0
+        ) <= math.radians(20.0)
+    return _report(all(checks.values()), checks, {
+        'expected_approach': expected_approach,
+        'segments': direction_segments(samples),
+        'travelled': path_length(samples),
+        'direct_distance': direct_distance,
+        'final_position_error': math.hypot(
+            end['x'] - goal[0], end['y'] - goal[1]),
+        'final_heading_error': normalize_angle(end['yaw'] - goal[2]),
+        'signed_heading_change': signed_heading,
+        'hull_quay_collision_samples': collisions,
+    })
+
+
+def _boat_box(sample):
+    """Return the padded Nav2 hull footprint at one recorded pose."""
+    half_length = 0.28
+    half_width = 0.15
+    cosine = math.cos(sample['yaw'])
+    sine = math.sin(sample['yaw'])
+    return [
+        (
+            sample['x'] + cosine * x - sine * y,
+            sample['y'] + sine * x + cosine * y,
+        )
+        for x, y in (
+            (half_length, half_width),
+            (half_length, -half_width),
+            (-half_length, -half_width),
+            (-half_length, half_width),
+        )
+    ]
+
+
+def _quay_box(quay):
+    yaw = quay.get('yaw', 0.0)
+    cosine = math.cos(yaw)
+    sine = math.sin(yaw)
+    return [
+        (
+            quay['x'] + cosine * x - sine * y,
+            quay['y'] + sine * x + cosine * y,
+        )
+        for x, y in (
+            (-quay['width'] / 2.0, -quay['height'] / 2.0),
+            (quay['width'] / 2.0, -quay['height'] / 2.0),
+            (quay['width'] / 2.0, quay['height'] / 2.0),
+            (-quay['width'] / 2.0, quay['height'] / 2.0),
+        )
+    ]
+
+
+def _boxes_overlap(first, second):
+    """Use the separating-axis theorem for two convex rectangles."""
+    for polygon in (first, second):
+        for start, end in zip(polygon, polygon[1:] + polygon[:1]):
+            axis = (-(end[1] - start[1]), end[0] - start[0])
+            first_projection = [x * axis[0] + y * axis[1] for x, y in first]
+            second_projection = [x * axis[0] + y * axis[1] for x, y in second]
+            if max(first_projection) < min(second_projection):
+                return False
+            if max(second_projection) < min(first_projection):
+                return False
+    return True
 
 
 def _decreasing_ratio(values, stride=5):

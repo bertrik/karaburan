@@ -6,13 +6,12 @@
 
     planner_plugins: ["GridBased"]
     GridBased:
-      # Theta* supplies true any-angle shortest paths. This keeps open water
-      # straight at arbitrary headings and avoids grid or lattice V-detours.
-      plugin: "nav2_theta_star_planner::ThetaStarPlanner"
+      # NavFn uses the costmap potential directly and produces a shortest,
+      # forward-only path without Theta*'s long interpolation artefacts.
+      plugin: "nav2_navfn_planner::NavfnPlanner"
       tolerance: 0.25
-      how_many_corners: 8
-      w_euc_cost: 1.0
-      w_traversal_cost: 1.0
+      use_astar: true
+      allow_unknown: true
       use_final_approach_orientation: false
 
 /global_costmap:

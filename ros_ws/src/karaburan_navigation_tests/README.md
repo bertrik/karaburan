@@ -101,7 +101,9 @@ for a route-planning defect:
 - `planner_direct`: six aligned 30-metre plans at representative headings,
   requested directly from `ComputePathToPose` without moving the boat. Every
   plan must be monotonic, cusp-free, within 0.5 metres of the straight line,
-  and no more than 0.05 metres longer than that line.
+  and no more than 0.30 metres longer than that line. The 0.25-metre endpoint
+  tolerance matches the planner tolerance and the 0.20-metre costmap grid;
+  metre-scale lateral detours still fail independently.
 - `planner_island`: plans a smooth, forward-only route around a 2.5-metre
   island and rejects loops, cusps, side changes, and excessive detours.
 - `island_navigation`: sails that island route and checks endpoint,
@@ -114,6 +116,11 @@ for a route-planning defect:
   blocks the wrong arc, so the stern must leave through the named side.
 - `harbour_reverse_straight`: a symmetric U-shaped berth in which both arcs
   meet a side wall and straight reverse is the shortest clear departure.
+- `harbour_dock_stern_port` and `harbour_dock_stern_starboard`: approach the
+  mirrored berth from open water, turn approximately 90 degrees, and finish
+  bow-first at the original berth pose.
+- `harbour_dock_straight`: approaches the symmetric berth directly and must
+  not introduce an unnecessary turn.
 
 The open-water reports require forward-only travel, obstacle clearance, no
 loop, reasonable path efficiency, decreasing goal distance, and successful
@@ -121,7 +128,14 @@ goal completion. The harbour reports isolate the initial departure. They
 require one uninterrupted reverse segment and either a straight 2.8-metre
 escape or the selected 2-metre-radius, 90-degree arc. The plot draws the quay
 geometry and start/end bow headings, so a wrong stern direction is visible as
-well as machine-verifiable.
+well as machine-verifiable. Docking checks use the complete padded Nav2 hull
+footprint at every recorded pose, reject quay overlap, and require a
+collision-free forward approach, final position, final heading, route
+efficiency, and realistic heel. Every plot overlays sampled 0.56 x 0.30 metre
+hull footprints so the centre line is not mistaken for the space occupied by
+the boat. A non-finite Gazebo, sensor, or EKF pose terminates the action early
+and fails as `finite_simulation_state`; invalid samples are not written into
+JSON or SVG artifacts.
 
 ## CI policy
 

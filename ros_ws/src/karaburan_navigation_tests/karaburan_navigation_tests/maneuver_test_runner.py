@@ -12,6 +12,7 @@ from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import PoseStamped, Twist
 from karaburan_navigation_tests.maneuver_metrics import (
     harbour_departure_report,
+    harbour_docking_report,
     open_obstacle_report,
     path_length,
     path_tracking_report,
@@ -21,10 +22,11 @@ from karaburan_navigation_tests.maneuver_metrics import (
     turn_report,
 )
 from nav2_msgs.action import ComputePathToPose, FollowPath, NavigateToPose
-from nav_msgs.msg import Odometry, Path
+from nav_msgs.msg import OccupancyGrid, Odometry, Path
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import Imu
 
 
@@ -43,6 +45,9 @@ SCENARIOS = (
     'harbour_reverse_stern_port',
     'harbour_reverse_stern_starboard',
     'harbour_reverse_straight',
+    'harbour_dock_stern_port',
+    'harbour_dock_stern_starboard',
+    'harbour_dock_straight',
 )
 
 
@@ -89,6 +94,8 @@ class ManeuverTestNode(Node):
         self.pitch = 0.0
         self.initial_plan_length = None
         self.maximum_plan_length = None
+        self.global_costmap = None
+        self.invalid_state_received = False
         self.command_pub = self.create_publisher(Twist, '/cmd_vel_nav', 10)
         self.planner_command_pub = self.create_publisher(
             Twist, '/cmd_vel_planner', 10)
@@ -96,6 +103,14 @@ class ManeuverTestNode(Node):
             Odometry, '/odometry/filtered', self.odometry_callback, 10)
         self.create_subscription(Twist, '/cmd_vel', self.command_callback, 10)
         self.create_subscription(Path, '/plan', self.plan_callback, 10)
+        costmap_qos = QoSProfile(
+            depth=1,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            reliability=ReliabilityPolicy.RELIABLE,
+        )
+        self.create_subscription(
+            OccupancyGrid, '/global_costmap/costmap',
+            self.global_costmap_callback, costmap_qos)
         self.create_subscription(Imu, '/imu/data', self.imu_callback, 10)
         self.follow_client = ActionClient(self, FollowPath, '/follow_path')
         self.navigate_client = ActionClient(
@@ -104,8 +119,16 @@ class ManeuverTestNode(Node):
             self, ComputePathToPose, '/compute_path_to_pose')
 
     def odometry_callback(self, message):
-        self.odometry = message
         pose = message.pose.pose
+        values = (
+            pose.position.x, pose.position.y, pose.position.z,
+            pose.orientation.x, pose.orientation.y,
+            pose.orientation.z, pose.orientation.w,
+        )
+        if not all(math.isfinite(value) for value in values):
+            self.invalid_state_received = True
+            return
+        self.odometry = message
         stamp = message.header.stamp
         self.samples.append({
             'time': stamp.sec + stamp.nanosec / 1e9,
@@ -119,8 +142,11 @@ class ManeuverTestNode(Node):
         })
 
     def imu_callback(self, message):
-        self.roll, self.pitch = roll_pitch_from_quaternion(
-            message.orientation)
+        roll, pitch = roll_pitch_from_quaternion(message.orientation)
+        if not math.isfinite(roll) or not math.isfinite(pitch):
+            self.invalid_state_received = True
+            return
+        self.roll, self.pitch = roll, pitch
 
     def command_callback(self, message):
         self.command = message
@@ -142,6 +168,23 @@ class ManeuverTestNode(Node):
                 or plan_distance > self.maximum_plan_length
             ):
                 self.maximum_plan_length = plan_distance
+
+    def global_costmap_callback(self, message):
+        self.global_costmap = message
+
+    def costmap_metrics(self):
+        """Summarise whether a nominally empty planner grid contains costs."""
+        if self.global_costmap is None:
+            return {'available': False}
+        values = self.global_costmap.data
+        return {
+            'available': True,
+            'unknown_cells': sum(value < 0 for value in values),
+            'cost_cells': sum(value > 0 for value in values),
+            'lethal_cells': sum(value >= 90 for value in values),
+            'maximum_cost': max(values) if values else 0,
+            'resolution': self.global_costmap.info.resolution,
+        }
 
     def wait_for_odometry(self, timeout=20.0):
         deadline = time.monotonic() + timeout
@@ -203,7 +246,11 @@ class ManeuverTestNode(Node):
 
     def _spin_until(self, future, timeout):
         deadline = time.monotonic() + timeout
-        while not future.done() and time.monotonic() < deadline:
+        while (
+            not future.done()
+            and not self.invalid_state_received
+            and time.monotonic() < deadline
+        ):
             rclpy.spin_once(self, timeout_sec=0.1)
 
     def current_pose(self):
@@ -364,6 +411,7 @@ def planner_direct(node):
         'checks': checks,
         'metrics': {
             'worst_offset_degrees': worst['offset_degrees'],
+            'global_costmap': node.costmap_metrics(),
             'cases': {
                 str(case['offset_degrees']): case['metrics']
                 for case in cases
@@ -407,13 +455,15 @@ def planner_island(node):
         {'x': goal_pose.pose.position.x, 'y': goal_pose.pose.position.y,
          'label': 'goal'},
     ]
-    return planner_island_report(
+    report = planner_island_report(
         node.reference_path,
         (start.pose.position.x, start.pose.position.y),
         (goal_pose.pose.position.x, goal_pose.pose.position.y),
         island,
         radius,
     )
+    report['metrics']['global_costmap'] = node.costmap_metrics()
+    return report
 
 
 def island_navigation(node):
@@ -501,17 +551,56 @@ def harbour_departure(node, expected_maneuver):
     return harbour_departure_report(node.samples, expected_maneuver)
 
 
+def harbour_docking(node, expected_approach):
+    """Navigate from open water into the final pose shown in the sketch."""
+    configuration = {
+        'from_port': (
+            'harbour_reverse_stern_port.sdf', 'stern_port',
+            (2.0, 2.0, math.pi / 2.0)),
+        'from_starboard': (
+            'harbour_reverse_stern_starboard.sdf', 'stern_starboard',
+            (2.0, -2.0, -math.pi / 2.0)),
+        'straight': (
+            'harbour_reverse_straight.sdf', 'straight', (3.0, 0.0, 0.0)),
+    }[expected_approach]
+    filename, marker_key, goal_pose = configuration
+    goal_x, goal_y, goal_yaw = goal_pose
+    _spawn_model(filename, goal_x, goal_y, goal_yaw)
+    node.markers = transform_markers(
+        harbour_markers(marker_key), goal_x, goal_y, goal_yaw) + [
+        {'x': goal_x, 'y': goal_y, 'label': 'docking pose'},
+    ]
+    node.spin_for(2.0)
+    goal = NavigateToPose.Goal()
+    goal.pose.header.frame_id = 'map'
+    goal.pose.pose.position.x = goal_x
+    goal.pose.pose.position.y = goal_y
+    goal.pose.pose.orientation.z = math.sin(goal_yaw / 2.0)
+    goal.pose.pose.orientation.w = math.cos(goal_yaw / 2.0)
+    succeeded = node.send_action(node.navigate_client, goal, timeout=120.0)
+    if node.initial_reference_path:
+        node.reference_path = node.initial_reference_path
+    quays = [marker for marker in node.markers if 'width' in marker]
+    report = harbour_docking_report(
+        node.samples, expected_approach, goal_pose, quays)
+    report['checks']['action_succeeded'] = succeeded
+    report['passed'] = all(report['checks'].values())
+    return report
+
+
 def _spawn_block(y_position):
     _spawn_model('maneuver_test_block.sdf', 1.5, y_position)
 
 
-def _spawn_model(filename, x_position, y_position):
+def _spawn_model(filename, x_position, y_position, yaw=0.0):
     share = get_package_share_directory('karaburan_navigation_tests')
     model = FilePath(share) / 'scenarios' / filename
     request = (
         'sdf_filename: "' + str(model) + '", '
         'pose: {position: {x: ' + str(x_position)
-        + ', y: ' + str(y_position) + '}}'
+        + ', y: ' + str(y_position) + '}, orientation: {z: '
+        + str(math.sin(yaw / 2.0)) + ', w: '
+        + str(math.cos(yaw / 2.0)) + '}}'
     )
     completed = subprocess.run(
         [
@@ -560,6 +649,12 @@ def execute(node, scenario):
         return harbour_departure(node, 'stern_starboard')
     if scenario == 'harbour_reverse_straight':
         return harbour_departure(node, 'straight')
+    if scenario == 'harbour_dock_stern_port':
+        return harbour_docking(node, 'from_port')
+    if scenario == 'harbour_dock_stern_starboard':
+        return harbour_docking(node, 'from_starboard')
+    if scenario == 'harbour_dock_straight':
+        return harbour_docking(node, 'straight')
     raise ValueError('Unknown scenario: ' + scenario)
 
 
@@ -616,6 +711,20 @@ def harbour_markers(expected_maneuver):
     return markers
 
 
+def transform_markers(markers, x_offset, y_offset, yaw):
+    """Apply the spawned harbour model pose to its report geometry."""
+    cosine = math.cos(yaw)
+    sine = math.sin(yaw)
+    transformed = []
+    for marker in markers:
+        item = dict(marker)
+        item['x'] = x_offset + cosine * marker['x'] - sine * marker['y']
+        item['y'] = y_offset + sine * marker['x'] + cosine * marker['y']
+        item['yaw'] = yaw
+        transformed.append(item)
+    return transformed
+
+
 def main(args=None):
     options = parse_args(args)
     started = time.monotonic()
@@ -624,6 +733,9 @@ def main(args=None):
     try:
         node.wait_for_odometry()
         report = execute(node, options.scenario)
+        if node.invalid_state_received:
+            report['checks']['finite_simulation_state'] = False
+            report['passed'] = False
     except Exception as error:  # noqa: BLE001 - test report must survive failures
         report = {
             'passed': False,
