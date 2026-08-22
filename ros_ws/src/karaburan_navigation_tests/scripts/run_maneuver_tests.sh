@@ -13,7 +13,10 @@ export ROS2CLI_NO_DAEMON=1
 export RCUTILS_COLORIZED_OUTPUT=0
 export GZ_LOG_COLOR=0
 
-report_root="${1:-./test-results-$(date +%Y%m%d%H%M%S)}"
+package_prefix="$(ros2 pkg prefix karaburan_navigation_tests)"
+workspace_root="$(dirname "$(dirname "$package_prefix")")"
+repository_root="$(dirname "$workspace_root")"
+report_root="${1:-$repository_root/test-results-$(date +%Y%m%d%H%M%S)}"
 shift || true
 mkdir -p "$report_root"
 status=0

@@ -2,7 +2,10 @@
 set -eo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-result_parent="${1:-.}"
+simulation_prefix="$(ros2 pkg prefix karaburan_simulation)"
+workspace_root="$(dirname "$(dirname "$simulation_prefix")")"
+repository_root="$(dirname "$workspace_root")"
+result_parent="${1:-$repository_root}"
 timestamp="$(date +%Y%m%d%H%M%S)"
 report_root="$result_parent/test-results-$timestamp"
 
@@ -20,9 +23,6 @@ if [[ $maneuver_status -ne 0 ]]; then
 fi
 
 mv "$report_root/junit.xml" "$report_root/maneuver.junit.xml"
-
-simulation_prefix="$(ros2 pkg prefix karaburan_simulation)"
-workspace_root="$(dirname "$(dirname "$simulation_prefix")")"
 
 set +e
 (

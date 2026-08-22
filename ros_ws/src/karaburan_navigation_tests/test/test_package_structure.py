@@ -54,8 +54,11 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     ) in script
     assert 'RCUTILS_COLORIZED_OUTPUT=0' in script
     assert 'maneuver_test_report' in script
+    assert 'repository_root="$(dirname "$workspace_root")"' in script
+    assert '${1:-$repository_root/test-results-' in script
     assert 'timestamp="$(date +%Y%m%d%H%M%S)"' in simulation_script
     assert 'test-results-$timestamp' in simulation_script
+    assert 'result_parent="${1:-$repository_root}"' in simulation_script
     assert 'bash "$script_dir/run_maneuver_tests.sh"' in simulation_script
     assert '--packages-select karaburan_navigation_tests' in simulation_script
     assert (

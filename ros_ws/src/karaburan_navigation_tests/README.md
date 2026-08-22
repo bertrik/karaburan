@@ -10,18 +10,21 @@ JUnit, JSON, and HTML reports.
 Build and source the workspace, then run:
 
 ```bash
-cd /home/michiel/karaburan/ros_ws/src
+repository_root="$(git rev-parse --show-toplevel)"
+cd "$repository_root/ros_ws"
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-up-to karaburan_navigation_tests
 source install/setup.bash
 bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_maneuver_tests.sh
 ```
 
-Pass a directory to retain the reports at a specific location:
+Without an argument, the report is written to the standard flat directory
+`<repository-root>/test-results-YYYYMMDDHHMMSS`. Pass a directory only to
+override that location, for example in CI:
 
 ```bash
 bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_maneuver_tests.sh \
-  /home/michiel/karaburan/test-results-manual-check
+  "$RUNNER_TEMP/karaburan-maneuver-results"
 ```
 
 Add one or more scenario names after the report directory for a quick focused
@@ -29,7 +32,7 @@ run. This is the preferred feedback loop while tuning a controller:
 
 ```bash
 bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_maneuver_tests.sh \
-  /home/michiel/karaburan/test-results-follow-straight \
+  "$repository_root/test-results-$(date +%Y%m%d%H%M%S)" \
   actuator_straight follow_straight
 ```
 
@@ -73,11 +76,11 @@ Run all manoeuvre scenarios and the normal `karaburan_navigation_tests`
 package tests with one command:
 
 ```bash
-bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_simulation_tests.sh \
-  /home/michiel/karaburan
+bash install/karaburan_navigation_tests/share/karaburan_navigation_tests/scripts/run_simulation_tests.sh
 ```
 
-This creates exactly one flat directory named
+By default this also discovers the repository root from the sourced ROS
+workspace and creates exactly one flat directory there named
 `test-results-YYYYMMDDHHMMSS`, for example
 `test-results-20260821221557`. It contains one combined `report.html` and
 `junit.xml`, plus the original JUnit files, embedded and standalone SVG plots,
