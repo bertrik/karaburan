@@ -1,10 +1,16 @@
-"""Translate simulated velocity commands to Gazebo propeller commands."""
-import math
+"""Translate simulated velocity commands to Gazebo thruster forces."""
 
 from geometry_msgs.msg import Twist
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
+
+
+def mix_thruster_forces(linear, angular, yaw_force_gain):
+    """Return symmetric port and starboard force commands."""
+    left_force = linear - angular * yaw_force_gain
+    right_force = linear + angular * yaw_force_gain
+    return left_force, right_force
 
 
 class SimControlNode(Node):
@@ -13,13 +19,10 @@ class SimControlNode(Node):
         super().__init__('sim_control_node')
         self.declare_parameter('command_timeout', 0.5)
         self.declare_parameter('yaw_force_gain', 5.0)
-        self.declare_parameter('reference_speed', 0.25)
         self.command_timeout = self.get_parameter(
             'command_timeout').get_parameter_value().double_value
         self.yaw_force_gain = self.get_parameter(
             'yaw_force_gain').get_parameter_value().double_value
-        self.reference_speed = self.get_parameter(
-            'reference_speed').get_parameter_value().double_value
         self.last_command_time = None
         self.command_active = False
         self.cmd_sub = self.create_subscription(Twist, '/cmd_vel', self.props_callback, 10)
@@ -39,15 +42,6 @@ class SimControlNode(Node):
             self.publish_props(0.0, 0.0)
             self.command_active = False
 
-    def shaft_speed(self, requested_force):
-        """Invert Gazebo's quadratic propeller force around cruise speed."""
-        if requested_force == 0.0:
-            return 0.0
-        return math.copysign(
-            math.sqrt(abs(requested_force) * self.reference_speed),
-            requested_force,
-        )
-
     # Controls the propellors for the boat via duty cycle control.
     def props_callback(self, cmd_vel):
         # Converting twist message to differntial drive control, includes clipping
@@ -57,14 +51,9 @@ class SimControlNode(Node):
         self.last_command_time = self.get_clock().now()
         self.command_active = True
 
-        # Mix desired forces first. Converting shaft velocities directly would
-        # couple total surge force to steering because Gazebo squares them.
-        left_force = v - w * self.yaw_force_gain
-        right_force = v + w * self.yaw_force_gain
-        left = self.shaft_speed(left_force)
-        # The starboard propeller axis is reversed in the simulation model so
-        # equal forward thrust uses the opposite shaft rotation direction.
-        right = -self.shaft_speed(right_force)
+        # Both thrusters use the same +X axis and positive coefficient. Only
+        # this differential mix determines translation and yaw.
+        left, right = mix_thruster_forces(v, w, self.yaw_force_gain)
 
         self.publish_props(left, right)
 

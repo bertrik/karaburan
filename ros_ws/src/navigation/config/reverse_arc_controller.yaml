@@ -2,17 +2,25 @@
   ros__parameters:
     radius: 2.0
     heading_change: 1.5707963267948966
-    reverse_speed: 1.0
-    angular_feedforward_gain: 1.0
+    straight_reverse_distance: 2.8
+    # Twice normal cruise speed is a decisive escape without driving the tiny
+    # simulated propellers into DART/ODE's unstable >5 N impulse range.
+    reverse_speed: 0.5
+    # Hydrodynamic slip made a nominal 2 m arc measure 2.84 m. This calibrated
+    # yaw feed-forward restores the requested radius in the simulator.
+    angular_feedforward_gain: 1.65
     heading_gain: 0.5
     max_angular_command: 1.0
     forward_speed: 0.25
     forward_handoff_timeout: 15.0
     minimum_trigger_angular: 0.05
-    heading_tolerance: 0.01
+    # Stop thrust slightly before the target so yaw inertia settles at 90 deg.
+    heading_tolerance: 0.03
     distance_tolerance: 0.05
     idle_reset_time: 1.0
     maneuver_timeout: 25.0
     arc_sample_step: 0.20
     footprint_half_length: 0.30
     footprint_half_width: 0.17
+    front_obstacle_distance: 1.5
+    front_obstacle_half_width: 0.4

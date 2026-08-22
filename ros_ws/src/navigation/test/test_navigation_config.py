@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from navigation.reverse_arc_controller import choose_reverse_maneuver
+
 
 PACKAGE_DIR = Path(__file__).parents[1]
 CONFIG_DIR = PACKAGE_DIR / 'config'
@@ -15,7 +17,7 @@ def test_runtime_rates_and_ranges_match_boat_hardware():
     assert 'max_laser_range: 10.0' in slam
 
 
-def test_navigation_uses_external_slam_lifecycle_and_hybrid_planner():
+def test_navigation_uses_external_slam_lifecycle_and_shortest_path_planner():
     planner = (CONFIG_DIR / 'planner_server.yaml').read_text()
     boat_bt = (CONFIG_DIR / 'navigate_to_pose_boat.xml').read_text()
     launch = (LAUNCH_DIR / 'nav2_stack.launch.py').read_text()
@@ -23,21 +25,23 @@ def test_navigation_uses_external_slam_lifecycle_and_hybrid_planner():
     managed_nodes_end = launch.index(']', managed_nodes_start)
     managed_nodes = launch[managed_nodes_start:managed_nodes_end]
 
-    assert 'nav2_smac_planner::SmacPlannerHybrid' in planner
-    assert 'motion_model_for_search: "REEDS_SHEPP"' in planner
-    assert 'minimum_turning_radius: 5.0' in planner
-    assert 'reverse_penalty: 1.05' in planner
-    assert 'change_penalty: 0.5' in planner
-    assert 'non_straight_penalty: 1.05' in planner
-    assert 'cost_penalty: 4.0' in planner
-    assert 'analytic_expansion_max_length: 15.0' in planner
+    assert 'nav2_navfn_planner::NavfnPlanner' in planner
+    assert 'nav2_theta_star_planner::ThetaStarPlanner' not in planner
+    assert 'nav2_smac_planner::SmacPlannerHybrid' not in planner
+    assert 'motion_model_for_search' not in planner
+    assert 'use_astar: true' in planner
+    assert 'allow_unknown: true' in planner
+    assert 'use_final_approach_orientation: false' in planner
     assert "'use_lifecycle_manager': 'true'" in launch
     assert managed_nodes.index("'slam_toolbox',") < managed_nodes.index("'planner_server',")
     assert "'default_nav_to_pose_bt_xml': navigate_to_pose_bt" in launch
     assert boat_bt.index('<BackUp ') < boat_bt.index('<Spin ')
-    assert 'backup_dist="1.5"' in boat_bt
+    assert 'backup_dist="2.80"' in boat_bt
     assert 'backup_speed="0.20"' in boat_bt
-    assert '<RateController hz="0.5">' in boat_bt
+    assert 'time_allowance="25.0"' in boat_bt
+    assert '<Sequence name="NavigatePlannedRoute">' in boat_bt
+    assert '<PipelineSequence' not in boat_bt
+    assert '<RateController' not in boat_bt
 
 
 def test_global_costmap_fits_raspberry_pi_memory_budget():
@@ -62,11 +66,14 @@ def test_lidar_obstacles_feed_both_costmaps_and_controller():
     assert 'max_obstacle_height: 2.0' in controller
     assert 'RegulatedPurePursuitController' in controller
     assert 'nav2_controller::SimpleProgressChecker' in controller
+    assert 'movement_time_allowance: 5.0' in controller
+    assert 'yaw_goal_tolerance: 0.7' in controller
     assert 'use_rotate_to_heading: false' in controller
-    assert 'allow_reversing: true' in controller
-    assert 'lookahead_dist: 2.0' in controller
-    assert 'min_lookahead_dist: 1.0' in controller
-    assert 'max_lookahead_dist: 3.0' in controller
+    assert 'allow_reversing: false' in controller
+    assert 'lookahead_dist: 1.0' in controller
+    assert 'max_robot_pose_search_dist: 2.0' in controller
+    assert 'min_lookahead_dist: 0.75' in controller
+    assert 'max_lookahead_dist: 2.0' in controller
     assert 'use_collision_detection: false' in controller
     assert controller.count('footprint: "[[0.28, 0.15]') == 1
     assert 'inflation_radius: 1.5' in controller
@@ -96,21 +103,60 @@ def test_reverse_arc_is_fast_stateful_and_geometry_driven():
 
     assert 'radius: 2.0' in config
     assert 'heading_change: 1.5707963267948966' in config
-    assert 'reverse_speed: 1.0' in config
+    assert 'straight_reverse_distance: 2.8' in config
+    assert 'reverse_speed: 0.5' in config
+    assert 'angular_feedforward_gain: 1.65' in config
     assert 'forward_speed: 0.25' in config
     assert 'minimum_trigger_angular: 0.05' in config
-    assert 'heading_tolerance: 0.01' in config
+    assert 'heading_tolerance: 0.03' in config
     assert 'maneuver_timeout: 25.0' in config
     assert 'arc_sample_step: 0.20' in config
     assert 'footprint_half_length: 0.30' in config
     assert 'footprint_half_width: 0.17' in config
+    assert 'front_obstacle_distance: 1.5' in config
+    assert 'front_obstacle_half_width: 0.4' in config
     controller = (
         PACKAGE_DIR / 'navigation' / 'reverse_arc_controller.py'
     ).read_text()
     assert 'OccupancyGrid, Odometry, Path' in controller
-    assert "'/local_costmap/costmap_raw'" in controller
+    assert "'/local_costmap/costmap'" in controller
+    assert "LaserScan, '/scan'" in controller
     assert "Path, '/plan'" in controller
-    assert 'port_score = self.arc_cost(-1.0)' in controller
-    assert 'starboard_score = self.arc_cost(1.0)' in controller
-    assert 'self.required_plan_generation = self.plan_generation + 1' in controller
+    assert "'straight': self.straight_cost()" in controller
+    assert "'port': self.arc_cost(-1.0)" in controller
+    assert "'starboard': self.arc_cost(1.0)" in controller
+    assert 'requested_sign = self.obstacle_avoidance_sign()' in controller
+    assert 'and command.linear.x < -0.01' in controller
+    assert 'and abs(command.linear.x) > 0.01' not in controller
+    assert 'and self.front_blocked()' in controller
+    assert 'if self.scan_front_blocked()' in controller
+    assert 'scan_points = self.scan_points()' in controller
+    assert 'self.point_inside_footprint(' in controller
+    assert 'self.arc_start_plan_generation + 1' in controller
     assert 'reverse_arc_controller = navigation.reverse_arc_controller:main' in setup
+
+
+def test_reverse_maneuver_prefers_clearance_then_time():
+    scores = {
+        'straight': (1, 100, 120, 5.6),
+        'port': (0, 40, 400, 6.3),
+        'starboard': (3, 100, 500, 6.3),
+    }
+    assert choose_reverse_maneuver(scores) == 'port'
+
+    clear = {
+        'straight': (0, 60, 500, 5.6),
+        'port': (0, 20, 100, 6.3),
+        'starboard': (0, 20, 100, 6.3),
+    }
+    assert choose_reverse_maneuver(clear) == 'straight'
+
+
+def test_reverse_maneuver_uses_requested_side_only_as_tie_breaker():
+    tied = {
+        'straight': (2, 100, 500, 5.6),
+        'port': (0, 20, 100, 6.3),
+        'starboard': (0, 20, 100, 6.3),
+    }
+    assert choose_reverse_maneuver(tied, -1.0) == 'port'
+    assert choose_reverse_maneuver(tied, 1.0) == 'starboard'

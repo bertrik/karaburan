@@ -42,6 +42,149 @@
     "x": 250.0,
     "y": 350.0
   },
+  "scenario_objects": [
+    {
+      "id": "reed_01",
+      "semantic_type": "REED_ZONE",
+      "navigation_class": "AVOID_ZONE",
+      "pose": {"x": -200.0, "y": 600.0, "z": 0.7, "yaw": 0.35},
+      "visual": {"shape": "box", "size_m": [18.0, 5.0, 1.6]},
+      "collision": {"shape": "box", "size_m": [18.0, 5.0, 1.6]},
+      "navigation": {"shape": "box", "size_m": [18.0, 5.0], "margin_m": 2.0}
+    },
+    {
+      "id": "reed_02",
+      "semantic_type": "REED_ZONE",
+      "navigation_class": "AVOID_ZONE",
+      "pose": {"x": 500.0, "y": 0.0, "z": 0.7, "yaw": 1.0},
+      "visual": {"shape": "box", "size_m": [20.0, 6.0, 1.6]},
+      "collision": {"shape": "box", "size_m": [20.0, 6.0, 1.6]},
+      "navigation": {"shape": "box", "size_m": [20.0, 6.0], "margin_m": 2.5}
+    },
+    {
+      "id": "reed_03",
+      "semantic_type": "REED_ZONE",
+      "navigation_class": "AVOID_ZONE",
+      "pose": {"x": 300.0, "y": -600.0, "z": 0.7, "yaw": 0.8},
+      "visual": {"shape": "box", "size_m": [24.0, 6.0, 1.6]},
+      "collision": {"shape": "box", "size_m": [24.0, 6.0, 1.6]},
+      "navigation": {"shape": "box", "size_m": [24.0, 6.0], "margin_m": 3.0}
+    },
+    {
+      "id": "lily_01",
+      "semantic_type": "LILY_PAD_FIELD",
+      "navigation_class": "STATIC_SOFT_OBSTACLE",
+      "pose": {"x": -200.0, "y": 500.0, "z": -0.005, "yaw": -0.2},
+      "visual": {"shape": "box", "size_m": [22.0, 14.0, 0.03]},
+      "collision": {"shape": "none"},
+      "navigation": {"shape": "box", "size_m": [22.0, 14.0], "margin_m": 3.0}
+    },
+    {
+      "id": "lily_02",
+      "semantic_type": "LILY_PAD_FIELD",
+      "navigation_class": "STATIC_SOFT_OBSTACLE",
+      "pose": {"x": 500.0, "y": -300.0, "z": -0.005, "yaw": 0.45},
+      "visual": {"shape": "box", "size_m": [18.0, 12.0, 0.03]},
+      "collision": {"shape": "none"},
+      "navigation": {"shape": "box", "size_m": [18.0, 12.0], "margin_m": 3.0}
+    },
+    {
+      "id": "peat_01",
+      "semantic_type": "PEAT_CHUNK",
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {"x": 100.0, "y": 200.0, "z": 0.0, "yaw": 0.25},
+      "visual": {
+        "shape": "polygon",
+        "points_m": [[-1.3, -0.3], [-0.7, -0.9], [0.4, -1.0], [1.3, -0.4], [1.1, 0.5], [0.2, 0.9], [-0.9, 0.7]],
+        "height_m": 0.35,
+        "z_offset_m": 0.075
+      },
+      "collision": {
+        "shape": "polygon",
+        "points_m": [[-2.4, -0.5], [-1.5, -1.8], [0.0, -2.1], [1.8, -1.4], [2.5, 0.1], [1.6, 1.7], [-0.2, 2.0], [-2.0, 1.2]],
+        "height_m": 1.4,
+        "z_offset_m": -0.6
+      },
+      "navigation": {
+        "shape": "polygon",
+        "points_m": [[-2.4, -0.5], [-1.5, -1.8], [0.0, -2.1], [1.8, -1.4], [2.5, 0.1], [1.6, 1.7], [-0.2, 2.0], [-2.0, 1.2]],
+        "margin_m": 1.6
+      }
+    },
+    {
+      "id": "peat_02",
+      "semantic_type": "PEAT_CHUNK",
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {"x": -300.0, "y": 300.0, "z": -0.02, "yaw": -0.4},
+      "visual": {
+        "shape": "polygon",
+        "points_m": [[-0.9, -0.2], [-0.4, -0.7], [0.5, -0.6], [0.9, 0.1], [0.3, 0.7], [-0.6, 0.6]],
+        "height_m": 0.25,
+        "z_offset_m": 0.055
+      },
+      "collision": {
+        "shape": "polygon",
+        "points_m": [[-1.8, -0.4], [-1.0, -1.4], [0.5, -1.5], [1.7, -0.6], [1.8, 0.6], [0.6, 1.4], [-1.1, 1.2]],
+        "height_m": 1.0,
+        "z_offset_m": -0.45
+      },
+      "navigation": {
+        "shape": "polygon",
+        "points_m": [[-1.8, -0.4], [-1.0, -1.4], [0.5, -1.5], [1.7, -0.6], [1.8, 0.6], [0.6, 1.4], [-1.1, 1.2]],
+        "margin_m": 1.6
+      }
+    },
+    {
+      "id": "peat_03",
+      "semantic_type": "PEAT_CHUNK",
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {"x": 400.0, "y": -100.0, "z": 0.02, "yaw": 0.6},
+      "visual": {
+        "shape": "polygon",
+        "points_m": [[-1.8, -0.5], [-0.8, -1.3], [0.7, -1.1], [1.8, -0.2], [1.2, 1.0], [-0.3, 1.3], [-1.5, 0.7]],
+        "height_m": 0.45,
+        "z_offset_m": 0.105
+      },
+      "collision": {
+        "shape": "polygon",
+        "points_m": [[-3.2, -0.8], [-1.9, -2.1], [0.1, -2.5], [2.2, -1.7], [3.1, 0.1], [2.0, 2.0], [0.0, 2.5], [-2.4, 1.5]],
+        "height_m": 1.8,
+        "z_offset_m": -0.8
+      },
+      "navigation": {
+        "shape": "polygon",
+        "points_m": [[-3.2, -0.8], [-1.9, -2.1], [0.1, -2.5], [2.2, -1.7], [3.1, 0.1], [2.0, 2.0], [0.0, 2.5], [-2.4, 1.5]],
+        "margin_m": 1.7
+      }
+    },
+    {
+      "id": "buoy_01",
+      "semantic_type": "BUOY",
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {"x": 50.0, "y": 300.0, "z": 0.35, "yaw": 0.0},
+      "visual": {"shape": "cylinder", "radius_m": 0.25, "height_m": 1.2},
+      "collision": {"shape": "cylinder", "radius_m": 0.25, "height_m": 1.2},
+      "navigation": {"shape": "circle", "radius_m": 0.25, "margin_m": 3.0}
+    },
+    {
+      "id": "buoy_02",
+      "semantic_type": "BUOY",
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {"x": 350.0, "y": 250.0, "z": 0.35, "yaw": 0.0},
+      "visual": {"shape": "cylinder", "radius_m": 0.25, "height_m": 1.2},
+      "collision": {"shape": "cylinder", "radius_m": 0.25, "height_m": 1.2},
+      "navigation": {"shape": "circle", "radius_m": 0.25, "margin_m": 3.0}
+    },
+    {
+      "id": "buoy_03",
+      "semantic_type": "BUOY",
+      "navigation_class": "STATIC_HARD_OBSTACLE",
+      "pose": {"x": 250.0, "y": -250.0, "z": 0.35, "yaw": 0.0},
+      "visual": {"shape": "cylinder", "radius_m": 0.25, "height_m": 1.2},
+      "collision": {"shape": "cylinder", "radius_m": 0.25, "height_m": 1.2},
+      "navigation": {"shape": "circle", "radius_m": 0.25, "margin_m": 3.0}
+    }
+  ],
   "water_outline": [
     [
       -208.3,

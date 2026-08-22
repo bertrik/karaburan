@@ -11,16 +11,23 @@ from action_msgs.msg import GoalStatus
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import PoseStamped, Twist
 from karaburan_navigation_tests.maneuver_metrics import (
-    obstacle_report,
+    harbour_departure_report,
+    harbour_docking_report,
+    open_obstacle_report,
     path_length,
+    path_tracking_report,
+    planner_direct_report,
+    planner_island_report,
     straight_report,
     turn_report,
 )
-from nav2_msgs.action import FollowPath, NavigateToPose
-from nav_msgs.msg import Odometry, Path
+from nav2_msgs.action import ComputePathToPose, FollowPath, NavigateToPose
+from nav_msgs.msg import OccupancyGrid, Odometry, Path
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+from sensor_msgs.msg import Imu
 
 
 SCENARIOS = (
@@ -30,8 +37,17 @@ SCENARIOS = (
     'follow_straight',
     'follow_arc_left',
     'follow_arc_right',
-    'obstacle_port',
-    'obstacle_starboard',
+    'planner_direct',
+    'planner_island',
+    'island_navigation',
+    'open_obstacle_port',
+    'open_obstacle_starboard',
+    'harbour_reverse_stern_port',
+    'harbour_reverse_stern_starboard',
+    'harbour_reverse_straight',
+    'harbour_dock_stern_port',
+    'harbour_dock_stern_starboard',
+    'harbour_dock_straight',
 )
 
 
@@ -48,6 +64,20 @@ def quaternion_from_yaw(yaw):
     return math.sin(yaw / 2.0), math.cos(yaw / 2.0)
 
 
+def roll_pitch_from_quaternion(orientation):
+    """Return roll and pitch from a quaternion."""
+    roll = math.atan2(
+        2.0 * (orientation.w * orientation.x
+               + orientation.y * orientation.z),
+        1.0 - 2.0 * (orientation.x ** 2 + orientation.y ** 2),
+    )
+    pitch_sine = 2.0 * (
+        orientation.w * orientation.y
+        - orientation.z * orientation.x)
+    pitch = math.asin(max(-1.0, min(1.0, pitch_sine)))
+    return roll, pitch
+
+
 class ManeuverTestNode(Node):
     """Collect trace data and execute one isolated manoeuvre."""
 
@@ -58,19 +88,47 @@ class ManeuverTestNode(Node):
         self.samples = []
         self.latest_plan = None
         self.reference_path = []
+        self.initial_reference_path = []
+        self.markers = []
+        self.roll = 0.0
+        self.pitch = 0.0
         self.initial_plan_length = None
+        self.maximum_plan_length = None
+        self.global_costmap = None
+        self.invalid_state_received = False
         self.command_pub = self.create_publisher(Twist, '/cmd_vel_nav', 10)
+        self.planner_command_pub = self.create_publisher(
+            Twist, '/cmd_vel_planner', 10)
         self.create_subscription(
             Odometry, '/odometry/filtered', self.odometry_callback, 10)
         self.create_subscription(Twist, '/cmd_vel', self.command_callback, 10)
         self.create_subscription(Path, '/plan', self.plan_callback, 10)
+        costmap_qos = QoSProfile(
+            depth=1,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            reliability=ReliabilityPolicy.RELIABLE,
+        )
+        self.create_subscription(
+            OccupancyGrid, '/global_costmap/costmap',
+            self.global_costmap_callback, costmap_qos)
+        self.create_subscription(Imu, '/imu/data', self.imu_callback, 10)
         self.follow_client = ActionClient(self, FollowPath, '/follow_path')
         self.navigate_client = ActionClient(
             self, NavigateToPose, '/navigate_to_pose')
+        self.planner_client = ActionClient(
+            self, ComputePathToPose, '/compute_path_to_pose')
 
     def odometry_callback(self, message):
-        self.odometry = message
         pose = message.pose.pose
+        values = (
+            pose.position.x, pose.position.y, pose.position.z,
+            pose.orientation.x, pose.orientation.y,
+            pose.orientation.z, pose.orientation.w,
+        )
+        if not all(math.isfinite(value) for value in values):
+            self.invalid_state_received = True
+            return
+        self.odometry = message
         stamp = message.header.stamp
         self.samples.append({
             'time': stamp.sec + stamp.nanosec / 1e9,
@@ -79,7 +137,16 @@ class ManeuverTestNode(Node):
             'yaw': yaw_from_quaternion(pose.orientation),
             'linear': self.command.linear.x,
             'angular': self.command.angular.z,
+            'roll': self.roll,
+            'pitch': self.pitch,
         })
+
+    def imu_callback(self, message):
+        roll, pitch = roll_pitch_from_quaternion(message.orientation)
+        if not math.isfinite(roll) or not math.isfinite(pitch):
+            self.invalid_state_received = True
+            return
+        self.roll, self.pitch = roll, pitch
 
     def command_callback(self, message):
         self.command = message
@@ -92,7 +159,32 @@ class ManeuverTestNode(Node):
                 for pose in message.poses
             ]
         if self.initial_plan_length is None and len(message.poses) > 1:
+            self.initial_reference_path = list(self.reference_path)
             self.initial_plan_length = path_length(self.reference_path)
+        if len(message.poses) > 1:
+            plan_distance = path_length(self.reference_path)
+            if (
+                self.maximum_plan_length is None
+                or plan_distance > self.maximum_plan_length
+            ):
+                self.maximum_plan_length = plan_distance
+
+    def global_costmap_callback(self, message):
+        self.global_costmap = message
+
+    def costmap_metrics(self):
+        """Summarise whether a nominally empty planner grid contains costs."""
+        if self.global_costmap is None:
+            return {'available': False}
+        values = self.global_costmap.data
+        return {
+            'available': True,
+            'unknown_cells': sum(value < 0 for value in values),
+            'cost_cells': sum(value > 0 for value in values),
+            'lethal_cells': sum(value >= 90 for value in values),
+            'maximum_cost': max(values) if values else 0,
+            'resolution': self.global_costmap.info.resolution,
+        }
 
     def wait_for_odometry(self, timeout=20.0):
         deadline = time.monotonic() + timeout
@@ -113,6 +205,11 @@ class ManeuverTestNode(Node):
         for _ in range(5):
             rclpy.spin_once(self, timeout_sec=0.05)
 
+    def spin_for(self, duration):
+        deadline = time.monotonic() + duration
+        while time.monotonic() < deadline:
+            rclpy.spin_once(self, timeout_sec=0.1)
+
     def send_action(self, client, goal, timeout=45.0):
         if not client.wait_for_server(timeout_sec=15.0):
             raise RuntimeError('Navigation action server is unavailable')
@@ -128,9 +225,32 @@ class ManeuverTestNode(Node):
             return False
         return result_future.result().status == GoalStatus.STATUS_SUCCEEDED
 
+    def compute_path(self, goal, timeout=15.0):
+        if not self.planner_client.wait_for_server(timeout_sec=15.0):
+            raise RuntimeError('Planner action server is unavailable')
+        goal_future = self.planner_client.send_goal_async(goal)
+        self._spin_until(goal_future, 10.0)
+        goal_handle = goal_future.result()
+        if goal_handle is None or not goal_handle.accepted:
+            raise RuntimeError('Planner goal was rejected')
+        result_future = goal_handle.get_result_async()
+        self._spin_until(result_future, timeout)
+        if not result_future.done():
+            goal_handle.cancel_goal_async()
+            raise RuntimeError('Planner action timed out')
+        result = result_future.result()
+        if result.status != GoalStatus.STATUS_SUCCEEDED:
+            raise RuntimeError(
+                f'Planner action failed with status {result.status}')
+        return result.result.path
+
     def _spin_until(self, future, timeout):
         deadline = time.monotonic() + timeout
-        while not future.done() and time.monotonic() < deadline:
+        while (
+            not future.done()
+            and not self.invalid_state_received
+            and time.monotonic() < deadline
+        ):
             rclpy.spin_once(self, timeout_sec=0.1)
 
     def current_pose(self):
@@ -185,7 +305,8 @@ def follow_path(node, arc_sign=0.0):
     if arc_sign == 0.0:
         report = straight_report(node.samples, target_distance=3.0)
     else:
-        report = turn_report(node.samples, arc_sign)
+        report = path_tracking_report(
+            node.samples, node.reference_path, arc_sign)
     report['checks']['action_succeeded'] = succeeded
     report['passed'] = all(report['checks'].values())
     return report
@@ -229,31 +350,257 @@ def _make_path(start, arc_sign):
     return result
 
 
-def obstacle(node, side):
+def planner_direct(node):
+    """Request aligned global plans at representative lattice headings."""
+    distance = 30.0
+    current = node.current_pose()
+    base_yaw = yaw_from_quaternion(current.orientation)
+    cases = []
+    for offset_degrees in (0.0, 3.0, 13.0, 37.0, 91.0, 143.0):
+        yaw = base_yaw + math.radians(offset_degrees)
+        start = PoseStamped()
+        start.header.frame_id = 'map'
+        start.pose.position.x = current.position.x
+        start.pose.position.y = current.position.y
+        start.pose.orientation.z, start.pose.orientation.w = (
+            quaternion_from_yaw(yaw))
+        goal_pose = PoseStamped()
+        goal_pose.header.frame_id = 'map'
+        goal_pose.pose.position.x = (
+            start.pose.position.x + distance * math.cos(yaw))
+        goal_pose.pose.position.y = (
+            start.pose.position.y + distance * math.sin(yaw))
+        goal_pose.pose.orientation.z, goal_pose.pose.orientation.w = (
+            quaternion_from_yaw(yaw))
+
+        request = ComputePathToPose.Goal()
+        request.start = start
+        request.goal = goal_pose
+        request.planner_id = 'GridBased'
+        request.use_start = True
+        path = node.compute_path(request)
+        points = [
+            {'x': pose.pose.position.x, 'y': pose.pose.position.y}
+            for pose in path.poses
+        ]
+        case = planner_direct_report(
+            points,
+            (start.pose.position.x, start.pose.position.y),
+            (goal_pose.pose.position.x, goal_pose.pose.position.y),
+        )
+        case['offset_degrees'] = offset_degrees
+        case['points'] = points
+        case['goal'] = (
+            goal_pose.pose.position.x, goal_pose.pose.position.y)
+        cases.append(case)
+
+    worst = max(cases, key=lambda case: case['metrics'].get(
+        'length_ratio', math.inf))
+    node.reference_path = worst.pop('points')
+    goal_x, goal_y = worst.pop('goal')
+    node.markers = [
+        {'x': current.position.x, 'y': current.position.y, 'label': 'start'},
+        {'x': goal_x, 'y': goal_y, 'label': 'goal'},
+    ]
+    checks = {
+        name: all(case['checks'].get(name, False) for case in cases)
+        for name in worst['checks']
+    }
+    return {
+        'passed': all(checks.values()),
+        'checks': checks,
+        'metrics': {
+            'worst_offset_degrees': worst['offset_degrees'],
+            'global_costmap': node.costmap_metrics(),
+            'cases': {
+                str(case['offset_degrees']): case['metrics']
+                for case in cases
+            },
+        },
+    }
+
+
+def planner_island(node):
+    """Plan a forward, smooth route around a large island."""
+    island = (8.0, 0.0)
+    radius = 2.5
+    _spawn_model('maneuver_test_island.sdf', island[0], island[1])
+    node.spin_for(2.0)
+    current = node.current_pose()
+    yaw = yaw_from_quaternion(current.orientation)
+    start = PoseStamped()
+    start.header.frame_id = 'map'
+    start.pose.position.x = current.position.x
+    start.pose.position.y = current.position.y
+    start.pose.orientation.z, start.pose.orientation.w = quaternion_from_yaw(
+        yaw)
+    goal_pose = PoseStamped()
+    goal_pose.header.frame_id = 'map'
+    goal_pose.pose.position.x = 20.0
+    goal_pose.pose.position.y = 0.0
+    goal_pose.pose.orientation.w = 1.0
+    request = ComputePathToPose.Goal()
+    request.start = start
+    request.goal = goal_pose
+    request.planner_id = 'GridBased'
+    request.use_start = True
+    path = node.compute_path(request)
+    node.reference_path = [
+        {'x': pose.pose.position.x, 'y': pose.pose.position.y}
+        for pose in path.poses
+    ]
+    node.markers = [
+        {'x': island[0], 'y': island[1], 'radius': radius,
+         'label': 'island'},
+        {'x': goal_pose.pose.position.x, 'y': goal_pose.pose.position.y,
+         'label': 'goal'},
+    ]
+    report = planner_island_report(
+        node.reference_path,
+        (start.pose.position.x, start.pose.position.y),
+        (goal_pose.pose.position.x, goal_pose.pose.position.y),
+        island,
+        radius,
+    )
+    report['metrics']['global_costmap'] = node.costmap_metrics()
+    return report
+
+
+def island_navigation(node):
+    """Navigate the same smooth island route and verify path tracking."""
+    island = (8.0, 0.0)
+    radius = 2.5
+    _spawn_model('maneuver_test_island.sdf', island[0], island[1])
+    node.spin_for(2.0)
+    goal = NavigateToPose.Goal()
+    goal.pose.header.frame_id = 'map'
+    goal.pose.pose.position.x = 20.0
+    goal.pose.pose.orientation.w = 1.0
+    node.markers = [
+        {'x': island[0], 'y': island[1], 'radius': radius,
+         'label': 'island'},
+        {'x': 20.0, 'y': 0.0, 'label': 'goal'},
+    ]
+    succeeded = node.send_action(node.navigate_client, goal, timeout=150.0)
+    # Continuous replanning replaces /plan with the untravelled remainder.  A
+    # complete trace must be assessed against the first route, not that tail.
+    if node.initial_reference_path:
+        node.reference_path = node.initial_reference_path
+    report = path_tracking_report(node.samples, node.reference_path)
+    report['checks']['action_succeeded'] = succeeded
+    report['passed'] = all(report['checks'].values())
+    return report
+
+
+def open_obstacle(node, side):
     block_y = 0.45 if side == 'port' else -0.45
     _spawn_block(block_y)
+    # Let both costmaps observe the obstacle before accepting a goal.  This
+    # makes the recovery test deterministic and prevents an avoidable initial
+    # lunge towards an obstacle that was already present.
+    node.spin_for(2.0)
     goal = NavigateToPose.Goal()
     goal.pose.header.frame_id = 'map'
     goal.pose.pose.position.x = 8.0
     goal.pose.pose.orientation.w = 1.0
-    succeeded = node.send_action(node.navigate_client, goal, timeout=45.0)
-    report = obstacle_report(
+    succeeded = node.send_action(node.navigate_client, goal, timeout=150.0)
+    if node.initial_reference_path:
+        node.reference_path = node.initial_reference_path
+    report = open_obstacle_report(
         node.samples,
         goal=(8.0, 0.0),
         obstacle=(1.5, block_y),
-        planned_length=node.initial_plan_length,
+        planned_length=node.maximum_plan_length,
     )
     report['checks']['action_succeeded'] = succeeded
     report['passed'] = all(report['checks'].values())
     return report
 
 
+def harbour_departure(node, expected_maneuver):
+    """Request one BackUp recovery inside an explicit berth geometry."""
+    filename = {
+        'stern_port': 'harbour_reverse_stern_port.sdf',
+        'stern_starboard': 'harbour_reverse_stern_starboard.sdf',
+        'straight': 'harbour_reverse_straight.sdf',
+    }[expected_maneuver]
+    _spawn_model(filename, 0.0, 0.0)
+    node.markers = harbour_markers(expected_maneuver)
+    node.spin_for(2.0)
+
+    command = Twist()
+    command.linear.x = -0.20
+    deadline = time.monotonic() + 20.0
+    reverse_started = False
+    stopped_samples = 0
+    while time.monotonic() < deadline:
+        node.planner_command_pub.publish(command)
+        rclpy.spin_once(node, timeout_sec=0.05)
+        if node.command.linear.x < -0.05:
+            reverse_started = True
+            stopped_samples = 0
+        elif reverse_started and abs(node.command.linear.x) <= 0.01:
+            stopped_samples += 1
+            if stopped_samples >= 5:
+                break
+    node.planner_command_pub.publish(Twist())
+    if not reverse_started:
+        raise RuntimeError('Reverse controller did not start the departure')
+    if stopped_samples < 5:
+        raise RuntimeError('Reverse controller did not finish the departure')
+    return harbour_departure_report(node.samples, expected_maneuver)
+
+
+def harbour_docking(node, expected_approach):
+    """Navigate from open water into the final pose shown in the sketch."""
+    configuration = {
+        'from_port': (
+            'harbour_reverse_stern_port.sdf', 'stern_port',
+            (2.0, 2.0, math.pi / 2.0)),
+        'from_starboard': (
+            'harbour_reverse_stern_starboard.sdf', 'stern_starboard',
+            (2.0, -2.0, -math.pi / 2.0)),
+        'straight': (
+            'harbour_reverse_straight.sdf', 'straight', (3.0, 0.0, 0.0)),
+    }[expected_approach]
+    filename, marker_key, goal_pose = configuration
+    goal_x, goal_y, goal_yaw = goal_pose
+    _spawn_model(filename, goal_x, goal_y, goal_yaw)
+    node.markers = transform_markers(
+        harbour_markers(marker_key), goal_x, goal_y, goal_yaw) + [
+        {'x': goal_x, 'y': goal_y, 'label': 'docking pose'},
+    ]
+    node.spin_for(2.0)
+    goal = NavigateToPose.Goal()
+    goal.pose.header.frame_id = 'map'
+    goal.pose.pose.position.x = goal_x
+    goal.pose.pose.position.y = goal_y
+    goal.pose.pose.orientation.z = math.sin(goal_yaw / 2.0)
+    goal.pose.pose.orientation.w = math.cos(goal_yaw / 2.0)
+    succeeded = node.send_action(node.navigate_client, goal, timeout=120.0)
+    if node.initial_reference_path:
+        node.reference_path = node.initial_reference_path
+    quays = [marker for marker in node.markers if 'width' in marker]
+    report = harbour_docking_report(
+        node.samples, expected_approach, goal_pose, quays)
+    report['checks']['action_succeeded'] = succeeded
+    report['passed'] = all(report['checks'].values())
+    return report
+
+
 def _spawn_block(y_position):
+    _spawn_model('maneuver_test_block.sdf', 1.5, y_position)
+
+
+def _spawn_model(filename, x_position, y_position, yaw=0.0):
     share = get_package_share_directory('karaburan_navigation_tests')
-    model = FilePath(share) / 'scenarios' / 'maneuver_test_block.sdf'
+    model = FilePath(share) / 'scenarios' / filename
     request = (
         'sdf_filename: "' + str(model) + '", '
-        'pose: {position: {x: 1.5, y: ' + str(y_position) + '}}'
+        'pose: {position: {x: ' + str(x_position)
+        + ', y: ' + str(y_position) + '}, orientation: {z: '
+        + str(math.sin(yaw / 2.0)) + ', w: '
+        + str(math.cos(yaw / 2.0)) + '}}'
     )
     completed = subprocess.run(
         [
@@ -286,10 +633,28 @@ def execute(node, scenario):
         return follow_path(node, 1.0)
     if scenario == 'follow_arc_right':
         return follow_path(node, -1.0)
-    if scenario == 'obstacle_port':
-        return obstacle(node, 'port')
-    if scenario == 'obstacle_starboard':
-        return obstacle(node, 'starboard')
+    if scenario == 'planner_direct':
+        return planner_direct(node)
+    if scenario == 'planner_island':
+        return planner_island(node)
+    if scenario == 'island_navigation':
+        return island_navigation(node)
+    if scenario == 'open_obstacle_port':
+        return open_obstacle(node, 'port')
+    if scenario == 'open_obstacle_starboard':
+        return open_obstacle(node, 'starboard')
+    if scenario == 'harbour_reverse_stern_port':
+        return harbour_departure(node, 'stern_port')
+    if scenario == 'harbour_reverse_stern_starboard':
+        return harbour_departure(node, 'stern_starboard')
+    if scenario == 'harbour_reverse_straight':
+        return harbour_departure(node, 'straight')
+    if scenario == 'harbour_dock_stern_port':
+        return harbour_docking(node, 'from_port')
+    if scenario == 'harbour_dock_stern_starboard':
+        return harbour_docking(node, 'from_starboard')
+    if scenario == 'harbour_dock_straight':
+        return harbour_docking(node, 'straight')
     raise ValueError('Unknown scenario: ' + scenario)
 
 
@@ -302,17 +667,62 @@ def parse_args(args=None):
 
 def scenario_markers(scenario):
     """Return fixed points that help interpret a scenario plot."""
-    if scenario == 'obstacle_port':
+    if scenario == 'open_obstacle_port':
         return [
-            {'x': 1.5, 'y': 0.45, 'label': 'obstacle'},
+            {'x': 1.5, 'y': 0.45, 'width': 1.0, 'height': 1.0,
+             'label': 'isolated obstacle'},
             {'x': 8.0, 'y': 0.0, 'label': 'goal'},
         ]
-    if scenario == 'obstacle_starboard':
+    if scenario == 'open_obstacle_starboard':
         return [
-            {'x': 1.5, 'y': -0.45, 'label': 'obstacle'},
+            {'x': 1.5, 'y': -0.45, 'width': 1.0, 'height': 1.0,
+             'label': 'isolated obstacle'},
             {'x': 8.0, 'y': 0.0, 'label': 'goal'},
         ]
     return []
+
+
+def harbour_markers(expected_maneuver):
+    """Return the quay rectangles used by one harbour model."""
+    markers = [
+        {'x': 1.25, 'y': 0.0, 'width': 0.30, 'height': 2.60,
+         'label': 'front quay'},
+    ]
+    if expected_maneuver in ('straight', 'stern_starboard'):
+        markers.append({
+            'x': -0.65, 'y': 1.15, 'width': 3.80, 'height': 0.30,
+            'label': 'port quay',
+        })
+    if expected_maneuver in ('straight', 'stern_port'):
+        markers.append({
+            'x': -0.65, 'y': -1.15, 'width': 3.80, 'height': 0.30,
+            'label': 'starboard quay',
+        })
+    if expected_maneuver == 'stern_starboard':
+        markers.append({
+            'x': -2.40, 'y': 0.55, 'width': 0.30, 'height': 1.50,
+            'label': 'aft quay',
+        })
+    if expected_maneuver == 'stern_port':
+        markers.append({
+            'x': -2.40, 'y': -0.55, 'width': 0.30, 'height': 1.50,
+            'label': 'aft quay',
+        })
+    return markers
+
+
+def transform_markers(markers, x_offset, y_offset, yaw):
+    """Apply the spawned harbour model pose to its report geometry."""
+    cosine = math.cos(yaw)
+    sine = math.sin(yaw)
+    transformed = []
+    for marker in markers:
+        item = dict(marker)
+        item['x'] = x_offset + cosine * marker['x'] - sine * marker['y']
+        item['y'] = y_offset + sine * marker['x'] + cosine * marker['y']
+        item['yaw'] = yaw
+        transformed.append(item)
+    return transformed
 
 
 def main(args=None):
@@ -323,6 +733,9 @@ def main(args=None):
     try:
         node.wait_for_odometry()
         report = execute(node, options.scenario)
+        if node.invalid_state_received:
+            report['checks']['finite_simulation_state'] = False
+            report['passed'] = False
     except Exception as error:  # noqa: BLE001 - test report must survive failures
         report = {
             'passed': False,
@@ -335,7 +748,7 @@ def main(args=None):
         report['scenario'] = options.scenario
         report['samples'] = node.samples
         report['reference_path'] = node.reference_path
-        report['markers'] = scenario_markers(options.scenario)
+        report['markers'] = node.markers or scenario_markers(options.scenario)
         report['duration_seconds'] = time.monotonic() - started
         options.output.parent.mkdir(parents=True, exist_ok=True)
         options.output.write_text(json.dumps(report, indent=2) + '\n')

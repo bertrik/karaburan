@@ -23,6 +23,9 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert "'headless': 'true'" in test_launch
     assert "'with_rviz': 'false'" in test_launch
     assert "'record_enabled': 'false'" in test_launch
+    assert "'world_name': 'ocean'" in test_launch
+    assert "'x': '0.0'" in test_launch
+    assert "'Y': '0.0'" in test_launch
     assert "glob('scenarios/*.sdf')" in setup
     assert "glob('scripts/*.sh')" in setup
     assert 'karaburan_navigation_tests.maneuver_test_runner:main' in setup
@@ -30,18 +33,40 @@ def test_repeatable_maneuver_suite_is_installed_and_headless():
     assert 'karaburan_navigation_tests.junit_html_report:main' in setup
     assert '<exec_depend>python3-junit2html</exec_depend>' in package
     assert "'follow_straight'" in runner
-    assert "'obstacle_port'" in runner
-    assert "'obstacle_starboard'" in runner
+    assert "'planner_direct'" in runner
+    assert "'open_obstacle_port'" in runner
+    assert "'open_obstacle_starboard'" in runner
+    assert "'harbour_reverse_stern_port'" in runner
+    assert "'harbour_reverse_stern_starboard'" in runner
+    assert "'harbour_reverse_straight'" in runner
+    assert "'harbour_dock_stern_port'" in runner
+    assert "'harbour_dock_stern_starboard'" in runner
+    assert "'harbour_dock_straight'" in runner
+    for scenario in (
+        'harbour_reverse_stern_port.sdf',
+        'harbour_reverse_stern_starboard.sdf',
+        'harbour_reverse_straight.sdf',
+    ):
+        assert (PACKAGE_DIR / 'scenarios' / scenario).exists()
     assert (
         'setsid ros2 launch karaburan_navigation_tests '
         'maneuver_test.launch.py'
     ) in script
     assert 'RCUTILS_COLORIZED_OUTPUT=0' in script
     assert 'maneuver_test_report' in script
+    assert 'repository_root="$(dirname "$workspace_root")"' in script
+    assert '${1:-$repository_root/test-results-' in script
     assert 'timestamp="$(date +%Y%m%d%H%M%S)"' in simulation_script
-    assert 'actuator_straight' in simulation_script
-    assert 'actuator_turn_left' in simulation_script
-    assert 'actuator_turn_right' in simulation_script
-    assert 'follow_straight' not in simulation_script
+    assert 'test-results-$timestamp' in simulation_script
+    assert 'result_parent="${1:-$repository_root}"' in simulation_script
+    assert 'bash "$script_dir/run_maneuver_tests.sh"' in simulation_script
+    assert '--packages-select karaburan_navigation_tests' in simulation_script
+    assert (
+        'karaburan_simulation karaburan_navigation_tests'
+        not in simulation_script
+    )
     assert 'colcon test' in simulation_script
     assert 'junit_html_report' in simulation_script
+    test_world = (PACKAGE_DIR / 'scenarios' / 'maneuver_test_world.sdf').read_text()
+    assert '<real_time_update_rate>1000</real_time_update_rate>' in test_world
+    assert '<collision_detector>bullet</collision_detector>' in test_world

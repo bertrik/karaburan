@@ -43,6 +43,10 @@ def test_generation_is_byte_stable_and_world_is_valid_xml(tmp_path):
 
     assert first.metadata_path.read_bytes() == second.metadata_path.read_bytes()
     assert first.debug_path.read_bytes() == second.debug_path.read_bytes()
+    assert (
+        first.scenario_debug_path.read_bytes()
+        == second.scenario_debug_path.read_bytes()
+    )
     assert first.world_path.read_bytes() == second.world_path.read_bytes()
 
     root = ET.parse(first.world_path).getroot()
@@ -51,9 +55,10 @@ def test_generation_is_byte_stable_and_world_is_valid_xml(tmp_path):
     assert world.findtext('spherical_coordinates/latitude_deg') == '52.0436549'
     assert world.findtext('spherical_coordinates/longitude_deg') == '4.7416484'
     assert world.find("model[@name='flat_bottom']") is not None
+    assert world.find("model[@name='static_scenario_objects']") is not None
     land = world.find("model[@name='land']/link[@name='land_geometry']")
     assert land is not None
-    assert len(land.findall('collision')) + 1 == first.collision_count
+    assert len(world.findall('.//collision')) == first.collision_count
     assert len(world.findall('.//visual')) == first.visual_count
 
 
@@ -67,13 +72,47 @@ def test_metadata_separates_semantics_and_reports_complexity(tmp_path):
     assert metadata['objects'][0]['navigation_class'] == 'HARD_OBSTACLE'
     assert metadata['objects'][12]['collision']['type'] == 'axis_aligned_box'
     assert metadata['objects'][13]['collision']['type'] == 'none'
-    assert len({item['id'] for item in metadata['objects']}) == 41
+    assert len({item['id'] for item in metadata['objects']}) == 52
     assert metadata['complexity'] == {
-        'collision_count': 37,
-        'static_entity_count': 3,
-        'visual_count': 66,
+        'collision_count': 46,
+        'static_entity_count': 4,
+        'visual_count': 77,
     }
-    assert result.collision_count == 37
+    assert result.collision_count == 46
+
+
+def test_static_scenario_objects_have_required_semantics_and_geometry(tmp_path):
+    config = load_config(CONFIG_PATH)
+    result = generate_scenario(CONFIG_PATH, tmp_path)
+    metadata = json.loads(result.metadata_path.read_text(encoding='utf-8'))
+    objects = metadata['objects'][41:]
+
+    assert len(config['scenario_objects']) == 11
+    assert [item['semantic_type'] for item in objects].count('REED_ZONE') == 3
+    assert [item['semantic_type'] for item in objects].count(
+        'LILY_PAD_FIELD') == 2
+    assert [item['semantic_type'] for item in objects].count('PEAT_CHUNK') == 3
+    assert [item['semantic_type'] for item in objects].count('BUOY') == 3
+    assert all(item['navigation_class'] == 'AVOID_ZONE'
+               for item in objects if item['semantic_type'] == 'REED_ZONE')
+    assert all(item['navigation_class'] == 'STATIC_HARD_OBSTACLE'
+               for item in objects
+               if item['semantic_type'] in ('PEAT_CHUNK', 'BUOY'))
+    assert all(item['collision']['shape'] == 'none'
+               for item in objects
+               if item['semantic_type'] == 'LILY_PAD_FIELD')
+    assert all(item['collision']['shape'] != 'none'
+               for item in objects
+               if item['semantic_type'] != 'LILY_PAD_FIELD')
+    peat = [item for item in objects if item['semantic_type'] == 'PEAT_CHUNK']
+    assert all(item['visual']['shape'] == 'polygon' for item in peat)
+    assert all(item['collision']['shape'] == 'polygon' for item in peat)
+    assert all(item['navigation']['shape'] == 'polygon' for item in peat)
+    assert all(item['collision']['z_offset_m'] < 0.0 for item in peat)
+    assert all(
+        item['collision']['height_m'] > item['visual']['height_m']
+        for item in peat
+    )
 
 
 def test_debug_only_does_not_write_a_gazebo_world(tmp_path):
@@ -82,9 +121,21 @@ def test_debug_only_does_not_write_a_gazebo_world(tmp_path):
     assert result.world_path is None
     assert result.metadata_path.is_file()
     assert result.debug_path.is_file()
+    assert result.scenario_debug_path.is_file()
     debug = result.debug_path.read_text(encoding='utf-8')
+    scenario_debug = result.scenario_debug_path.read_text(encoding='utf-8')
     assert '<svg ' in debug
     assert 1 <= debug.count('class="island"') <= 12
+    assert 'reed_01' in scenario_debug
+    assert 'lily_02' in scenario_debug
+    assert 'peat_03' in scenario_debug
+    assert 'buoy_03' in scenario_debug
+    assert scenario_debug.count('class="navigation-zone"') == 11
+    assert scenario_debug.count('data-layer="submerged-peat"') == 3
+    assert scenario_debug.count('data-layer="exposed-peat"') == 3
+    assert 'Brown dashed: submerged peat' in scenario_debug
+    assert 'PEAT DETAIL (10 px = 1 m)' in scenario_debug
+    assert 'WATERLINE' in scenario_debug
     assert not list(tmp_path.glob('*.sdf'))
 
 
@@ -95,4 +146,14 @@ def test_invalid_goal_is_rejected(tmp_path):
     invalid.write_text(json.dumps(config), encoding='utf-8')
 
     with pytest.raises(ValueError, match='goal must be in navigable water'):
+        load_config(invalid)
+
+
+def test_scenario_object_extent_outside_water_is_rejected(tmp_path):
+    config = json.loads(CONFIG_PATH.read_text(encoding='utf-8'))
+    config['scenario_objects'][0]['pose']['x'] = 2000.0
+    invalid = tmp_path / 'invalid_object.json'
+    invalid.write_text(json.dumps(config), encoding='utf-8')
+
+    with pytest.raises(ValueError, match='extent must be in navigable water'):
         load_config(invalid)

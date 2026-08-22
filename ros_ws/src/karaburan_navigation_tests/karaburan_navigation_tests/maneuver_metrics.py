@@ -90,61 +90,431 @@ def turn_report(samples, expected_sign, minimum_heading=math.radians(45.0)):
     checks = {
         'turn_sign': heading * expected_sign > 0.0,
         'heading_change': abs(heading) >= minimum_heading,
+        'heel_angle': max(
+            abs(sample.get('roll', 0.0)) for sample in samples
+        ) <= math.radians(8.0),
     }
-    return _report(all(checks.values()), checks, {'heading_change': heading})
+    return _report(all(checks.values()), checks, {
+        'heading_change': heading,
+        'maximum_roll': max(
+            abs(sample.get('roll', 0.0)) for sample in samples),
+        'maximum_pitch': max(
+            abs(sample.get('pitch', 0.0)) for sample in samples),
+    })
 
 
-def obstacle_report(samples, goal, obstacle, planned_length=None):
-    """Evaluate the complete one-reverse obstacle manoeuvre."""
+def path_tracking_report(samples, reference, expected_sign=None):
+    """Evaluate whether a forward controller trace follows its given path."""
+    if len(samples) < 2 or len(reference) < 2:
+        return _report(False, {'samples': 'trace and path are required'})
+    cross_track = [
+        _distance_to_path(sample, reference) for sample in samples]
+    endpoint = reference[-1]
+    final_distance = math.hypot(
+        samples[-1]['x'] - endpoint['x'],
+        samples[-1]['y'] - endpoint['y'],
+    )
+    heading = sum(
+        normalize_angle(current['yaw'] - previous['yaw'])
+        for previous, current in zip(samples, samples[1:])
+    )
+    travelled = path_length(samples)
+    reference_length = path_length(reference)
+    checks = {
+        'action_path_endpoint': final_distance <= 0.30,
+        'controller_cross_track': max(cross_track) <= 0.35,
+        'controller_forward_only': all(
+            sample['linear'] >= -0.01 for sample in samples),
+        'controller_path_efficiency': (
+            travelled <= reference_length * 1.25),
+        'heel_angle': max(
+            abs(sample.get('roll', 0.0)) for sample in samples
+        ) <= math.radians(8.0),
+    }
+    if expected_sign is not None:
+        checks['turn_sign'] = heading * expected_sign > 0.0
+    return _report(all(checks.values()), checks, {
+        'final_path_distance': final_distance,
+        'maximum_cross_track': max(cross_track),
+        'travelled': travelled,
+        'reference_length': reference_length,
+        'heading_change': heading,
+        'maximum_roll': max(
+            abs(sample.get('roll', 0.0)) for sample in samples),
+        'maximum_pitch': max(
+            abs(sample.get('pitch', 0.0)) for sample in samples),
+    })
+
+
+def _distance_to_path(point, path):
+    return min(
+        _distance_to_segment(point, start, end)
+        for start, end in zip(path, path[1:])
+    )
+
+
+def _distance_to_segment(point, start, end):
+    dx = end['x'] - start['x']
+    dy = end['y'] - start['y']
+    length_squared = dx * dx + dy * dy
+    if length_squared < 1e-12:
+        return math.hypot(point['x'] - start['x'], point['y'] - start['y'])
+    projection = max(0.0, min(1.0, (
+        (point['x'] - start['x']) * dx
+        + (point['y'] - start['y']) * dy
+    ) / length_squared))
+    closest_x = start['x'] + projection * dx
+    closest_y = start['y'] + projection * dy
+    return math.hypot(point['x'] - closest_x, point['y'] - closest_y)
+
+
+def planner_direct_report(points, start, goal):
+    """Require a direct, monotonic plan for an aligned start and goal."""
+    if len(points) < 2:
+        return _report(False, {'plan_available': False})
+    direct_x = goal[0] - start[0]
+    direct_y = goal[1] - start[1]
+    direct_distance = math.hypot(direct_x, direct_y)
+    if direct_distance < 1e-6:
+        return _report(False, {'direct_distance': False})
+
+    direction_x = direct_x / direct_distance
+    direction_y = direct_y / direct_distance
+    progress = [
+        (point['x'] - start[0]) * direction_x
+        + (point['y'] - start[1]) * direction_y
+        for point in points
+    ]
+    cross_track = [
+        abs((point['x'] - start[0]) * direction_y
+            - (point['y'] - start[1]) * direction_x)
+        for point in points
+    ]
+    backwards_steps = sum(
+        later < earlier - 0.02
+        for earlier, later in zip(progress, progress[1:])
+    )
+    cusp_count = _cusp_count(points)
+    planned_distance = path_length(points)
+    length_excess = planned_distance - direct_distance
+    end_error = math.hypot(
+        points[-1]['x'] - goal[0], points[-1]['y'] - goal[1])
+    checks = {
+        'plan_available': True,
+        # The endpoint may lie one 0.20 m grid cell from the exact request.
+        # Larger detours still indicate a planner problem.
+        'planner_path_length': length_excess <= 0.30,
+        'planner_cross_track': max(cross_track) <= 0.50,
+        'planner_monotonic': backwards_steps == 0,
+        'planner_no_cusps': cusp_count == 0,
+        'planner_goal_reached': end_error <= 0.25,
+    }
+    return _report(all(checks.values()), checks, {
+        'direct_distance': direct_distance,
+        'planned_distance': planned_distance,
+        'length_excess': length_excess,
+        'length_ratio': planned_distance / direct_distance,
+        'max_cross_track': max(cross_track),
+        'backwards_steps': backwards_steps,
+        'cusp_count': cusp_count,
+        'end_error': end_error,
+    })
+
+
+def planner_island_report(points, start, goal, island, radius):
+    """Require one smooth, forward route around a known island."""
+    if len(points) < 2:
+        return _report(False, {'plan_available': False})
+    direct_x = goal[0] - start[0]
+    direct_y = goal[1] - start[1]
+    direct_distance = math.hypot(direct_x, direct_y)
+    direction_x = direct_x / direct_distance
+    direction_y = direct_y / direct_distance
+    progress = [
+        (point['x'] - start[0]) * direction_x
+        + (point['y'] - start[1]) * direction_y
+        for point in points
+    ]
+    lateral = [
+        (point['x'] - start[0]) * direction_y
+        - (point['y'] - start[1]) * direction_x
+        for point in points
+    ]
+    significant_sides = {
+        1 if value > 0.10 else -1
+        for value in lateral if abs(value) > 0.10
+    }
+    island_clearance = min(
+        math.hypot(point['x'] - island[0], point['y'] - island[1])
+        for point in points
+    )
+    heading_steps = _path_heading_steps(points)
+    planned_distance = path_length(points)
+    backwards_steps = sum(
+        later < earlier - 0.02
+        for earlier, later in zip(progress, progress[1:])
+    )
+    end_error = math.hypot(
+        points[-1]['x'] - goal[0], points[-1]['y'] - goal[1])
+    checks = {
+        'plan_available': True,
+        # Clearance is measured at the path centre. Include the circumscribed
+        # radius of the padded 0.56 x 0.30 m Nav2 footprint.
+        'island_avoided': island_clearance >= radius + 0.32,
+        'planner_one_side': len(significant_sides) == 1,
+        'planner_monotonic': backwards_steps == 0,
+        'planner_no_cusps': _cusp_count(points) == 0,
+        'planner_smooth': (
+            not heading_steps
+            or max(abs(step) for step in heading_steps) <= math.radians(15.0)),
+        'planner_reasonable_length': planned_distance <= direct_distance * 1.35,
+        'planner_goal_reached': end_error <= 0.25,
+    }
+    return _report(all(checks.values()), checks, {
+        'direct_distance': direct_distance,
+        'planned_distance': planned_distance,
+        'length_ratio': planned_distance / direct_distance,
+        'minimum_island_clearance': island_clearance,
+        'maximum_lateral_offset': max(abs(value) for value in lateral),
+        'backwards_steps': backwards_steps,
+        'cusp_count': _cusp_count(points),
+        'maximum_heading_step': (
+            max(abs(step) for step in heading_steps) if heading_steps else 0.0),
+        'end_error': end_error,
+    })
+
+
+def _path_heading_steps(points, minimum_span=0.50):
+    """Measure course changes over a hull-scale distance.
+
+    Comparing every grid-interpolated segment exaggerates a single endpoint
+    snap and says little about whether the 0.56 m boat can follow the curve.
+    """
+    headings = []
+    anchor = points[0]
+    for current in points[1:]:
+        dx = current['x'] - anchor['x']
+        dy = current['y'] - anchor['y']
+        if math.hypot(dx, dy) >= minimum_span:
+            headings.append(math.atan2(dy, dx))
+            anchor = current
+    return [
+        normalize_angle(current - previous)
+        for previous, current in zip(headings, headings[1:])
+    ]
+
+
+def _cusp_count(points):
+    segments = []
+    for previous, current in zip(points, points[1:]):
+        dx = current['x'] - previous['x']
+        dy = current['y'] - previous['y']
+        length = math.hypot(dx, dy)
+        if length > 1e-3:
+            segments.append((dx / length, dy / length))
+    return sum(
+        previous[0] * current[0] + previous[1] * current[1] < 0.0
+        for previous, current in zip(segments, segments[1:])
+    )
+
+
+def open_obstacle_report(samples, goal, obstacle, planned_length=None):
+    """Require a forward detour around an isolated open-water obstacle."""
     if len(samples) < 2:
         return _report(False, {'samples': 'at least two samples required'})
     segments = direction_segments(samples)
-    reverse = arc_metrics(samples, direction=-1)
-    forward_start = next(
-        (
-            index for index, sample in enumerate(samples)
-            if sample['linear'] > 0.01
-            and any(item['linear'] < -0.01 for item in samples[:index])
-        ),
-        len(samples),
-    )
-    forward_samples = samples[forward_start:]
     goal_distances = [
         math.hypot(sample['x'] - goal[0], sample['y'] - goal[1])
-        for sample in forward_samples
+        for sample in samples
     ]
     obstacle_distances = [
         math.hypot(sample['x'] - obstacle[0], sample['y'] - obstacle[1])
-        for sample in forward_samples
+        for sample in samples
     ]
-    forward_yaw = cumulative_yaw(forward_samples)
-    returned_to_obstacle = _returned_to_obstacle(obstacle_distances)
     decreasing_ratio = _decreasing_ratio(goal_distances)
     travelled = path_length(samples)
-    final_goal_distance = (
-        goal_distances[-1] if goal_distances else math.inf)
+    final_goal_distance = goal_distances[-1]
     checks = {
-        'one_reverse_then_forward': segments == [-1, 1],
-        'reverse_radius': abs(reverse['radius'] - 2.0) <= 0.20,
-        'reverse_heading': abs(
-            reverse['heading_change'] - math.pi / 2.0
-        ) <= math.radians(3.0),
-        'no_obstacle_return': not returned_to_obstacle,
+        'forward_only': segments == [1],
+        'obstacle_clearance': min(obstacle_distances) >= 0.70,
         'goal_distance_decreases': decreasing_ratio >= 0.70,
-        'no_forward_loop': forward_yaw <= math.radians(150.0),
+        'no_forward_loop': cumulative_yaw(samples) <= math.radians(180.0),
         'goal_reached': final_goal_distance <= 0.30,
     }
     if planned_length is not None:
-        checks['path_efficiency'] = travelled <= planned_length * 1.15
+        checks['path_efficiency'] = travelled <= planned_length * 1.25
     return _report(all(checks.values()), checks, {
         'segments': segments,
-        'reverse': reverse,
-        'forward_cumulative_yaw': forward_yaw,
+        'minimum_obstacle_clearance': min(obstacle_distances),
+        'cumulative_yaw': cumulative_yaw(samples),
         'goal_decreasing_ratio': decreasing_ratio,
         'travelled': travelled,
         'planned_length': planned_length,
         'final_goal_distance': final_goal_distance,
     })
+
+
+def harbour_departure_report(samples, expected_maneuver):
+    """Check the initial reverse departure selected inside a berth."""
+    if len(samples) < 2:
+        return _report(False, {'samples': 'at least two samples required'})
+    reverse_samples = [sample for sample in samples if sample['linear'] < -0.01]
+    if len(reverse_samples) < 2:
+        return _report(False, {'reverse_started': False})
+
+    segments = direction_segments(samples)
+    reverse = arc_metrics(samples, direction=-1)
+    signed_heading = sum(
+        normalize_angle(current['yaw'] - previous['yaw'])
+        for previous, current in zip(reverse_samples, reverse_samples[1:])
+    )
+    start = reverse_samples[0]
+    end = reverse_samples[-1]
+    dx = end['x'] - start['x']
+    dy = end['y'] - start['y']
+    lateral = -math.sin(start['yaw']) * dx + math.cos(start['yaw']) * dy
+    expected_sign = {
+        'stern_port': -1.0,
+        'stern_starboard': 1.0,
+    }.get(expected_maneuver, 0.0)
+    moving_samples = [
+        sample for sample in samples if abs(sample['linear']) > 0.01]
+    checks = {
+        'reverse_only': segments == [-1],
+        'single_reverse_maneuver': len(segments) == 1,
+        'heel_angle': max(
+            abs(sample.get('roll', 0.0)) for sample in moving_samples
+        ) <= math.radians(8.0),
+    }
+    if expected_maneuver == 'straight':
+        checks.update({
+            'reverse_distance': reverse['distance'] >= 2.50,
+            'reverse_straight': abs(signed_heading) <= math.radians(8.0),
+            'reverse_lateral_error': abs(lateral) <= 0.35,
+        })
+    else:
+        checks.update({
+            'reverse_radius': abs(reverse['radius'] - 2.0) <= 0.25,
+            'reverse_heading': abs(
+                abs(signed_heading) - math.pi / 2.0
+            ) <= math.radians(5.0),
+            'reverse_turn_sign': signed_heading * expected_sign > 0.0,
+            'reverse_stern_side': lateral * expected_sign < -0.50,
+        })
+    return _report(all(checks.values()), checks, {
+        'expected_maneuver': expected_maneuver,
+        'segments': segments,
+        'reverse': reverse,
+        'signed_heading_change': signed_heading,
+        'stern_lateral_displacement': lateral,
+    })
+
+
+def harbour_docking_report(samples, expected_approach, goal, quays):
+    """Require one collision-free forward approach into the berth."""
+    if len(samples) < 2:
+        return _report(False, {'samples': 'at least two samples required'})
+    moving = [sample for sample in samples if abs(sample['linear']) > 0.01]
+    if not moving:
+        return _report(False, {'forward_started': False})
+    start = samples[0]
+    end = samples[-1]
+    signed_heading = sum(
+        normalize_angle(current['yaw'] - previous['yaw'])
+        for previous, current in zip(samples, samples[1:])
+    )
+    direct_distance = math.hypot(start['x'] - goal[0], start['y'] - goal[1])
+    expected_sign = {
+        'from_port': 1.0,
+        'from_starboard': -1.0,
+    }.get(expected_approach, 0.0)
+    collisions = sum(
+        any(_boxes_overlap(
+            _boat_box(sample),
+            _quay_box(quay),
+        ) for quay in quays)
+        for sample in samples
+    )
+    checks = {
+        'forward_only': direction_segments(samples) == [1],
+        'dock_position': math.hypot(end['x'] - goal[0], end['y'] - goal[1]) <= 0.30,
+        'dock_heading': abs(normalize_angle(end['yaw'] - goal[2])) <= math.radians(15.0),
+        'dock_collision_free': collisions == 0,
+        'dock_path_efficiency': path_length(samples) <= direct_distance * 1.35,
+        'heel_angle': max(
+            abs(sample.get('roll', 0.0)) for sample in moving
+        ) <= math.radians(8.0),
+    }
+    if expected_approach == 'straight':
+        checks['dock_straight'] = abs(signed_heading) <= math.radians(12.0)
+    else:
+        checks['dock_turn_sign'] = signed_heading * expected_sign > 0.0
+        checks['dock_heading_change'] = abs(
+            abs(signed_heading) - math.pi / 2.0
+        ) <= math.radians(20.0)
+    return _report(all(checks.values()), checks, {
+        'expected_approach': expected_approach,
+        'segments': direction_segments(samples),
+        'travelled': path_length(samples),
+        'direct_distance': direct_distance,
+        'final_position_error': math.hypot(
+            end['x'] - goal[0], end['y'] - goal[1]),
+        'final_heading_error': normalize_angle(end['yaw'] - goal[2]),
+        'signed_heading_change': signed_heading,
+        'hull_quay_collision_samples': collisions,
+    })
+
+
+def _boat_box(sample):
+    """Return the padded Nav2 hull footprint at one recorded pose."""
+    half_length = 0.28
+    half_width = 0.15
+    cosine = math.cos(sample['yaw'])
+    sine = math.sin(sample['yaw'])
+    return [
+        (
+            sample['x'] + cosine * x - sine * y,
+            sample['y'] + sine * x + cosine * y,
+        )
+        for x, y in (
+            (half_length, half_width),
+            (half_length, -half_width),
+            (-half_length, -half_width),
+            (-half_length, half_width),
+        )
+    ]
+
+
+def _quay_box(quay):
+    yaw = quay.get('yaw', 0.0)
+    cosine = math.cos(yaw)
+    sine = math.sin(yaw)
+    return [
+        (
+            quay['x'] + cosine * x - sine * y,
+            quay['y'] + sine * x + cosine * y,
+        )
+        for x, y in (
+            (-quay['width'] / 2.0, -quay['height'] / 2.0),
+            (quay['width'] / 2.0, -quay['height'] / 2.0),
+            (quay['width'] / 2.0, quay['height'] / 2.0),
+            (-quay['width'] / 2.0, quay['height'] / 2.0),
+        )
+    ]
+
+
+def _boxes_overlap(first, second):
+    """Use the separating-axis theorem for two convex rectangles."""
+    for polygon in (first, second):
+        for start, end in zip(polygon, polygon[1:] + polygon[:1]):
+            axis = (-(end[1] - start[1]), end[0] - start[0])
+            first_projection = [x * axis[0] + y * axis[1] for x, y in first]
+            second_projection = [x * axis[0] + y * axis[1] for x, y in second]
+            if max(first_projection) < min(second_projection):
+                return False
+            if max(second_projection) < min(first_projection):
+                return False
+    return True
 
 
 def _decreasing_ratio(values, stride=5):

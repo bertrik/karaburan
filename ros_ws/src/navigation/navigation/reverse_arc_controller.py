@@ -4,6 +4,7 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import OccupancyGrid, Odometry, Path
 import rclpy
 from rclpy.node import Node
+from sensor_msgs.msg import LaserScan
 
 
 def normalize_angle(angle):
@@ -24,13 +25,33 @@ def yaw_from_quaternion(orientation):
     return math.atan2(sin_yaw, cos_yaw)
 
 
+def choose_reverse_maneuver(scores, preferred_turn_sign=1.0):
+    """Choose the safest and then fastest reverse trajectory.
+
+    Scores contain ``(lethal samples, maximum cost, total cost, duration)``.
+    The preferred turn sign is only a deterministic tie breaker between two
+    otherwise equal arcs; it can never overrule clearance or elapsed time.
+    """
+    preferred_arc = 'starboard' if preferred_turn_sign > 0.0 else 'port'
+
+    def selection_key(item):
+        name, score = item
+        lethal, maximum, total, duration = score
+        tie_break = 0 if name == 'straight' else (
+            1 if name == preferred_arc else 2)
+        return lethal, duration, maximum, total, tie_break
+
+    return min(scores.items(), key=selection_key)[0]
+
+
 class ReverseArcController(Node):
-    """Hold one fast reverse arc instead of accepting an early path cusp."""
+    """Turn a Nav2 backup recovery into the safest decisive manoeuvre."""
 
     def __init__(self):
         super().__init__('reverse_arc_controller')
         self.declare_parameter('radius', 2.0)
         self.declare_parameter('heading_change', math.pi / 2.0)
+        self.declare_parameter('straight_reverse_distance', 2.8)
         self.declare_parameter('reverse_speed', 1.0)
         self.declare_parameter('angular_feedforward_gain', 1.0)
         self.declare_parameter('heading_gain', 0.5)
@@ -45,9 +66,13 @@ class ReverseArcController(Node):
         self.declare_parameter('arc_sample_step', 0.20)
         self.declare_parameter('footprint_half_length', 0.30)
         self.declare_parameter('footprint_half_width', 0.17)
+        self.declare_parameter('front_obstacle_distance', 1.5)
+        self.declare_parameter('front_obstacle_half_width', 0.4)
 
         self.radius = self._parameter('radius')
         self.heading_change = self._parameter('heading_change')
+        self.straight_reverse_distance = self._parameter(
+            'straight_reverse_distance')
         self.reverse_speed = self._parameter('reverse_speed')
         self.angular_feedforward_gain = self._parameter(
             'angular_feedforward_gain')
@@ -66,6 +91,10 @@ class ReverseArcController(Node):
         self.footprint_half_length = self._parameter(
             'footprint_half_length')
         self.footprint_half_width = self._parameter('footprint_half_width')
+        self.front_obstacle_distance = self._parameter(
+            'front_obstacle_distance')
+        self.front_obstacle_half_width = self._parameter(
+            'front_obstacle_half_width')
 
         self.command_pub = self.create_publisher(Twist, '/cmd_vel_nav', 10)
         self.command_sub = self.create_subscription(
@@ -74,10 +103,12 @@ class ReverseArcController(Node):
             Odometry, '/odometry/filtered', self.odom_callback, 10)
         self.costmap_sub = self.create_subscription(
             OccupancyGrid,
-            '/local_costmap/costmap_raw',
+            '/local_costmap/costmap',
             self.costmap_callback,
             10,
         )
+        self.scan_sub = self.create_subscription(
+            LaserScan, '/scan', self.scan_callback, 10)
         self.plan_sub = self.create_subscription(
             Path, '/plan', self.plan_callback, 10)
         self.timer = self.create_timer(0.1, self.timer_callback)
@@ -87,6 +118,7 @@ class ReverseArcController(Node):
         self.position = None
         self.yaw = 0.0
         self.state = 'armed'
+        self.maneuver_kind = 'straight'
         self.turn_sign = 1.0
         self.distance = 0.0
         self.heading = 0.0
@@ -95,8 +127,10 @@ class ReverseArcController(Node):
         self.start_time = None
         self.idle_since = None
         self.costmap = None
+        self.scan = None
         self.plan_generation = 0
         self.required_plan_generation = 0
+        self.arc_start_plan_generation = 0
 
     def _parameter(self, name):
         return self.get_parameter(name).get_parameter_value().double_value
@@ -109,7 +143,7 @@ class ReverseArcController(Node):
         self.yaw = new_yaw
         self.have_odometry = True
 
-        if self.state != 'arc' or self.previous_position is None:
+        if self.state != 'maneuver' or self.previous_position is None:
             return
 
         step = math.hypot(
@@ -119,12 +153,16 @@ class ReverseArcController(Node):
         if step < 0.5:
             self.distance += step
         yaw_step = normalize_angle(new_yaw - self.previous_yaw)
-        self.heading += self.turn_sign * yaw_step
+        if self.maneuver_kind != 'straight':
+            self.heading += self.turn_sign * yaw_step
         self.previous_position = new_position
         self.previous_yaw = new_yaw
 
     def costmap_callback(self, costmap):
         self.costmap = costmap
+
+    def scan_callback(self, scan):
+        self.scan = scan
 
     def plan_callback(self, _plan):
         self.plan_generation += 1
@@ -159,51 +197,96 @@ class ReverseArcController(Node):
 
         if (
             self.state == 'armed'
+            # Normal forward commands must always remain available to the
+            # local planner. Only Nav2's explicit BackUp recovery authorises
+            # this node to replace the command with a shaped manoeuvre.
             and command.linear.x < -0.01
-            and abs(command.angular.z) >= self.minimum_trigger_angular
             and self.have_odometry
+            and self.front_blocked()
         ):
-            self.start_arc(command.angular.z)
+            self.start_maneuver(command.angular.z)
 
-        if self.state != 'arc':
+        if self.state != 'maneuver':
             self.command_pub.publish(command)
 
-    def start_arc(self, requested_angular_velocity):
-        requested_sign = (
-            1.0 if requested_angular_velocity >= 0.0 else -1.0)
-        port_score = self.arc_cost(-1.0)
-        starboard_score = self.arc_cost(1.0)
-        if port_score < starboard_score:
-            self.turn_sign = -1.0
-        elif starboard_score < port_score:
-            self.turn_sign = 1.0
+    def start_maneuver(self, requested_angular_velocity):
+        if abs(requested_angular_velocity) >= self.minimum_trigger_angular:
+            requested_sign = (
+                1.0 if requested_angular_velocity >= 0.0 else -1.0)
         else:
-            self.turn_sign = requested_sign
+            requested_sign = self.obstacle_avoidance_sign()
+        scores = {
+            'straight': self.straight_cost(),
+            'port': self.arc_cost(-1.0),
+            'starboard': self.arc_cost(1.0),
+        }
+        self.maneuver_kind = choose_reverse_maneuver(
+            scores, requested_sign)
+        self.turn_sign = -1.0 if self.maneuver_kind == 'port' else 1.0
         self.distance = 0.0
         self.heading = 0.0
         self.previous_position = self.position
         self.previous_yaw = self.yaw
         self.start_time = self.get_clock().now()
-        self.state = 'arc'
+        self.arc_start_plan_generation = self.plan_generation
+        self.state = 'maneuver'
         self.get_logger().info(
-            'Starting reverse arc: radius %.2f m, heading %.1f deg, direction %s'
+            'Starting reverse manoeuvre: kind=%s, radius=%.2f m, '
+            'heading=%.1f deg'
             % (
+                self.maneuver_kind,
                 self.radius,
-                math.degrees(self.heading_change),
-                'starboard' if self.turn_sign > 0.0 else 'port',
+                0.0 if self.maneuver_kind == 'straight'
+                else math.degrees(self.heading_change),
             )
         )
         self.get_logger().info(
-            'Reverse arc clearance scores: port=%s, starboard=%s'
-            % (port_score, starboard_score)
+            'Reverse trajectory scores: straight=%s, port=%s, starboard=%s'
+            % (scores['straight'], scores['port'], scores['starboard'])
         )
+
+    def obstacle_avoidance_sign(self):
+        """Choose the reverse arc away from the lidar obstacle centroid."""
+        if self.scan is None:
+            return 1.0
+        lateral_sum = 0.0
+        obstacle_count = 0
+        angle = self.scan.angle_min
+        for distance in self.scan.ranges:
+            if math.isfinite(distance) and self.scan.range_min <= distance:
+                forward = distance * math.cos(angle)
+                lateral = distance * math.sin(angle)
+                if (
+                    0.0 < forward <= self.front_obstacle_distance
+                    and abs(lateral) <= self.front_obstacle_half_width
+                ):
+                    lateral_sum += lateral
+                    obstacle_count += 1
+            angle += self.scan.angle_increment
+        if obstacle_count == 0:
+            return 1.0
+        # A positive (port) obstacle requires the stern to arc starboard, and
+        # vice versa. turn_sign describes that stern displacement convention.
+        return 1.0 if lateral_sum >= 0.0 else -1.0
 
     def arc_cost(self, turn_sign):
         """Return the sampled costmap cost of one complete reverse arc."""
-        if self.costmap is None or self.position is None:
-            return (0, 0, 0)
+        duration = self.radius * self.heading_change / self.reverse_speed
+        return self.trajectory_cost(turn_sign, duration)
 
-        target_distance = self.radius * self.heading_change
+    def straight_cost(self):
+        """Return the sampled costmap cost of a straight reverse escape."""
+        duration = self.straight_reverse_distance / self.reverse_speed
+        return self.trajectory_cost(0.0, duration)
+
+    def trajectory_cost(self, turn_sign, duration):
+        """Sample the full footprint along one candidate trajectory."""
+        if self.position is None:
+            return (0, 0, 0, duration)
+
+        target_distance = (
+            self.straight_reverse_distance if turn_sign == 0.0
+            else self.radius * self.heading_change)
         sample_count = max(
             1, math.ceil(target_distance / self.arc_sample_step))
         lethal_samples = 0
@@ -216,12 +299,18 @@ class ReverseArcController(Node):
             (-self.footprint_half_length, self.footprint_half_width),
             (-self.footprint_half_length, -self.footprint_half_width),
         )
+        scan_points = self.scan_points()
 
         for sample in range(1, sample_count + 1):
-            angle = self.heading_change * sample / sample_count
-            arc_x = -self.radius * math.sin(angle)
-            arc_y = -turn_sign * self.radius * (1.0 - math.cos(angle))
-            arc_yaw = turn_sign * angle
+            if turn_sign == 0.0:
+                arc_x = -target_distance * sample / sample_count
+                arc_y = 0.0
+                arc_yaw = 0.0
+            else:
+                angle = self.heading_change * sample / sample_count
+                arc_x = -self.radius * math.sin(angle)
+                arc_y = -turn_sign * self.radius * (1.0 - math.cos(angle))
+                arc_yaw = turn_sign * angle
             for body_x, body_y in footprint_points:
                 local_x = (
                     arc_x
@@ -243,13 +332,93 @@ class ReverseArcController(Node):
                     + math.sin(self.yaw) * local_x
                     + math.cos(self.yaw) * local_y
                 )
-                cost = self.cost_at(world_x, world_y)
+                cost = (
+                    self.cost_at(world_x, world_y)
+                    if self.costmap is not None else 0)
                 maximum_cost = max(maximum_cost, cost)
                 total_cost += cost
                 if cost >= 90:
                     lethal_samples += 1
 
-        return (lethal_samples, maximum_cost, total_cost)
+            if any(
+                self.point_inside_footprint(
+                    point_x, point_y, arc_x, arc_y, arc_yaw)
+                for point_x, point_y in scan_points
+            ):
+                lethal_samples += 1
+                maximum_cost = 100
+                total_cost += 100
+
+        return (lethal_samples, maximum_cost, total_cost, duration)
+
+    def scan_points(self):
+        """Return finite lidar hits in the current boat frame."""
+        if self.scan is None:
+            return []
+        points = []
+        angle = self.scan.angle_min
+        for distance in self.scan.ranges:
+            if (
+                math.isfinite(distance)
+                and self.scan.range_min <= distance <= self.scan.range_max
+            ):
+                points.append((
+                    distance * math.cos(angle),
+                    distance * math.sin(angle),
+                ))
+            angle += self.scan.angle_increment
+        return points
+
+    def point_inside_footprint(self, point_x, point_y, pose_x, pose_y, yaw):
+        """Return whether a scan hit intersects a candidate boat footprint."""
+        dx = point_x - pose_x
+        dy = point_y - pose_y
+        body_x = math.cos(yaw) * dx + math.sin(yaw) * dy
+        body_y = -math.sin(yaw) * dx + math.cos(yaw) * dy
+        return (
+            abs(body_x) <= self.footprint_half_length
+            and abs(body_y) <= self.footprint_half_width
+        )
+
+    def front_blocked(self):
+        """Return whether lethal cost occupies the recovery corridor ahead."""
+        if self.scan_front_blocked():
+            return True
+        if self.costmap is None or self.position is None:
+            return False
+        step = max(self.costmap.info.resolution, 0.05)
+        forward = step
+        while forward <= self.front_obstacle_distance:
+            lateral = -self.front_obstacle_half_width
+            while lateral <= self.front_obstacle_half_width:
+                world_x = self.position[0] + (
+                    math.cos(self.yaw) * forward
+                    - math.sin(self.yaw) * lateral)
+                world_y = self.position[1] + (
+                    math.sin(self.yaw) * forward
+                    + math.cos(self.yaw) * lateral)
+                if self.cost_at(world_x, world_y) >= 90:
+                    return True
+                lateral += step
+            forward += step
+        return False
+
+    def scan_front_blocked(self):
+        """Detect an obstacle in the forward corridor directly from lidar."""
+        if self.scan is None:
+            return False
+        angle = self.scan.angle_min
+        for distance in self.scan.ranges:
+            if math.isfinite(distance) and self.scan.range_min <= distance:
+                forward = distance * math.cos(angle)
+                lateral = distance * math.sin(angle)
+                if (
+                    0.0 < forward <= self.front_obstacle_distance
+                    and abs(lateral) <= self.front_obstacle_half_width
+                ):
+                    return True
+            angle += self.scan.angle_increment
+        return False
 
     def cost_at(self, world_x, world_y):
         """Read one world-coordinate cell from the rolling occupancy grid."""
@@ -276,12 +445,12 @@ class ReverseArcController(Node):
                 self.command_pub.publish(Twist())
                 self.state = 'completed'
                 return
-            command = Twist()
-            command.linear.x = self.forward_speed
-            self.command_pub.publish(command)
+            # Wait for a freshly computed path. Moving blindly during planner
+            # recovery can undo the clearance just created by the arc.
+            self.command_pub.publish(Twist())
             return
 
-        if self.state != 'arc':
+        if self.state != 'maneuver':
             return
 
         elapsed = (self.get_clock().now() - self.start_time).nanoseconds / 1e9
@@ -291,38 +460,46 @@ class ReverseArcController(Node):
             self.state = 'completed'
             return
 
-        target_distance = self.radius * self.heading_change
+        target_distance = (
+            self.straight_reverse_distance
+            if self.maneuver_kind == 'straight'
+            else self.radius * self.heading_change)
         distance_done = self.distance >= target_distance - self.distance_tolerance
-        heading_done = self.heading >= self.heading_change - self.heading_tolerance
+        heading_done = (
+            self.maneuver_kind == 'straight'
+            or self.heading >= self.heading_change - self.heading_tolerance)
         if distance_done and heading_done:
             self.get_logger().info(
-                'Reverse arc complete: %.2f m, %.1f deg in %.1f s'
-                % (self.distance, math.degrees(self.heading), elapsed)
+                'Reverse manoeuvre complete: kind=%s, %.2f m, %.1f deg in %.1f s'
+                % (self.maneuver_kind, self.distance,
+                   math.degrees(self.heading), elapsed)
             )
             self.state = 'forward'
             self.start_time = self.get_clock().now()
             # A plan generated during the forced arc starts from an obsolete
             # pose. Wait for the BT's next plan so Pure Pursuit resets its
             # pruning state and cannot latch onto an old Reeds-Shepp loop.
-            self.required_plan_generation = self.plan_generation + 1
-            command = Twist()
-            command.linear.x = self.forward_speed
-            self.command_pub.publish(command)
+            # BackUp may complete just before the physical arc settles, so its
+            # retry can publish the new path during these final tenths. That
+            # path is already based on the recovered pose and is valid.
+            self.required_plan_generation = self.arc_start_plan_generation + 1
+            self.command_pub.publish(Twist())
             return
-
-        desired_heading = min(self.distance / self.radius, self.heading_change)
-        heading_error = desired_heading - self.heading
-        nominal_angular = self.reverse_speed / self.radius
-        angular_command = (
-            self.angular_feedforward_gain * nominal_angular
-            + self.heading_gain * heading_error
-        )
-        angular_command = max(
-            0.0, min(self.max_angular_command, angular_command))
 
         command = Twist()
         command.linear.x = -self.reverse_speed
-        command.angular.z = self.turn_sign * angular_command
+        if self.maneuver_kind != 'straight':
+            desired_heading = min(
+                self.distance / self.radius, self.heading_change)
+            heading_error = desired_heading - self.heading
+            nominal_angular = self.reverse_speed / self.radius
+            angular_command = (
+                self.angular_feedforward_gain * nominal_angular
+                + self.heading_gain * heading_error
+            )
+            angular_command = max(
+                0.0, min(self.max_angular_command, angular_command))
+            command.angular.z = self.turn_sign * angular_command
         self.command_pub.publish(command)
 
 

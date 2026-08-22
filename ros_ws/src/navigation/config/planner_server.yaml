@@ -6,28 +6,13 @@
 
     planner_plugins: ["GridBased"]
     GridBased:
-      plugin: "nav2_smac_planner::SmacPlannerHybrid"
-      motion_model_for_search: "REEDS_SHEPP"
-      # Normal forward thrust sustains a radius of about five metres at
-      # 0.25 m/s. The dedicated high-differential reverse escape remains a
-      # separate two-metre manoeuvre.
-      minimum_turning_radius: 5.0
-      # Sailing is always preferable to station keeping. Reverse is only
-      # slightly dearer than forward, while changing between the two is
-      # deliberately expensive so a chosen manoeuvre is completed.
-      reverse_penalty: 1.05
-      change_penalty: 0.5
-      # Curves remain cheap: the boat should steer while making way instead
-      # of relying on differential-thrust spins.
-      non_straight_penalty: 1.05
-      # Give open water enough weight to produce a comfortably wide bypass.
-      cost_penalty: 4.0
-      analytic_expansion_max_length: 15.0
-      angle_quantization_bins: 72
+      # NavFn uses the costmap potential directly and produces a shortest,
+      # forward-only path without Theta*'s long interpolation artefacts.
+      plugin: "nav2_navfn_planner::NavfnPlanner"
       tolerance: 0.25
-      max_planning_time: 2.0
+      use_astar: true
       allow_unknown: true
-      smooth_path: true
+      use_final_approach_orientation: false
 
 /global_costmap:
   global_costmap:

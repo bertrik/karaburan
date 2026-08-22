@@ -1,10 +1,14 @@
 <?xml version="1.0"?>
 <sdf version="1.10">
   <world name="ocean">
-    <!-- Four simulated seconds per wall-clock second on the test machine. -->
+    <!-- Match the stable production physics cadence. Asking DART for 4000
+         steps/s caused reproducible ODE broad-phase crashes on longer runs. -->
     <physics name="accelerated" type="dart">
       <max_step_size>0.001</max_step_size>
-      <real_time_update_rate>4000</real_time_update_rate>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <dart>
+        <collision_detector>bullet</collision_detector>
+      </dart>
     </physics>
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
     <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>

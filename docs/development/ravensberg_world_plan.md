@@ -9,8 +9,8 @@ file focused on current and future work.
 
 Current milestone: Milestone 2 - first static scenario
 
-Status: Not started. Awaiting an explicit performance-option choice and user
-authorization. Do not implement Milestone 2 yet.
+Status: Technically complete using approved Option A cluster geometry. Awaiting
+explicit user acceptance; do not begin Milestone 3 yet.
 
 Last completed milestone: Milestone 1 - navigable and debuggable MVP, accepted
 by the user on 2026-08-21.
@@ -31,6 +31,12 @@ Working baseline:
   generation-first path.
 - Debug-only generation works without Gazebo and the same configuration drives
   SDF, metadata, and debug geometry.
+- Eleven explicitly positioned static scenario objects are present: three reed
+  patches, two lily-pad fields, three peat chunks, and three buoys.
+- One aggregate static scenario model keeps the total at 4 static models, 46
+  collisions, and 77 visuals; no stem or leaf has individual physics.
+- Metadata and the scenario SVG preserve semantic class, navigation class,
+  visual/collision geometry, safety margins, and object IDs.
 
 Important files:
 
@@ -54,6 +60,10 @@ Known issues:
   because its buoyancy system rejects polyline collision geometry and forty
   separate boxes exceeded the accepted performance budget.
 - The bottom is flat; bathymetry belongs to Milestone 4.
+- Static object positions are explicit; procedural seed-based placement and
+  route validation belong to Milestone 3.
+- Cluster visuals are deliberately abstract, and lily fields rely on semantic
+  navigation extents rather than Gazebo collisions.
 - The optional Leaflet UI still uses the legacy WGS84 origin. Leave `with_map`
   disabled for Ravensberg until the UI becomes scenario-origin aware.
 - SVG labels are selective and proximity-filtered; metadata IDs and polygons
@@ -63,8 +73,8 @@ Known issues:
 - The repository contains unrelated existing/concurrent working-tree changes
   and untracked `20260818-logfiles/`; preserve them and do not stage them.
 
-Next proposed step: user selects Option A below and explicitly authorizes only
-Milestone 2 with static reed, lily-pad, peat-chunk, and buoy positions.
+Next proposed step: user inspects the generated scenario SVG or Gazebo world and
+accepts Milestone 2, after which Milestone 3 can be proposed for implementation.
 
 Do not continue beyond this step without user approval.
 
@@ -116,37 +126,26 @@ Milestone 1 verification:
 - At each milestone end, update documentation and this plan, report tests and
   performance, propose exactly one next step, and stop for approval.
 
-## Milestone 2 performance choice
+## Milestone 2 implementation pending acceptance
 
-Choose one option before implementing static scenario objects:
-
-### Option A - cluster geometry (recommended)
+The user selected Option A - cluster geometry:
 
 - One semantic/configuration object per reed or lily patch.
 - One inexpensive visual cluster and at most one simple collision/navigation
   shape per patch; no physics per stem or leaf.
 - Peat chunks and buoys use low-poly visuals and simple hard collisions.
 - Lowest entity and physics load; enough detail for planning and sensor tests.
-
-### Option B - richer clustered visuals
-
-- Multiple visual elements inside each reed/lily patch, still one semantic and
-  collision/navigation shape per patch.
-- Better appearance and LiDAR diversity at moderate rendering cost.
-- No physics per stem or leaf.
-
-### Option C - individual models
-
-- Many separate reed stems or lily leaves with individual entities/collisions.
-- Highest visual detail, but large rendering, physics, and spawn-time cost.
-- Not recommended for autonomous-navigation testing.
+- Implemented counts: 3 reeds, 2 lily fields, 3 peat chunks, and 3 buoys.
+- Navigation extents, including margins, are validated entirely within water.
+- Focused validation: 7 Milestone 2 scenario tests passed and `ament_flake8` was
+  clean. The complete simulation package ran 13 tests successfully.
+- Required clean full CI: the no-cache image build succeeded; 53 repository
+  tests ran with 0 errors and 0 failures, and launch/generator/MCAP checks passed.
+- Runtime comparison with the same boat and sensors: mean RTF 0.896 versus 0.957
+  for the Milestone 1 baseline (approximately 6.4% lower).
 
 ## Remaining active roadmap
 
-- Milestone 2: explicitly positioned reeds (`REED_ZONE`, `AVOID_ZONE`), lily-pad
-  fields (`LILY_PAD_FIELD`, `STATIC_SOFT_OBSTACLE`), peat chunks (`PEAT_CHUNK`,
-  `STATIC_HARD_OBSTACLE`), and buoys (`BUOY`, `STATIC_HARD_OBSTACLE`) in config,
-  metadata, debug output, and navigation semantics.
 - Milestone 3: seed-reproducible procedural placement, water/shore/obstacle
   distance queries, and occupancy-grid plus A* start-to-goal validation.
 - Milestone 4: smooth 1-3 m bathymetry, predominantly 1.8-2.3 m, with narrow

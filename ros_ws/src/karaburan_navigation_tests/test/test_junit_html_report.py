@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ElementTree
 
-from karaburan_navigation_tests.junit_html_report import merge_junit
+from karaburan_navigation_tests.junit_html_report import merge_junit, render_html
 
 
 def _write_suite(path, name, failed=False):
@@ -43,3 +43,21 @@ def test_merge_junit_turns_missing_input_into_red_test(tmp_path):
     failure = suite.find('./testcase/failure')
     assert failure.attrib['type'] == 'MissingTestArtifact'
     assert 'colcon.log' in failure.text
+
+
+def test_html_report_embeds_success_and_failure_evidence(tmp_path):
+    junit = tmp_path / 'junit.xml'
+    report = tmp_path / 'report.html'
+    _write_suite(junit, 'maneuvers')
+    (tmp_path / 'passing.svg').write_text(
+        '<svg><text>PASS - passing</text></svg>')
+    (tmp_path / 'failing.svg').write_text(
+        '<svg><text>FAIL - failing</text></svg>')
+
+    render_html(junit, report)
+
+    document = report.read_text()
+    assert 'Evidence images' in document
+    assert 'passing</strong> &mdash; PASS' in document
+    assert 'failing</strong> &mdash; FAIL' in document
+    assert document.count('data:image/svg+xml;base64,') == 2

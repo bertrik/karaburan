@@ -14,9 +14,10 @@
         <pose>0 0 0.065 0 0 0</pose>
       </visual>
 
-      <!-- Massa/inertie van de romp; COM iets lager dan midden -->
+      <!-- Ballasted displacement hull: the centre of mass is below the
+           centre of buoyancy so a gentle yaw turn produces little heel. -->
       <inertial>
-        <pose>0 0 -0.02 0 0 0</pose>
+        <pose>0 0 -0.05 0 0 0</pose>
         <mass>2.0</mass>
         <inertia>
           <ixx>0.0666667</ixx>
@@ -54,8 +55,9 @@
             <horizontal>
               <samples>720</samples>
               <resolution>1</resolution>
-              <min_angle>-1.570796</min_angle>  <!-- -90° -->
-              <max_angle> 1.570796</max_angle>  <!--  +90° -->
+              <!-- A rotating marine lidar observes reverse clearance too. -->
+              <min_angle>-3.141593</min_angle>
+              <max_angle> 3.141593</max_angle>
             </horizontal>
             <vertical>
               <samples>1</samples>
@@ -87,8 +89,8 @@
     </inertial>
     <visual name="left_prop_vis">
       <geometry><cylinder><radius>0.025</radius><length>0.02</length></cylinder></geometry>
-      <!-- achter de romp (x<0), bakboord (y>0), op halve hoogte z=0.10 -->
-      <pose>-0.25 0.11 0.065 0 0 0</pose>
+      <!-- Behind the hull and below the waterline, near the vertical COM. -->
+      <pose>-0.25 0.11 -0.04 0 0 0</pose>
     </visual>
     <!-- GEEN collision -> geen extra drijfkracht -->
   </link>
@@ -97,7 +99,7 @@
     <parent>hull</parent>
     <child>left_prop</child>
     <!-- as = +X in child-frame: “vooruit” is +thrust -->
-    <pose>-0.25 0.11 0.065 0 0 0</pose>
+    <pose>-0.25 0.11 -0.04 0 0 0</pose>
     <axis>
       <xyz>1 0 0</xyz>
       <limit><lower>-1e16</lower><upper>1e16</upper></limit>
@@ -116,18 +118,16 @@
     </inertial>
     <visual name="right_prop_vis">
       <geometry><cylinder><radius>0.025</radius><length>0.02</length></cylinder></geometry>
-      <pose>-0.25 -0.11 0.065 0 0 0</pose>
+      <pose>-0.25 -0.11 -0.04 0 0 0</pose>
     </visual>
   </link>
 
   <joint name="right_prop_joint" type="revolute">
     <parent>hull</parent>
     <child>right_prop</child>
-    <pose>-0.25 -0.11 0.065 0 0 0</pose>
+    <pose>-0.25 -0.11 -0.04 0 0 0</pose>
     <axis>
-      <!-- Counter-rotating starboard propeller. Its negative command still
-           produces forward thrust because both axis and velocity are reversed. -->
-      <xyz>-1 0 0</xyz>
+      <xyz>1 0 0</xyz>
       <limit><lower>-1e16</lower><upper>1e16</upper></limit>
     </axis>
   </joint>
@@ -165,7 +165,7 @@
 
       <xUabsU>-0.6</xUabsU>  <yVabsV>-1.0</yVabsV>  <zWabsW>-9.0</zWabsW>
 
-      <kP>-4.0</kP>      <kPabsP>-10.0</kPabsP>   <!-- roll -->
+      <kP>-12.0</kP>     <kPabsP>-30.0</kPabsP>   <!-- roll -->
       <mQ>-4.0</mQ>      <mQabsQ>-10.0</mQabsQ>   <!-- pitch -->
       <nR>-2.0</nR>      <nRabsR>-3.0</nRabsR>   <!-- yaw -->
     </plugin>

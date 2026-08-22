@@ -13,7 +13,10 @@ export ROS2CLI_NO_DAEMON=1
 export RCUTILS_COLORIZED_OUTPUT=0
 export GZ_LOG_COLOR=0
 
-report_root="${1:-./maneuver-test-results/$(date +%Y%m%d%H%M%S)}"
+package_prefix="$(ros2 pkg prefix karaburan_navigation_tests)"
+workspace_root="$(dirname "$(dirname "$package_prefix")")"
+repository_root="$(dirname "$workspace_root")"
+report_root="${1:-$repository_root/test-results-$(date +%Y%m%d%H%M%S)}"
 shift || true
 mkdir -p "$report_root"
 status=0
@@ -38,12 +41,21 @@ else
     follow_straight
     follow_arc_left
     follow_arc_right
-    obstacle_port
-    obstacle_starboard
+    planner_direct
+    planner_island
+    island_navigation
+    open_obstacle_port
+    open_obstacle_starboard
+    harbour_reverse_stern_port
+    harbour_reverse_stern_starboard
+    harbour_reverse_straight
+    harbour_dock_stern_port
+    harbour_dock_stern_starboard
+    harbour_dock_straight
   )
 fi
 
-valid_scenarios=' actuator_straight actuator_turn_left actuator_turn_right follow_straight follow_arc_left follow_arc_right obstacle_port obstacle_starboard '
+valid_scenarios=' actuator_straight actuator_turn_left actuator_turn_right follow_straight follow_arc_left follow_arc_right planner_direct planner_island island_navigation open_obstacle_port open_obstacle_starboard harbour_reverse_stern_port harbour_reverse_stern_starboard harbour_reverse_straight harbour_dock_stern_port harbour_dock_stern_starboard harbour_dock_straight '
 for scenario in "${scenarios[@]}"; do
   if [[ "$valid_scenarios" != *" $scenario "* ]]; then
     echo "Unknown scenario: $scenario" >&2
@@ -71,6 +83,7 @@ for scenario in "${scenarios[@]}"; do
 
   echo "Running $scenario"
   setsid ros2 launch karaburan_navigation_tests maneuver_test.launch.py \
+    scenario:="$scenario" \
     >"$report_root/$scenario.launch.log" 2>&1 &
   launch_pid=$!
 
